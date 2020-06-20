@@ -96,10 +96,6 @@ class CarController(Logger):
 
           if button_to_press is not None:
             self.logger.info("From %s -> %s" % (str(current),str(target)))
-
-            #TODO: Is it +1 or -1 that does the trick?
-            new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter - 1, button_to_press, True)
-            new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter, button_to_press, True)
             new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter + 1, button_to_press, True)
             can_sends.append(new_msg)
 
