@@ -2,8 +2,9 @@
 import os
 import gc
 from cereal import car, log
+from common.android import ANDROID
 from common.numpy_fast import clip
-from common.realtime import sec_since_boot, set_realtime_priority, Ratekeeper, DT_CTRL
+from common.realtime import sec_since_boot, set_realtime_priority, set_core_affinity, Ratekeeper, DT_CTRL
 from common.profiler import Profiler
 from common.params import Params, put_nonblocking
 import cereal.messaging as messaging
@@ -36,20 +37,22 @@ LaneChangeState = log.PathPlan.LaneChangeState
 LaneChangeDirection = log.PathPlan.LaneChangeDirection
 EventName = car.CarEvent.EventName
 
+
 class Controls:
   def __init__(self, sm=None, pm=None, can_sock=None):
     gc.disable()
-    set_realtime_priority(3)
+    set_realtime_priority(53)
+    set_core_affinity(3)
 
     # Setup sockets
     self.pm = pm
     if self.pm is None:
-      self.pm = messaging.PubMaster(['sendcan', 'controlsState', 'carState', \
+      self.pm = messaging.PubMaster(['sendcan', 'controlsState', 'carState',
                                      'carControl', 'carEvents', 'carParams'])
 
     self.sm = sm
     if self.sm is None:
-      self.sm = messaging.SubMaster(['thermal', 'health', 'model', 'liveCalibration', \
+      self.sm = messaging.SubMaster(['thermal', 'health', 'model', 'liveCalibration',
                                      'dMonitoringState', 'plan', 'pathPlan', 'liveLocationKalman'])
 
     self.can_sock = can_sock
@@ -76,8 +79,8 @@ class Controls:
               internet_needed or not openpilot_enabled_toggle
 
     # detect sound card presence and ensure successful init
-    sounds_available = not os.path.isfile('/EON') or (os.path.isfile('/proc/asound/card0/state') \
-                            and open('/proc/asound/card0/state').read().strip() == 'ONLINE')
+    sounds_available = (not ANDROID or (os.path.isfile('/proc/asound/card0/state') and
+                        open('/proc/asound/card0/state').read().strip() == 'ONLINE'))
 
     car_recognized = self.CP.carName != 'mock'
     # If stock camera is disconnected, we loaded car controls and it's not dashcam mode
@@ -117,11 +120,11 @@ class Controls:
     self.v_cruise_kph_last = 0
     self.mismatch_counter = 0
     self.can_error_counter = 0
-    self.consecutive_can_error_count = 0
     self.last_blinker_frame = 0
     self.saturated_count = 0
+    self.distance_traveled = 0
     self.events_prev = []
-    self.current_alert_types = []
+    self.current_alert_types = [ET.PERMANENT]
 
     self.sm['liveCalibration'].calStatus = Calibration.INVALID
     self.sm['thermal'].freeSpace = 1.
@@ -129,7 +132,7 @@ class Controls:
     self.sm['dMonitoringState'].awarenessStatus = 1.
     self.sm['dMonitoringState'].faceDetected = False
 
-    self.startup_event = get_startup_event(car_recognized, controller_available, hw_type)
+    self.startup_event = get_startup_event(car_recognized, controller_available)
 
     if not sounds_available:
       self.events.add(EventName.soundsUnavailable, static=True)
@@ -139,13 +142,12 @@ class Controls:
       self.events.add(EventName.communityFeatureDisallowed, static=True)
     if self.read_only and not passive:
       self.events.add(EventName.carUnrecognized, static=True)
-    # if hw_type == HwType.whitePanda:
-    #   self.events.add(EventName.whitePandaUnsupported, static=True)
+    if hw_type == HwType.whitePanda:
+      self.events.add(EventName.whitePandaUnsupported, static=True)
 
     # controlsd is driven by can recv, expected at 100Hz
     self.rk = Ratekeeper(100, print_delay_threshold=None)
     self.prof = Profiler(False)  # off by default
-
 
   def update_events(self, CS):
     """Compute carEvents from carState"""
@@ -185,17 +187,12 @@ class Controls:
         self.events.add(EventName.preLaneChangeLeft)
       else:
         self.events.add(EventName.preLaneChangeRight)
-    elif self.sm['pathPlan'].laneChangeState in [LaneChangeState.laneChangeStarting, \
+    elif self.sm['pathPlan'].laneChangeState in [LaneChangeState.laneChangeStarting,
                                         LaneChangeState.laneChangeFinishing]:
       self.events.add(EventName.laneChange)
 
     if self.can_rcv_error or (not CS.canValid and self.sm.frame > 5 / DT_CTRL):
       self.events.add(EventName.canError)
-      self.consecutive_can_error_count += 1
-    else:
-      self.consecutive_can_error_count = 0
-    if self.consecutive_can_error_count > 2 / DT_CTRL:
-      self.events.add(EventName.canErrorPersistent)
     if self.mismatch_counter >= 200:
       self.events.add(EventName.controlsMismatch)
     if not self.sm.alive['plan'] and self.sm.alive['pathPlan']:
@@ -208,6 +205,9 @@ class Controls:
     if not self.sm['liveLocationKalman'].inputsOK and os.getenv("NOSENSOR") is None:
       if self.sm.frame > 5 / DT_CTRL:  # Give locationd some time to receive all the inputs
         self.events.add(EventName.sensorDataInvalid)
+    if not self.sm['liveLocationKalman'].gpsOK and (self.distance_traveled > 1000) and os.getenv("NOSENSOR") is None:
+      # Not show in first 1 km to allow for driving out of garage. This event shows after 5 minutes
+      self.events.add(EventName.noGps)
     if not self.sm['pathPlan'].paramsValid:
       self.events.add(EventName.vehicleModelInvalid)
     if not self.sm['liveLocationKalman'].posenetOK:
@@ -225,7 +225,6 @@ class Controls:
     if CS.brakePressed and self.sm['plan'].vTargetFuture >= STARTING_TARGET_SPEED \
        and not self.CP.radarOffCan and CS.vEgo < 0.3:
       self.events.add(EventName.noTarget)
-
 
   def data_sample(self):
     """Receive data from sockets and update carState"""
@@ -253,8 +252,9 @@ class Controls:
     if not self.sm['health'].controlsAllowed and self.enabled:
       self.mismatch_counter += 1
 
-    return CS
+    self.distance_traveled += CS.vEgo * DT_CTRL
 
+    return CS
 
   def state_transition(self, CS):
     """Compute conditional state transitions and execute actions on state transitions"""
@@ -331,7 +331,6 @@ class Controls:
     # Check if openpilot is engaged
     self.enabled = self.active or self.state == State.preEnabled
 
-
   def state_control(self, CS):
     """Given the state, this function returns an actuators packet"""
 
@@ -381,7 +380,6 @@ class Controls:
         self.events.add(EventName.steerSaturated)
 
     return actuators, v_acc_sol, a_acc_sol, lac_log
-
 
   def publish_logs(self, CS, start_time, actuators, v_acc, a_acc, lac_log):
     """Send actuators and hud commands to the car, send controlsstate and MPC logging"""

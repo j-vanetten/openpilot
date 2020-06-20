@@ -1,6 +1,8 @@
-Version 0.7.6.1 (2020-06-16)
+Version 0.8 (2020-xx-xx)
 ========================
-* Hotfix: update kernel on some comma twos (orders #8570-#8680)
+ * White panda is no longer supported, upgrade to comma two or black panda
+ * Improved vehicle model estimation using high precision localizer
+ * Improved thermal management on comma two
 
 Version 0.7.6 (2020-06-05)
 ========================

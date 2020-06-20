@@ -18,6 +18,7 @@ if arch == "aarch64" and not os.path.isdir("/system"):
   arch = "larch64"
 
 webcam = bool(ARGUMENTS.get("use_webcam", 0))
+QCOM_REPLAY = arch == "aarch64" and os.getenv("QCOM_REPLAY") is not None
 
 if arch == "aarch64" or arch == "larch64":
   lenv = {
@@ -56,7 +57,14 @@ if arch == "aarch64" or arch == "larch64":
     cxxflags = ["-DQCOM", "-mcpu=cortex-a57"]
     rpath = ["/system/vendor/lib64"]
 
+    if QCOM_REPLAY:
+      cflags += ["-DQCOM_REPLAY"]
+      cxxflags += ["-DQCOM_REPLAY"]
+
 else:
+  cflags = []
+  cxxflags = []
+
   lenv = {
     "PATH": "#external/bin:" + os.environ['PATH'],
   }
@@ -72,6 +80,8 @@ else:
       "/usr/local/lib",
       "/System/Library/Frameworks/OpenGL.framework/Libraries",
     ]
+    cflags.append("-DGL_SILENCE_DEPRECATION")
+    cxxflags.append("-DGL_SILENCE_DEPRECATION")
   else:
     libpath = [
       "#phonelibs/snpe/x86_64-linux-clang",
@@ -90,9 +100,6 @@ else:
 
   # allows shared libraries to work globally
   rpath = [os.path.join(os.getcwd(), x) for x in rpath]
-
-  cflags = []
-  cxxflags = []
 
 ccflags_asan = ["-fsanitize=address", "-fno-omit-frame-pointer"] if GetOption('asan') else []
 ldflags_asan = ["-fsanitize=address"] if GetOption('asan') else []
@@ -179,7 +186,7 @@ def abspath(x):
 
 # still needed for apks
 zmq = 'zmq'
-Export('env', 'arch', 'zmq', 'SHARED', 'webcam')
+Export('env', 'arch', 'zmq', 'SHARED', 'webcam', 'QCOM_REPLAY')
 
 # cereal and messaging are shared with the system
 SConscript(['cereal/SConscript'])
@@ -207,11 +214,11 @@ SConscript(['opendbc/can/SConscript'])
 
 SConscript(['common/SConscript'])
 SConscript(['common/kalman/SConscript'])
+SConscript(['common/transformations/SConscript'])
 SConscript(['phonelibs/SConscript'])
 
-if arch != "Darwin":
-  SConscript(['selfdrive/camerad/SConscript'])
-  SConscript(['selfdrive/modeld/SConscript'])
+SConscript(['selfdrive/camerad/SConscript'])
+SConscript(['selfdrive/modeld/SConscript'])
 
 SConscript(['selfdrive/controls/lib/cluster/SConscript'])
 SConscript(['selfdrive/controls/lib/lateral_mpc/SConscript'])
