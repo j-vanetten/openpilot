@@ -5,12 +5,16 @@ from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD
 
+ButtonType = car.CarState.ButtonEvent.Type
 
 class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["GEAR"]['PRNDL']
+    self.prevResumeCruiseButton = 0
+    self.prevAccelCruiseButton = 0
+    self.prevDecelCruiseButton = 0
 
   def update(self, cp, cp_cam):
 
@@ -62,6 +66,21 @@ class CarState(CarStateBase):
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]['CAR_MODEL']
     self.lkas_status_ok = cp_cam.vl["LKAS_HEARTBIT"]['LKAS_STATUS_OK']
 
+    # Track buttons
+    self.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
+
+    self.resumeCruiseButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_RESUME'])
+    self.resumeCruiseButtonChanged = (self.prevResumeCruiseButton != self.resumeCruiseButton)
+    self.prevResumeCruiseButton = self.resumeCruiseButton
+
+    self.accelCruiseButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_SPEED_INC'])
+    self.accelCruiseButtonChanged = (self.prevAccelCruiseButton != self.accelCruiseButton)
+    self.prevAccelCruiseButton = self.accelCruiseButton
+
+    self.decelCruiseButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_SPEED_DEC'])
+    self.decelCruiseButtonChanged = (self.prevDecelCruiseButton != self.decelCruiseButton)
+    self.prevDecelCruiseButton = self.decelCruiseButton
+
     return ret
 
   @staticmethod
@@ -93,6 +112,10 @@ class CarState(CarStateBase):
       ("COUNTER", "EPS_STATUS", -1),
       ("TRACTION_OFF", "TRACTION_BUTTON", 0),
       ("SEATBELT_DRIVER_UNLATCHED", "SEATBELT_STATUS", 0),
+      ("COUNTER", "WHEEL_BUTTONS", -1),
+      ("ACC_RESUME", "WHEEL_BUTTONS", 0),
+      ("ACC_SPEED_INC", "WHEEL_BUTTONS", 0),
+      ("ACC_SPEED_DEC", "WHEEL_BUTTONS", 0),
     ]
 
     checks = [
@@ -103,6 +126,7 @@ class CarState(CarStateBase):
       ("WHEEL_SPEEDS", 50),
       ("STEERING", 100),
       ("ACC_2", 50),
+      ("WHEEL_BUTTONS", 50),
     ]
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)

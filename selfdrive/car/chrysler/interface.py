@@ -4,6 +4,7 @@ from selfdrive.car.chrysler.values import Ecu, ECU_FINGERPRINT, CAR, FINGERPRINT
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
 
+ButtonType = car.CarState.ButtonEvent.Type
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
@@ -23,6 +24,9 @@ class CarInterface(CarInterfaceBase):
 
     # Chrysler port is a community feature, since we don't own one to test
     ret.communityFeature = True
+
+    # use ACC to control the speed
+    ret.enableACCAccelControl = True
 
     # Speed conversion:              20, 45 mph
     ret.wheelbase = 3.089  # in meters for Pacifica Hybrid 2017
@@ -72,7 +76,24 @@ class CarInterface(CarInterfaceBase):
     # speeds
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
-    ret.buttonEvents = []
+    # accel/decel button presses
+    buttonEvents = []
+    if self.CS.accelCruiseButton or self.CS.accelCruiseButtonChanged:
+      be = car.CarState.ButtonEvent.new_message()
+      be.type = ButtonType.accelCruise
+      be.pressed = self.CS.accelCruiseButton
+      buttonEvents.append(be)
+    if self.CS.decelCruiseButton or self.CS.decelCruiseButtonChanged:
+      be = car.CarState.ButtonEvent.new_message()
+      be.type = ButtonType.decelCruise
+      be.pressed = self.CS.decelCruiseButton
+      buttonEvents.append(be)
+    if self.CS.resumeCruiseButton or self.CS.resumeCruiseButtonChanged:
+      be = car.CarState.ButtonEvent.new_message()
+      be.type = ButtonType.resumeCruise
+      be.pressed = self.CS.resumeCruiseButton
+      buttonEvents.append(be)
+    ret.buttonEvents = buttonEvents
 
     # events
     events = self.create_common_events(ret, extra_gears=[car.CarState.GearShifter.low],
@@ -95,6 +116,6 @@ class CarInterface(CarInterfaceBase):
     if (self.CS.frame == -1):
       return []  # if we haven't seen a frame 220, then do not update.
 
-    can_sends = self.CC.update(c.enabled, self.CS, c.actuators, c.cruiseControl.cancel, c.hudControl.visualAlert)
+    can_sends = self.CC.update(c.enabled, self.CS, c.actuators, c.cruiseControl.cancel, c.hudControl.visualAlert, self.CS.out.cruiseState.speed, c.cruiseControl.targetSpeed)
 
     return can_sends

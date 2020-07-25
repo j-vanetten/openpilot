@@ -295,6 +295,7 @@ struct CarControl {
     override @1: Bool;
     speedOverride @2: Float32;
     accelOverride @3: Float32;
+    targetSpeed @4 :Float32; # The target speed for the vehicle
   }
 
   struct HUDControl {
@@ -405,6 +406,8 @@ struct CarParams {
   communityFeature @46: Bool;  # true if a community maintained feature is detected
   fingerprintSource @49: FingerprintSource;
   networkLocation @50 :NetworkLocation;  # Where Panda/C2 is integrated into the car's CAN network
+
+  enableACCAccelControl @51 :Bool; # Use ACC to control speed
 
   struct LateralParams {
     torqueBP @0 :List(Int32);

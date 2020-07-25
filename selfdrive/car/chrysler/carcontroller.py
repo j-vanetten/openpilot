@@ -1,8 +1,11 @@
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
-                                               create_wheel_buttons
+                                               create_wheel_buttons_command
 from selfdrive.car.chrysler.values import CAR, SteerLimitParams
 from opendbc.can.packer import CANPacker
+from selfdrive.config import Conversions as CV
+
+MIN_ACC_SPEED_MPH = 20
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -14,10 +17,12 @@ class CarController():
     self.alert_active = False
     self.gone_fast_yet = False
     self.steer_rate_limited = False
+    self.enable_acc_accel_control = CP.enableACCAccelControl
+    self.last_button_counter = -1
 
     self.packer = CANPacker(dbc_name)
 
-  def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert):
+  def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, acc_speed, target_speed):
     # this seems needed to avoid steering faults and to force the sync with the EPS counter
     frame = CS.lkas_counter
     if self.prev_frame == frame:
@@ -48,9 +53,28 @@ class CarController():
     #*** control msgs ***
 
     if pcm_cancel_cmd:
-      # TODO: would be better to start from frame_2b3
-      new_msg = create_wheel_buttons(self.packer, self.ccframe, cancel=True)
+      new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter, 'ACC_CANCEL', True)
       can_sends.append(new_msg)
+      
+    elif self.enable_acc_accel_control and enabled:
+      if CS.buttonCounter != self.last_button_counter:
+        self.last_button_counter = CS.buttonCounter
+        # Move the adaptive curse control to the target speed
+        if self.ccframe % 10 == 0: # press/not-pressed
+          # Using MPH since it's more coarse so there should be less wobble on the speed setting
+          current = round(acc_speed * CV.MS_TO_MPH)
+          target = round(target_speed * CV.MS_TO_MPH)
+
+          button_to_press = None
+          if target < current and current > MIN_ACC_SPEED_MPH:
+            button_to_press ='ACC_SPEED_DEC'
+          elif target > current:
+            button_to_press ='ACC_SPEED_INC'
+
+          if button_to_press is not None:
+            new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter + 1, button_to_press, True)
+            can_sends.append(new_msg)
+
 
     # LKAS_HEARTBIT is forwarded by Panda so no need to send it here.
     # frame is 100Hz (0.01s period)
