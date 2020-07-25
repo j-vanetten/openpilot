@@ -7,7 +7,7 @@ V_CRUISE_MAX = 144
 V_CRUISE_MIN = 8
 V_CRUISE_DELTA = 8
 V_CRUISE_ENABLE_MIN = 40
-
+V_CRUISE_ENABLE_MIN_HACC = 32  # TODO: Should come from CP
 
 class MPC_COST_LAT:
   PATH = 1.0
@@ -32,7 +32,7 @@ def get_steer_max(CP, v_ego):
 
 
 def update_v_cruise(v_cruise_kph, buttonEvents, enabled, enableACCAccelControl):
-  cruiseMin = V_CRUISE_MIN if enableACCAccelControl else 32
+  cruiseMin = V_CRUISE_MIN if not enableACCAccelControl else V_CRUISE_ENABLE_MIN_HACC
 
   # handle button presses. TODO: this should be in state_control, but a decelCruise press
   # would have the effect of both enabling and changing speed is checked after the state transition
@@ -58,5 +58,5 @@ def initialize_v_cruise(v_ego, buttonEvents, v_cruise_last, enableACCAccelContro
       elif b.type == "accelCruise":
         return v_cruise_last
 
-  cruiseMinEnable = V_CRUISE_ENABLE_MIN if enableACCAccelControl else 32
+  cruiseMinEnable = V_CRUISE_ENABLE_MIN if not enableACCAccelControl else V_CRUISE_ENABLE_MIN_HACC
   return int(round(clip(v_ego * CV.MS_TO_KPH, cruiseMinEnable, V_CRUISE_MAX)))
