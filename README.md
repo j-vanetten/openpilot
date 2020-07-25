@@ -20,9 +20,14 @@ OpenPilot will change your ACC speed as needed, not going above the max speed sh
 ### Next Steps
 * OpenPilot is staying back from the lead car even more than what ACC's max distance setting uses.  Close the gap some, so ACC is used more that OP for following distance.
 * Don't slow quite as much on corners.  Seems overly aggressive at slowing down.
+
+### Next Next Steps
 * Use OpenStreetMap to get speed limits
 * Use OpenStreetMap to detect curves even sooner
-  
+
+### Final Steps
+* Can this eventually find it's way into OpenPilot?
+
 ---
 
 [![](https://i.imgur.com/UelUjKAh.png)](#)
