@@ -3,6 +3,7 @@ import math
 import numpy as np
 from common.params import Params
 from common.numpy_fast import interp
+from common.op_params import opParams
 
 import cereal.messaging as messaging
 from cereal import car
@@ -39,7 +40,6 @@ _A_TOTAL_MAX_BP = [20., 40.]
 # 75th percentile
 SPEED_PERCENTILE_IDX = 7
 
-
 def calc_cruise_accel_limits(v_ego, following):
   a_cruise_min = interp(v_ego, _A_CRUISE_MIN_BP, _A_CRUISE_MIN_V)
 
@@ -65,6 +65,7 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
 
 class Planner():
   def __init__(self, CP):
+    self.op_params = opParams()
     self.CP = CP
 
     self.mpc1 = LongitudinalMpc(1)
@@ -226,7 +227,7 @@ class Planner():
     self.first_loop = False
 
   def max_turning_speed(self, sm, v_ego):
-    if len(sm['model'].path.poly):
+    if len(sm['model'].path.poly) and self.op_params.get('slow_in_turns'):
       path = list(sm['model'].path.poly)
 
       # Curvature of polynomial https://en.wikipedia.org/wiki/Curvature#Curvature_of_the_graph_of_a_function
@@ -240,6 +241,6 @@ class Planner():
       a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
       v_curvature = np.sqrt(a_y_max / np.clip(np.abs(curv), 1e-4, None))
       model_speed = np.min(v_curvature)
-      return max(20.0 * CV.MPH_TO_MS, model_speed * 1.25)  # 25% faster than computed
+      return max(20.0 * CV.MPH_TO_MS, model_speed * self.op_params.get('slow_in_turns_ratio'))  # 25% faster than computed
     else:
       return MAX_SPEED
