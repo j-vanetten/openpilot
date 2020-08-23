@@ -3,6 +3,7 @@ import math
 import numpy as np
 from common.params import Params
 from common.numpy_fast import interp
+from common.op_params import opParams
 
 import cereal.messaging as messaging
 from cereal import car
@@ -67,6 +68,9 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
 class Planner():
   def __init__(self, CP):
     self.CP = CP
+
+    self.op_params = opParams()
+    self.slow_in_turn = self.op_params.get('slow_in_turn')
 
     self.mpc1 = LongitudinalMpc(1)
     self.mpc2 = LongitudinalMpc(2)
@@ -238,7 +242,7 @@ class Planner():
     self.first_loop = False
 
   def max_turning_speed(self, sm, v_ego):
-    if len(sm['model'].path.poly):
+    if slow_in_turn and len(sm['model'].path.poly):
       path = list(sm['model'].path.poly)
 
       # Curvature of polynomial https://en.wikipedia.org/wiki/Curvature#Curvature_of_the_graph_of_a_function
