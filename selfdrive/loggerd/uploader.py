@@ -18,11 +18,13 @@ from common import android
 from common.params import Params
 from common.api import Api
 from common.xattr import getxattr, setxattr
+from common.op_params import opParams
 
 UPLOAD_ATTR_NAME = 'user.upload'
 UPLOAD_ATTR_VALUE = b'1'
 
 fake_upload = os.getenv("FAKEUPLOAD") is not None
+upload_on_hotspot = opParams().get('upload_on_hotspot')
 
 def raise_on_thread(t, exctype):
   '''Raises an exception in the threads with id tid'''
@@ -255,7 +257,9 @@ def uploader_fn(exit_event):
     if exit_event.is_set():
       return
 
-    d = uploader.next_file_to_upload(with_raw=allow_raw_upload and should_upload)
+    d = None
+    if should_upload or upload_on_hotspot:  # only upload on wifi
+      d = uploader.next_file_to_upload(with_raw=allow_raw_upload and should_upload)
     if d is None:  # Nothing to upload
       offroad = params.get("IsOffroad") == b'1'
       time.sleep(60 if offroad else 5)

@@ -148,6 +148,8 @@ class CarInterface(CarInterfaceBase):
     ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0], [0]]
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     ret.lateralTuning.pid.kf = 0.00006  # conservative feed-forward
+    ret.lateralTuning.pid.kdBP = [0., 18., 27., 35.]  # derivative disabled for now
+    ret.lateralTuning.pid.kdV = [0., 0., 0., 0.]
 
     eps_modified = False
     for fw in car_fw:

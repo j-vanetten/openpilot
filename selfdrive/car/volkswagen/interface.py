@@ -38,6 +38,8 @@ class CarInterface(CarInterfaceBase):
 
       ret.lateralTuning.pid.kpBP = [0.]
       ret.lateralTuning.pid.kiBP = [0.]
+      ret.lateralTuning.pid.kdBP = [0., 18., 27., 35.]  # derivative disabled for now
+      ret.lateralTuning.pid.kdV = [0., 0., 0., 0.]
 
       ret.mass = 1500 + STD_CARGO_KG
       ret.wheelbase = 2.64

@@ -11,6 +11,7 @@ import datetime
 import textwrap
 from typing import Dict, List
 from selfdrive.swaglog import cloudlog, add_logentries_handler
+from common.op_params import opParams
 
 
 from common.basedir import BASEDIR, PARAMS
@@ -19,8 +20,11 @@ WEBCAM = os.getenv("WEBCAM") is not None
 sys.path.append(os.path.join(BASEDIR, "pyextra"))
 os.environ['BASEDIR'] = BASEDIR
 
-TOTAL_SCONS_NODES = 1140
+TOTAL_SCONS_NODES = 1020
 prebuilt = os.path.exists(os.path.join(BASEDIR, 'prebuilt'))
+
+op_params = opParams()
+no_ota_updates = op_params.get('no_ota_updates') or os.path.exists('/data/no_ota_updates')
 
 # Create folders needed for msgq
 try:
@@ -94,7 +98,7 @@ if not prebuilt:
 
     nproc = os.cpu_count()
     j_flag = "" if nproc is None else "-j%d" % (nproc - 1)
-    scons = subprocess.Popen(["scons", j_flag], cwd=BASEDIR, env=env, stderr=subprocess.PIPE)
+    scons = subprocess.Popen(["scons", "-j8"], cwd=BASEDIR, env=env, stderr=subprocess.PIPE)
 
     compile_output = []
 
@@ -193,6 +197,8 @@ managed_processes = {
   "dmonitoringmodeld": ("selfdrive/modeld", ["./dmonitoringmodeld"]),
   "modeld": ("selfdrive/modeld", ["./modeld"]),
   "driverview": "selfdrive.monitoring.driverview",
+
+  "lanespeedd": "selfdrive.controls.lib.lane_speed",
 }
 
 daemon_processes = {
@@ -226,9 +232,10 @@ if ANDROID:
   persistent_processes += [
     'logcatd',
     'tombstoned',
-    'updated',
     'deleter',
   ]
+if not no_ota_updates:
+  persistent_processes.append('updated')
 
 car_started_processes = [
   'controlsd',
@@ -243,6 +250,7 @@ car_started_processes = [
   'proclogd',
   'ubloxd',
   'locationd',
+  'lanespeedd',
 ]
 
 if WEBCAM:
@@ -472,8 +480,8 @@ def manager_thread():
 
     if msg.thermal.freeSpace < 0.05:
       logger_dead = True
-
-    if msg.thermal.started and "driverview" not in running:
+    run_all = False
+    if (msg.thermal.started and "driverview" not in running) or run_all:
       for p in car_started_processes:
         if p == "loggerd" and logger_dead:
           kill_managed_process(p)
