@@ -60,7 +60,7 @@ class CarController():
       if CS.buttonCounter != self.last_button_counter:
         self.last_button_counter = CS.buttonCounter
         # Move the adaptive curse control to the target speed
-        if self.ccframe % 10 == 0: # press/not-pressed
+        if self.ccframe % 10 <= 3: # press for 40ms
           # Using MPH since it's more coarse so there should be less wobble on the speed setting
           current = round(acc_speed * CV.MS_TO_MPH)
           target = round(target_speed * CV.MS_TO_MPH)
