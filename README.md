@@ -1,4 +1,30 @@
-Stock Additions 0.7.7
+# FCA OpenPilot 0.7.7 with Hybrid Adaptive Cruse Control and [ShaneSmiskol Stock Additions](https://github.com/ShaneSmiskol)
+
+## What is this Fork?
+This fork takes [ShaneSmiskol's Stock Additions](https://github.com/ShaneSmiskol) and adds my Hybrid Adaptive Cruse Control feature.
+Hybrid Adaptive Cruse Control combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC). 
+It does this by changing the ACC to match the value OpenPilot calculates as the desired speed.
+This gives OpenPilot some lateral control over FCA vehicles by changing the ACC speed.
+Not a perfect solution, but it does help with things like slowing while cornering, detecting cut-ins, and smother acceleration and breaking.
+
+
+### How it does it
+Currently on FCA vehicles, only steering is controlled by OpenPilot and speed is left to the ACC of the vehicle. 
+Pressing the +/- buttons on the steering wheel, adjusts the ACC speed just as if OpenPilot wasn't even connected.  
+This fork, however, moves that max speed control to OpenPilot where pressing +/- changes the max speed on the OpenPilot display by 5 mph increments.  
+OpenPilot will change your ACC speed as needed, not going above the max speed show on the display.  
+For best performance, leave the vehicles ACC follow distance at the minimum to ensure that OpenPilot is able control the distance using the selected dynamic profile  
+
+
+### **Safety Notes** 
+* Changing the ACC speed setting does not always result in the vehicle breaking unless the difference in speed is large enough. If the speed difference is small, the vehicle just lets off the gas.
+* ACC can't go slower that 20mph
+
+
+### Next Steps
+* Use the vehicles ACC follow distance to set the dynamic follow profile instead using the button on the OpenPilot screen  
+
+ShaneSmiskol Stock Additions 0.7.7
 ===
 
 Stock Additions is a fork of openpilot designed to be minimal in UI design while boasting various feature additions and behavior improvements over stock. I have a 2017 Toyota Corolla with comma pedal, so most of my changes are designed to improve the longitudinal performance.
