@@ -4,7 +4,7 @@ import numpy as np
 from cereal import log
 
 op_params = opParams()
-CAMERA_OFFSET = op_params.get('camera_offset', default=0.06)  # from center car to camera
+CAMERA_OFFSET = op_params.get('camera_offset', force_live=True)  # from center car to camera
 
 def compute_path_pinv(l=50):
   deg = 3
