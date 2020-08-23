@@ -242,7 +242,7 @@ class Planner():
     self.first_loop = False
 
   def max_turning_speed(self, sm, v_ego):
-    if slow_in_turn and len(sm['model'].path.poly):
+    if self.slow_in_turn and len(sm['model'].path.poly):
       path = list(sm['model'].path.poly)
 
       # Curvature of polynomial https://en.wikipedia.org/wiki/Curvature#Curvature_of_the_graph_of_a_function
