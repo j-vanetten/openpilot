@@ -28,6 +28,9 @@ class CarInterface(CarInterfaceBase):
     ret.steerRateCost = 0.7
     ret.steerLimitTimer = 0.4
 
+    ret.lateralTuning.pid.kdBP = [0., 18., 27., 35.]  # derivative disabled for now
+    ret.lateralTuning.pid.kdV = [0., 0., 0., 0.]
+
     if candidate == CAR.ASCENT:
       ret.mass = 2031. + STD_CARGO_KG
       ret.wheelbase = 2.89

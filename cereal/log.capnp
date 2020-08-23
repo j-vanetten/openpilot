@@ -1979,6 +1979,45 @@ struct Sentinel {
   type @0 :SentinelType;
 }
 
+struct DynamicFollowData {
+  mpcTR @0 :Float32;
+  profilePred @1 :UInt16;
+}
+
+struct DynamicFollowButton {
+  status @0 :UInt16;
+}
+
+struct LaneSpeed {
+  fastestLane @0 :Text;
+  state @1 :Text;
+  new @2 :Bool;
+
+  leftLaneSpeeds @3 :List(Float32);
+  middleLaneSpeeds @4 :List(Float32);
+  rightLaneSpeeds @5 :List(Float32);
+
+  leftLaneDistances @6 :List(Float32);
+  middleLaneDistances @7 :List(Float32);
+  rightLaneDistances @8 :List(Float32);
+
+  leftLaneOncoming @9 :Bool;
+  rightLaneOncoming @10 :Bool;
+}
+
+struct LaneSpeedButton {
+  status @0 :UInt16;
+}
+
+struct DynamicCameraOffset {
+  keepingLeft @0 :Bool;
+  keepingRight @1 :Bool;
+}
+
+struct ModelLongButton {
+  enabled @0 :Bool;
+}
+
 struct Event {
   # in nanoseconds?
   logMonoTime @0 :UInt64;
@@ -2057,5 +2096,12 @@ struct Event {
     dMonitoringState @71: DMonitoringState;
     liveLocationKalman @72 :LiveLocationKalman;
     sentinel @73 :Sentinel;
+
+    dynamicFollowData @74 :DynamicFollowData;
+    dynamicFollowButton @75 :DynamicFollowButton;
+    laneSpeed @76 :LaneSpeed;
+    laneSpeedButton @77 :LaneSpeedButton;
+    dynamicCameraOffset @78 :DynamicCameraOffset;
+    modelLongButton @79 :ModelLongButton;
   }
 }

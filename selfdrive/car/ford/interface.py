@@ -26,6 +26,8 @@ class CarInterface(CarInterfaceBase):
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.01], [0.005]]     # TODO: tune this
     ret.lateralTuning.pid.kf = 1. / MAX_ANGLE   # MAX Steer angle to normalize FF
+    ret.lateralTuning.pid.kdBP = [0., 18., 27., 35.]  # derivative disabled for now
+    ret.lateralTuning.pid.kdV = [0., 0., 0., 0.]
     ret.steerActuatorDelay = 0.1  # Default delay, not measured yet
     ret.steerLimitTimer = 0.8
     ret.steerRateCost = 1.0
