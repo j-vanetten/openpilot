@@ -1,9 +1,10 @@
+from common.op_params import opParams
 from common.numpy_fast import interp
 import numpy as np
 from cereal import log
 
-CAMERA_OFFSET = 0.06  # m from center car to camera
-
+op_params = opParams()
+CAMERA_OFFSET = op_params.get('camera_offset', default=0.06)  # from center car to camera
 
 def compute_path_pinv(l=50):
   deg = 3
