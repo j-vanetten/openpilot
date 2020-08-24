@@ -4,7 +4,6 @@ import math
 import cereal.messaging as messaging
 from selfdrive.swaglog import cloudlog
 from common.realtime import sec_since_boot
-from common.op_params import opParams
 from selfdrive.controls.lib.radar_helpers import _LEAD_ACCEL_TAU
 from selfdrive.controls.lib.longitudinal_mpc import libmpc_py
 from selfdrive.controls.lib.drive_helpers import MPC_COST_LONG
@@ -14,7 +13,6 @@ LOG_MPC = os.environ.get('LOG_MPC', False)
 
 class LongitudinalMpc():
   def __init__(self, mpc_id):
-    self.op_params = opParams()
     self.mpc_id = mpc_id
 
     self.setup_mpc()
@@ -65,7 +63,11 @@ class LongitudinalMpc():
     self.cur_state[0].x_ego = 0.0
 
     if lead is not None and lead.status:
-      x_lead = lead.dRel * self.op_params.get('lead_radar_ratio')
+      if CS.leadDistanceRadarRatio > 0:
+        x_lead = lead.dRel * CS.leadDistanceRadarRatio # Make the car seem further away so we can get closer
+      else:
+        x_lead = lead.dRel
+
       v_lead = max(0.0, lead.vLead)
       a_lead = lead.aLeadK
 

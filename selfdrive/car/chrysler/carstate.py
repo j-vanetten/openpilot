@@ -62,6 +62,16 @@ class CarState(CarStateBase):
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]['HIGH_BEAM_FLASH'])
 
+    accConfig = cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2']
+    if accConfig == 2:
+        ret.leadDistanceRadarRatio = 2 # Near
+    else accConfig == 3:
+        ret.leadDistanceRadarRatio = 1.66
+    else accConfig == 0:
+        ret.leadDistanceRadarRatio = 1.33
+    else:
+        ret.leadDistanceRadarRatio = 1.0 # Default (Far)
+
     self.lkas_counter = cp_cam.vl["LKAS_COMMAND"]['COUNTER']
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]['CAR_MODEL']
     self.lkas_status_ok = cp_cam.vl["LKAS_HEARTBIT"]['LKAS_STATUS_OK']
@@ -106,6 +116,7 @@ class CarState(CarStateBase):
       ("ACC_STATUS_2", "ACC_2", 0),
       ("HIGH_BEAM_FLASH", "STEERING_LEVERS", 0),
       ("ACC_SPEED_CONFIG_KPH", "DASHBOARD", 0),
+      ("ACC_DISTANCE_CONFIG_2", "DASHBOARD", 0),
       ("TORQUE_DRIVER", "EPS_STATUS", 0),
       ("TORQUE_MOTOR", "EPS_STATUS", 0),
       ("LKAS_STATE", "EPS_STATUS", 1),
