@@ -65,9 +65,9 @@ class CarState(CarStateBase):
     accConfig = cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2']
     if accConfig == 2:
         ret.leadDistanceRadarRatio = 2 # Near
-    else accConfig == 3:
+    elif accConfig == 3:
         ret.leadDistanceRadarRatio = 1.66
-    else accConfig == 0:
+    elif accConfig == 0:
         ret.leadDistanceRadarRatio = 1.33
     else:
         ret.leadDistanceRadarRatio = 1.0 # Default (Far)
