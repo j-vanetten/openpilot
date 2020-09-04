@@ -15,6 +15,7 @@ class CarState(CarStateBase):
     self.prevResumeCruiseButton = 0
     self.prevAccelCruiseButton = 0
     self.prevDecelCruiseButton = 0
+    self.anyWheelButtonPressed = False
 
   def update(self, cp, cp_cam):
 
@@ -66,11 +67,11 @@ class CarState(CarStateBase):
     if accConfig == 2:
         ret.leadDistanceRadarRatio = 2 # Near
     elif accConfig == 3:
-        ret.leadDistanceRadarRatio = 1.66
+        ret.leadDistanceRadarRatio = 1.75
     elif accConfig == 0:
-        ret.leadDistanceRadarRatio = 1.33
+        ret.leadDistanceRadarRatio = 1.50
     else:
-        ret.leadDistanceRadarRatio = 1.0 # Default (Far)
+        ret.leadDistanceRadarRatio = 1.25 # Default (Far)
 
     self.lkas_counter = cp_cam.vl["LKAS_COMMAND"]['COUNTER']
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]['CAR_MODEL']
@@ -90,6 +91,13 @@ class CarState(CarStateBase):
     self.decelCruiseButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_SPEED_DEC'])
     self.decelCruiseButtonChanged = (self.prevDecelCruiseButton != self.decelCruiseButton)
     self.prevDecelCruiseButton = self.decelCruiseButton
+
+    cancelButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_CANCEL'])
+    accFollowDecButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_DEC'])
+    accFollowIncButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_INC'])
+    
+    self.anyWheelButtonPressed = self.decelCruiseButton or self.accelCruiseButton or self.resumeCruiseButton \
+      or cancelButton or accFollowDecButton or accFollowIncButton
 
     return ret
 
@@ -125,8 +133,11 @@ class CarState(CarStateBase):
       ("SEATBELT_DRIVER_UNLATCHED", "SEATBELT_STATUS", 0),
       ("COUNTER", "WHEEL_BUTTONS", -1),
       ("ACC_RESUME", "WHEEL_BUTTONS", 0),
+      ("ACC_CANCEL", "WHEEL_BUTTONS", 0),
       ("ACC_SPEED_INC", "WHEEL_BUTTONS", 0),
       ("ACC_SPEED_DEC", "WHEEL_BUTTONS", 0),
+      ("ACC_FOLLOW_INC", "WHEEL_BUTTONS", 0),
+      ("ACC_FOLLOW_DEC", "WHEEL_BUTTONS", 0),
     ]
 
     checks = [
@@ -138,7 +149,7 @@ class CarState(CarStateBase):
       ("STEERING", 100),
       ("ACC_2", 50),
       ("GEAR", 50),
-      ("WHEEL_BUTTONS", 50),
+      ("WHEEL_BUTTONS", 100),
       ("ACCEL_GAS_134", 50),
       ("DASHBOARD", 15),
       ("STEERING_LEVERS", 10),
