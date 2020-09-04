@@ -64,7 +64,8 @@ class opParams:
     self.fork_params = {
                         'camera_offset': Param(0.06, VT.number, 'Your camera offset to use in lane_planner.py', live=True),
                         'slow_in_turns': Param(True, bool, 'Slow while in turns', live=False),
-                        'slow_in_turns_ratio': Param(1.0, VT.number, 'Percent to adjust the slow down speed in turns. (1=Normal, 1.25=Increase speed by 25%)', live=True)
+                        'slow_in_turns_ratio': Param(1.25, VT.number, 'Percent to adjust the slow down speed in turns. (1=Normal, 1.25=Increase speed by 25%)', live=True),
+                        'disengage_on_gas': Param(True, bool, 'Whether you want openpilot to disengage on gas input or not'),
                         }
 
     self._params_file = '/data/op_params.json'
