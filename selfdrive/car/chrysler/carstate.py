@@ -4,12 +4,14 @@ from opendbc.can.can_define import CANDefine
 from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD
+from common.op_params import opParams
 
 ButtonType = car.CarState.ButtonEvent.Type
 
 class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
+    self.op_params = opParams()
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["GEAR"]['PRNDL']
     self.prevResumeCruiseButton = 0
@@ -65,13 +67,13 @@ class CarState(CarStateBase):
 
     accConfig = cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2']
     if accConfig == 2:
-        ret.leadDistanceRadarRatio = 2 # Near
+        ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_1bar')
     elif accConfig == 3:
-        ret.leadDistanceRadarRatio = 1.75
+        ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_2bars')
     elif accConfig == 0:
-        ret.leadDistanceRadarRatio = 1.50
+        ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_3bars')
     else:
-        ret.leadDistanceRadarRatio = 1.25 # Default (Far)
+        ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_4bars')
 
     self.lkas_counter = cp_cam.vl["LKAS_COMMAND"]['COUNTER']
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]['CAR_MODEL']
@@ -92,12 +94,11 @@ class CarState(CarStateBase):
     self.decelCruiseButtonChanged = (self.prevDecelCruiseButton != self.decelCruiseButton)
     self.prevDecelCruiseButton = self.decelCruiseButton
 
-    cancelButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_CANCEL'])
-    accFollowDecButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_DEC'])
-    accFollowIncButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_INC'])
+    # cancelButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_CANCEL'])
+    # accFollowDecButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_DEC'])
+    # accFollowIncButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_INC'])
     
-    self.anyWheelButtonPressed = self.decelCruiseButton or self.accelCruiseButton or self.resumeCruiseButton \
-      or cancelButton or accFollowDecButton or accFollowIncButton
+    self.anyWheelButtonPressed = self.resumeCruiseButton # or cancelButton or accFollowDecButton or accFollowIncButton
 
     return ret
 
@@ -133,11 +134,11 @@ class CarState(CarStateBase):
       ("SEATBELT_DRIVER_UNLATCHED", "SEATBELT_STATUS", 0),
       ("COUNTER", "WHEEL_BUTTONS", -1),
       ("ACC_RESUME", "WHEEL_BUTTONS", 0),
-      ("ACC_CANCEL", "WHEEL_BUTTONS", 0),
       ("ACC_SPEED_INC", "WHEEL_BUTTONS", 0),
       ("ACC_SPEED_DEC", "WHEEL_BUTTONS", 0),
-      ("ACC_FOLLOW_INC", "WHEEL_BUTTONS", 0),
-      ("ACC_FOLLOW_DEC", "WHEEL_BUTTONS", 0),
+      # ("ACC_CANCEL", "WHEEL_BUTTONS", 0),
+      # ("ACC_FOLLOW_INC", "WHEEL_BUTTONS", 0),
+      # ("ACC_FOLLOW_DEC", "WHEEL_BUTTONS", 0),
     ]
 
     checks = [
@@ -149,7 +150,7 @@ class CarState(CarStateBase):
       ("STEERING", 100),
       ("ACC_2", 50),
       ("GEAR", 50),
-      ("WHEEL_BUTTONS", 100),
+      ("WHEEL_BUTTONS", 50),
       ("ACCEL_GAS_134", 50),
       ("DASHBOARD", 15),
       ("STEERING_LEVERS", 10),
