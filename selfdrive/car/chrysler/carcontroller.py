@@ -16,7 +16,6 @@ class CarController():
     self.car_fingerprint = CP.carFingerprint
     self.gone_fast_yet = False
     self.steer_rate_limited = False
-    self.enable_acc_accel_control = CP.enableACCAccelControl
     self.last_button_counter = -1
     self.pauseControlUntilFrame = 0
 
@@ -59,7 +58,7 @@ class CarController():
       new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter, 'ACC_CANCEL', True)
       can_sends.append(new_msg)
       
-    elif self.enable_acc_accel_control and enabled and self.ccframe >= self.pauseControlUntilFrame:
+    elif enabled and self.ccframe >= self.pauseControlUntilFrame:
       if CS.buttonCounter != self.last_button_counter:
         self.last_button_counter = CS.buttonCounter
         # Move the adaptive curse control to the target speed

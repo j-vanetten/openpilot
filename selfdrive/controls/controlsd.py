@@ -126,6 +126,7 @@ class Controls:
     self.distance_traveled = 0
     self.events_prev = []
     self.current_alert_types = [ET.PERMANENT]
+    self.buttonPressTimes = {}
 
     self.sm['liveCalibration'].calStatus = Calibration.INVALID
     self.sm['thermal'].freeSpace = 1.
@@ -269,16 +270,28 @@ class Controls:
 
     return CS
 
+  def updateButtonPressTimes(self, buttonEvents):
+    stillPressedTimes = {}
+
+    for b in buttonEvents:
+      if b.pressed and b in self.buttonPressTimes:
+        stillPressedTimes[b] = self.buttonPressTimes[b] + 1 # 0.01s
+      else:
+        stillPressedTimes[b] = 0
+
+    self.buttonPressTimes = stillPressedTimes
+
   def state_transition(self, CS):
     """Compute conditional state transitions and execute actions on state transitions"""
 
     self.v_cruise_kph_last = self.v_cruise_kph
 
     # if stock cruise is completely disabled, then we can use our own set speed logic
-    if not self.CP.enableCruise or self.CP.enableACCAccelControl:
-      self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled, self.CP.enableACCAccelControl)
-    elif self.CP.enableCruise and CS.cruiseState.enabled:
-      self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
+    # if not self.CP.enableCruise:
+    self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled, self.buttonPressTimes)
+    self.updateButtonPressTimes(CS.buttonEvents)
+    # elif self.CP.enableCruise and CS.cruiseState.enabled:
+    #   self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
 
     # decrease the soft disable timer at every step, as it's reset on
     # entrance in SOFT_DISABLING state
@@ -336,7 +349,7 @@ class Controls:
           else:
             self.state = State.enabled
           self.current_alert_types.append(ET.ENABLE)
-          self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last, self.CP.enableACCAccelControl)
+          self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last)
 
     # Check if actuators are enabled
     self.active = self.state == State.enabled or self.state == State.softDisabling
