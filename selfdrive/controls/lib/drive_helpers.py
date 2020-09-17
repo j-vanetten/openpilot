@@ -49,9 +49,9 @@ def update_v_cruise(v_cruise_kph, buttonEvents, enabled, buttonPressTimes):
           pressTime = buttonPressTimes[b]
           if pressTime < 100:
             if not b.pressed:
-              v_cruise_kph += speedAdjust[1 if V_CRUISE_REVERSE_INCREMENTS else 0]
+              v_cruise_kph += speedAdjust[0 if V_CRUISE_REVERSE_INCREMENTS else 1]
           elif b.pressed and pressTime % 50 == 0:
-            v_cruise_kph += speedAdjust[0 if V_CRUISE_REVERSE_INCREMENTS else 1]
+            v_cruise_kph += speedAdjust[1 if V_CRUISE_REVERSE_INCREMENTS else 0]
 
           v_cruise_kph = clip(v_cruise_kph, V_CRUISE_MIN, V_CRUISE_MAX)
 

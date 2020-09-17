@@ -140,13 +140,13 @@ class CarState(CarStateBase):
       ("STEERING", 100),
       ("ACC_2", 50),
       ("GEAR", 50),
+      ("WHEEL_BUTTONS", 50),
       ("ACCEL_GAS_134", 50),
       ("DASHBOARD", 15),
       ("STEERING_LEVERS", 10),
       ("SEATBELT_STATUS", 2),
       ("DOORS", 1),
       ("TRACTION_BUTTON", 1),
-      ("WHEEL_BUTTONS", 50),
     ]
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
@@ -157,7 +157,7 @@ class CarState(CarStateBase):
       # sig_name, sig_address, default
       ("COUNTER", "LKAS_COMMAND", -1),
       ("CAR_MODEL", "LKAS_HUD", -1),
-      ("LKAS_STATUS_OK", "LKAS_HEARTBIT", -1),
+      ("LKAS_STATUS_OK", "LKAS_HEARTBIT", -1)
     ]
     checks = [
       ("LKAS_COMMAND", 100),

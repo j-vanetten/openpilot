@@ -274,7 +274,7 @@ class Controls:
     stillPressedTimes = {}
 
     for b in buttonEvents:
-      if b.pressed and b in self.buttonPressTimes:
+      if b in self.buttonPressTimes:
         stillPressedTimes[b] = self.buttonPressTimes[b] + 1 # 0.01s
       else:
         stillPressedTimes[b] = 0
