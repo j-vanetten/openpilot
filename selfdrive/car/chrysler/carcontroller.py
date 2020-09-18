@@ -17,7 +17,6 @@ class CarController():
     self.gone_fast_yet = False
     self.steer_rate_limited = False
     self.last_button_counter = -1
-    self.pause_control_until_frame = 0
 
     self.packer = CANPacker(dbc_name)
 
@@ -51,31 +50,27 @@ class CarController():
 
     #*** control msgs ***
 
-    if CS.accelCruiseButton or CS.decelCruiseButton or CS.resumeCruiseButton:
-      self.pause_control_until_frame = self.ccframe + 100
-
     if pcm_cancel_cmd:
       new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter, 'ACC_CANCEL', True)
       can_sends.append(new_msg)
       
-    elif enabled and self.ccframe >= self.pause_control_until_frame:
-      if CS.buttonCounter != self.last_button_counter:
-        self.last_button_counter = CS.buttonCounter
-        # Move the adaptive curse control to the target speed
-        if self.ccframe % 10 <= 3: # press for 40ms
-          # Using MPH since it's more coarse so there should be less wobble on the speed setting
-          current = round(acc_speed * CV.MS_TO_MPH)
-          target = round(target_speed * CV.MS_TO_MPH)
+    elif enabled and CS.buttonCounter != self.last_button_counter:
+      self.last_button_counter = CS.buttonCounter
+      # Move the adaptive curse control to the target speed
+      if self.ccframe % 10 <= 3: # press for 40ms
+        # Using MPH since it's more coarse so there should be less wobble on the speed setting
+        current = round(acc_speed * CV.MS_TO_MPH)
+        target = round(target_speed * CV.MS_TO_MPH)
 
-          button_to_press = None
-          if target < current and current > MIN_ACC_SPEED_MPH:
-            button_to_press ='ACC_SPEED_DEC'
-          elif target > current:
-            button_to_press ='ACC_SPEED_INC'
+        button_to_press = None
+        if target < current and current > MIN_ACC_SPEED_MPH:
+          button_to_press ='ACC_SPEED_DEC'
+        elif target > current:
+          button_to_press ='ACC_SPEED_INC'
 
-          if button_to_press is not None:
-            new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter + 1, button_to_press, True)
-            can_sends.append(new_msg)
+        if button_to_press is not None:
+          new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter + 1, button_to_press, True)
+          can_sends.append(new_msg)
 
 
     # LKAS_HEARTBIT is forwarded by Panda so no need to send it here.
