@@ -6,8 +6,7 @@ from cereal import car
 V_CRUISE_MAX = 144
 V_CRUISE_MIN = 8
 V_CRUISE_DELTA = 8
-V_CRUISE_ENABLE_MIN = 40
-V_CRUISE_ENABLE_MIN_HACC = 32  # TODO: Should come from CP
+V_CRUISE_ENABLE_MIN = 32 # FCA gets down to 32
 
 class MPC_COST_LAT:
   PATH = 1.0
@@ -31,9 +30,7 @@ def get_steer_max(CP, v_ego):
   return interp(v_ego, CP.steerMaxBP, CP.steerMaxV)
 
 
-def update_v_cruise(v_cruise_kph, buttonEvents, enabled, enableACCAccelControl):
-  cruiseMin = V_CRUISE_MIN if not enableACCAccelControl else V_CRUISE_ENABLE_MIN_HACC
-
+def update_v_cruise(v_cruise_kph, buttonEvents, enabled):
   # handle button presses. TODO: this should be in state_control, but a decelCruise press
   # would have the effect of both enabling and changing speed is checked after the state transition
   for b in buttonEvents:
@@ -42,21 +39,16 @@ def update_v_cruise(v_cruise_kph, buttonEvents, enabled, enableACCAccelControl):
         v_cruise_kph += V_CRUISE_DELTA - (v_cruise_kph % V_CRUISE_DELTA)
       elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
         v_cruise_kph -= V_CRUISE_DELTA - ((V_CRUISE_DELTA - v_cruise_kph) % V_CRUISE_DELTA)
-      v_cruise_kph = clip(v_cruise_kph, cruiseMin, V_CRUISE_MAX)
+      v_cruise_kph = clip(v_cruise_kph, V_CRUISE_MIN, V_CRUISE_MAX)
 
   return v_cruise_kph
 
 
-def initialize_v_cruise(v_ego, buttonEvents, v_cruise_last, enableACCAccelControl):
+def initialize_v_cruise(v_ego, buttonEvents, v_cruise_last):
   # 250kph or above probably means we never had a set speed
   if v_cruise_last < 250:
     for b in buttonEvents:
-      if enableACCAccelControl: # Resume from current speed
-        if b.type == "resumeCruise":
-          return v_cruise_last
-
-      elif b.type == "accelCruise":
+      if b.type == "accelCruise" or b.type == "resumeCruise":
         return v_cruise_last
 
-  cruiseMinEnable = V_CRUISE_ENABLE_MIN if not enableACCAccelControl else V_CRUISE_ENABLE_MIN_HACC
-  return int(round(clip(v_ego * CV.MS_TO_KPH, cruiseMinEnable, V_CRUISE_MAX)))
+  return int(round(clip(v_ego * CV.MS_TO_KPH, V_CRUISE_ENABLE_MIN, V_CRUISE_MAX)))

@@ -17,7 +17,6 @@ class CarState(CarStateBase):
     self.prevResumeCruiseButton = 0
     self.prevAccelCruiseButton = 0
     self.prevDecelCruiseButton = 0
-    self.anyWheelButtonPressed = False
 
   def update(self, cp, cp_cam):
 
@@ -67,13 +66,13 @@ class CarState(CarStateBase):
 
     accConfig = cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2']
     if accConfig == 2:
-        ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_1bar')
+      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_1bar')
     elif accConfig == 3:
-        ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_2bars')
+      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_2bars')
     elif accConfig == 0:
-        ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_3bars')
+      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_3bars')
     else:
-        ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_4bars')
+      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_4bars')
 
     self.lkas_counter = cp_cam.vl["LKAS_COMMAND"]['COUNTER']
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]['CAR_MODEL']
@@ -93,12 +92,6 @@ class CarState(CarStateBase):
     self.decelCruiseButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_SPEED_DEC'])
     self.decelCruiseButtonChanged = (self.prevDecelCruiseButton != self.decelCruiseButton)
     self.prevDecelCruiseButton = self.decelCruiseButton
-
-    # cancelButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_CANCEL'])
-    # accFollowDecButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_DEC'])
-    # accFollowIncButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_INC'])
-    
-    self.anyWheelButtonPressed = self.resumeCruiseButton # or cancelButton or accFollowDecButton or accFollowIncButton
 
     return ret
 
@@ -136,9 +129,6 @@ class CarState(CarStateBase):
       ("ACC_RESUME", "WHEEL_BUTTONS", 0),
       ("ACC_SPEED_INC", "WHEEL_BUTTONS", 0),
       ("ACC_SPEED_DEC", "WHEEL_BUTTONS", 0),
-      # ("ACC_CANCEL", "WHEEL_BUTTONS", 0),
-      # ("ACC_FOLLOW_INC", "WHEEL_BUTTONS", 0),
-      # ("ACC_FOLLOW_DEC", "WHEEL_BUTTONS", 0),
     ]
 
     checks = [
