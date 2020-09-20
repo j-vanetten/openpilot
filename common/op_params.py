@@ -70,6 +70,7 @@ class opParams:
                         'lead_distance_ratio_2bars': Param(1.6, VT.number, 'Lead car adjusted radar distance ratio 2 bar', live=True),
                         'lead_distance_ratio_3bars': Param(1.4, VT.number, 'Lead car adjusted radar distance ratio 3 bar', live=True),
                         'lead_distance_ratio_4bars': Param(1.2, VT.number, 'Lead car adjusted radar distance ratio 4 bar', live=True),
+                        'acc_button_long_press': Param(30, VT.number, 'Number of centiseconds to consider a button as long pressed.  (30 = .30 seconds)', live=True),
                         }
 
     self._params_file = '/data/op_params.json'

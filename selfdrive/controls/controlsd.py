@@ -286,8 +286,10 @@ class Controls:
 
     self.v_cruise_kph_last = self.v_cruise_kph
 
-    # if stock cruise is completely disabled, then we can use our own set speed logic
-    self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled, self.buttonPressTimes)
+    # use our own set speed logic
+    acc_button_long_press = self.op_params.get("acc_button_long_press")
+    self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled,
+                                        self.buttonPressTimes, acc_button_long_press)
     self.updateButtonPressTimes(CS.buttonEvents)
 
     # decrease the soft disable timer at every step, as it's reset on
