@@ -3,29 +3,41 @@
 ## What is this Fork?
 This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC). 
 It does this by changing the ACC to match the value OpenPilot calculates as the desired speed.
-This has some advantages like slowing while cornering and detecting cut-ins. 
+This has some advantages like slowing while cornering and slowing when it detects detecting cut-ins. 
 
 ### How it does it
-Currently on FCA vehicles, only steering is controlled by OpenPilot and speed is left to the ACC of the vehicle. 
-Pressing the +/- buttons on the steering wheel, adjusts the ACC speed just as if OpenPilot wasn't even connected.  
-This fork, however, moves that max speed control to OpenPilot where pressing +/- changes the max speed on the OpenPilot display by 5 mph increments.  
-OpenPilot will change your ACC speed as needed, not going above the max speed show on the display.  
+Currently, on FCA vehicles, only the steering is controlled by OpenPilot and speed is left up to the ACC of the vehicle. 
+This fork takes control of the ACC speed setting and adjusts the ACC speed to match the speed OpenPilot would be targeting if it actually was able to control the gas and breaks.  
+It does this by adjusting the ACC speed setting to the desired speed.  
+So to use this branch, you would now be setting the max speed using the setting on OpenPilot instead of the one in the dash.
+The ACC setting will change to the targeted speed, but never exceeding the max speed set on the OpenPilot display.  
 
+### Features
+* Automatically changes ACC speed resulting in a slight improvement in acceleration and breaking smoothness over the built in ACC 
+* Lowers ACC speed in curves so you don't have to take control as often
+* Support for the 4 different follow distances
 
+---
 ### **Safety Notes** 
-* Changing the ACC speed does not always result in the vehicle breaking unless the difference in speed is large enough. If the speed difference is small, the vehicle just lets off the gas.
+* OpenPilot still does not have direct control of the gas and breaks! Changing the ACC speed does not always result in the vehicle breaking unless the difference in speed is large enough. If the speed difference is small, the vehicle just lets off the gas.
 * ACC can't go slower that 20mph
-* I disabled the "feature" where OpenPilot gets disengaged on gas press, but it doesn't seem to work for me. (Still a work in progress I guess)
+* I disabled the feature where OpenPilot gets disengaged on gas press. (It can be re-enabled using op_edit.sh)  
+  
+---
+### Customize this fork (opEdit)
+This is a handy tool to change your `opParams` parameters without diving into any json files or code. You can specify parameters to be used in any fork's operation that supports `opParams`. First, ssh in to your EON and make sure you're in `/data/openpilot`, then start `opEdit`:
+```python
+cd /data/openpilot
+python op_edit.py  # or ./op_edit.py
+```
 
-### Next Steps
-* OpenPilot is staying back from the lead car even more than what ACC's max distance setting uses.  Close the gap some, so ACC is used more that OP for following distance.
-
-### Next Next Steps
-* Use OpenStreetMap to get speed limits
-* Use OpenStreetMap to detect curves even sooner
-
-### Final Steps
-* Can this eventually find it's way into OpenPilot?  
+Here are the main parameters you can change with this fork:
+- **Tuning params**:
+  - `camera_offset` **`(0.06, live!)`**: Your camera offset to use in lane_planner.py. Helps fix lane hugging
+  - `slow_in_turns` **`(true)`**:  Should OP slow down when in a curve
+  - `slow_in_turns_ratio` **`(1.25)`**: Adjust how much slowing occurs. (1.25 = 25% faster in turns than the default)
+  - `disengage_on_gas` **`(false)`**: Should OP disengage when the gas pedal is pressed
+  - `acc_button_long_press` **`(30, live!)`**: Number of centiseconds to consider a button as long pressed.  (30 = .30 seconds)
   
 ---
 
