@@ -175,9 +175,10 @@ static int chrysler_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
     }
   }
 
-  // FORCE CANCEL: only the cancel button press is allowed
+  // Only the cancel, ACC+, and ACC- button presses are allowed
   if (addr == 571) {
-    if ((GET_BYTE(to_send, 0) != 1) || ((GET_BYTE(to_send, 1) & 1) == 1)) {
+    if (((GET_BYTE(to_send, 0) != 1) && (GET_BYTE(to_send, 0) != 4) && (GET_BYTE(to_send, 0) != 8))
+        || ((GET_BYTE(to_send, 1) & 1) == 1)) {
       tx = 0;
     }
   }

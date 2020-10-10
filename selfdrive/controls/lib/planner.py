@@ -3,6 +3,7 @@ import math
 import numpy as np
 from common.params import Params
 from common.numpy_fast import interp
+from common.op_params import opParams
 
 import cereal.messaging as messaging
 from cereal import car
@@ -14,6 +15,8 @@ from selfdrive.controls.lib.longcontrol import LongCtrlState, MIN_CAN_SPEED
 from selfdrive.controls.lib.fcw import FCWChecker
 from selfdrive.controls.lib.long_mpc import LongitudinalMpc
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX
+
+MAX_SPEED = 255.0
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2     # car smoothly decel at .2m/s^2 when user is distracted
@@ -59,6 +62,7 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
 
 class Planner():
   def __init__(self, CP):
+    self.op_params = opParams()
     self.CP = CP
 
     self.mpc1 = LongitudinalMpc(1)
@@ -196,7 +200,7 @@ class Planner():
     plan_send.plan.aStart = float(self.a_acc_start)
     plan_send.plan.vTarget = float(self.v_acc)
     plan_send.plan.aTarget = float(self.a_acc)
-    plan_send.plan.vTargetFuture = float(self.v_acc_future)
+    plan_send.plan.vTargetFuture = float(min(MAX_SPEED, self.v_acc_future, self.max_turning_speed(sm, v_ego)))
     plan_send.plan.hasLead = self.mpc1.prev_lead_status
     plan_send.plan.longitudinalPlanSource = self.longitudinalPlanSource
 
@@ -218,3 +222,22 @@ class Planner():
     self.a_acc_start = a_acc_sol
 
     self.first_loop = False
+
+  def max_turning_speed(self, sm, v_ego):
+    if len(sm['model'].path.poly) and self.op_params.get('slow_in_turns'):
+      path = list(sm['model'].path.poly)
+
+      # Curvature of polynomial https://en.wikipedia.org/wiki/Curvature#Curvature_of_the_graph_of_a_function
+      # y = a x^3 + b x^2 + c x + d, y' = 3 a x^2 + 2 b x + c, y'' = 6 a x + 2 b
+      # k = y'' / (1 + y'^2)^1.5
+      # TODO: compute max speed without using a list of points and without numpy
+      y_p = 3 * path[0] * self.path_x**2 + 2 * path[1] * self.path_x + path[2]
+      y_pp = 6 * path[0] * self.path_x + 2 * path[1]
+      curv = y_pp / (1. + y_p**2)**1.5
+
+      a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
+      v_curvature = np.sqrt(a_y_max / np.clip(np.abs(curv), 1e-4, None))
+      model_speed = np.min(v_curvature)
+      return max(20.0 * CV.MPH_TO_MS, model_speed * self.op_params.get('slow_in_turns_ratio'))  # 25% faster than computed
+    else:
+      return MAX_SPEED

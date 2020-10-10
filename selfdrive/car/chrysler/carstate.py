@@ -4,13 +4,19 @@ from opendbc.can.can_define import CANDefine
 from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD
+from common.op_params import opParams
 
+ButtonType = car.CarState.ButtonEvent.Type
 
 class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
+    self.op_params = opParams()
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["GEAR"]['PRNDL']
+    self.prevResumeCruiseButton = 0
+    self.prevAccelCruiseButton = 0
+    self.prevDecelCruiseButton = 0
 
   def update(self, cp, cp_cam):
 
@@ -58,9 +64,34 @@ class CarState(CarStateBase):
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]['HIGH_BEAM_FLASH'])
 
+    accConfig = cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2']
+    if accConfig == 2:
+      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_1bar')
+    elif accConfig == 3:
+      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_2bars')
+    elif accConfig == 0:
+      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_3bars')
+    else:
+      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_4bars')
+
     self.lkas_counter = cp_cam.vl["LKAS_COMMAND"]['COUNTER']
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]['CAR_MODEL']
     self.lkas_status_ok = cp_cam.vl["LKAS_HEARTBIT"]['LKAS_STATUS_OK']
+
+    # Track buttons
+    self.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
+
+    self.resumeCruiseButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_RESUME'])
+    self.resumeCruiseButtonChanged = (self.prevResumeCruiseButton != self.resumeCruiseButton)
+    self.prevResumeCruiseButton = self.resumeCruiseButton
+
+    self.accelCruiseButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_SPEED_INC'])
+    self.accelCruiseButtonChanged = (self.prevAccelCruiseButton != self.accelCruiseButton)
+    self.prevAccelCruiseButton = self.accelCruiseButton
+
+    self.decelCruiseButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_SPEED_DEC'])
+    self.decelCruiseButtonChanged = (self.prevDecelCruiseButton != self.decelCruiseButton)
+    self.prevDecelCruiseButton = self.decelCruiseButton
 
     return ret
 
@@ -87,12 +118,17 @@ class CarState(CarStateBase):
       ("ACC_STATUS_2", "ACC_2", 0),
       ("HIGH_BEAM_FLASH", "STEERING_LEVERS", 0),
       ("ACC_SPEED_CONFIG_KPH", "DASHBOARD", 0),
+      ("ACC_DISTANCE_CONFIG_2", "DASHBOARD", 0),
       ("TORQUE_DRIVER", "EPS_STATUS", 0),
       ("TORQUE_MOTOR", "EPS_STATUS", 0),
       ("LKAS_STATE", "EPS_STATUS", 1),
       ("COUNTER", "EPS_STATUS", -1),
       ("TRACTION_OFF", "TRACTION_BUTTON", 0),
       ("SEATBELT_DRIVER_UNLATCHED", "SEATBELT_STATUS", 0),
+      ("COUNTER", "WHEEL_BUTTONS", -1),
+      ("ACC_RESUME", "WHEEL_BUTTONS", 0),
+      ("ACC_SPEED_INC", "WHEEL_BUTTONS", 0),
+      ("ACC_SPEED_DEC", "WHEEL_BUTTONS", 0),
     ]
 
     checks = [
@@ -104,6 +140,7 @@ class CarState(CarStateBase):
       ("STEERING", 100),
       ("ACC_2", 50),
       ("GEAR", 50),
+      ("WHEEL_BUTTONS", 50),
       ("ACCEL_GAS_134", 50),
       ("DASHBOARD", 15),
       ("STEERING_LEVERS", 10),

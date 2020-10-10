@@ -1,3 +1,34 @@
+# FCA OpenPilot/ACC Hybrid Speed Control
+
+## What is this Fork?
+This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC). 
+It does this by changing the ACC to match the value OpenPilot calculates as the desired speed.
+This has some advantages like slowing while cornering and detecting cut-ins. 
+
+### How it does it
+Currently on FCA vehicles, only steering is controlled by OpenPilot and speed is left to the ACC of the vehicle. 
+Pressing the +/- buttons on the steering wheel, adjusts the ACC speed just as if OpenPilot wasn't even connected.  
+This fork, however, moves that max speed control to OpenPilot where pressing +/- changes the max speed on the OpenPilot display by 5 mph increments.  
+OpenPilot will change your ACC speed as needed, not going above the max speed show on the display.  
+
+
+### **Safety Notes** 
+* Changing the ACC speed does not always result in the vehicle breaking unless the difference in speed is large enough. If the speed difference is small, the vehicle just lets off the gas.
+* ACC can't go slower that 20mph
+* I disabled the "feature" where OpenPilot gets disengaged on gas press, but it doesn't seem to work for me. (Still a work in progress I guess)
+
+### Next Steps
+* OpenPilot is staying back from the lead car even more than what ACC's max distance setting uses.  Close the gap some, so ACC is used more that OP for following distance.
+
+### Next Next Steps
+* Use OpenStreetMap to get speed limits
+* Use OpenStreetMap to detect curves even sooner
+
+### Final Steps
+* Can this eventually find it's way into OpenPilot?  
+  
+---
+
 [![](https://i.imgur.com/UelUjKAh.png)](#)
 
 Table of Contents

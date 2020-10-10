@@ -181,6 +181,9 @@ struct CarState {
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
 
+  # Radar distance adjustment. Make vehicle seem further away to fool OP into getting closer
+  leadDistanceRadarRatio @37 :Float32; # Ratio of how much further to make the lead vehicle seem so we can follow closer
+
   struct WheelSpeeds {
     # optional wheel speeds
     fl @0 :Float32;
@@ -297,6 +300,7 @@ struct CarControl {
     override @1: Bool;
     speedOverride @2: Float32;
     accelOverride @3: Float32;
+    targetSpeed @4 :Float32; # The target speed for the vehicle
   }
 
   struct HUDControl {
