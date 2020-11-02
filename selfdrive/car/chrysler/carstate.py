@@ -14,9 +14,12 @@ class CarState(CarStateBase):
     self.op_params = opParams()
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["GEAR"]['PRNDL']
-    self.prevResumeCruiseButton = 0
-    self.prevAccelCruiseButton = 0
-    self.prevDecelCruiseButton = 0
+    self.prevResumeCruiseButton = False
+    self.prevAccelCruiseButton = False
+    self.prevDecelCruiseButton = False
+    self.accCancelButton = False
+    self.accFollowDecButton = False
+    self.accFollowIncButton = False
 
   def update(self, cp, cp_cam):
 
@@ -93,6 +96,10 @@ class CarState(CarStateBase):
     self.decelCruiseButtonChanged = (self.prevDecelCruiseButton != self.decelCruiseButton)
     self.prevDecelCruiseButton = self.decelCruiseButton
 
+    self.accCancelButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_CANCEL'])
+    self.accFollowDecButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_DEC'])
+    self.accFollowIncButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_INC'])
+
     return ret
 
   @staticmethod
@@ -127,8 +134,11 @@ class CarState(CarStateBase):
       ("SEATBELT_DRIVER_UNLATCHED", "SEATBELT_STATUS", 0),
       ("COUNTER", "WHEEL_BUTTONS", -1),
       ("ACC_RESUME", "WHEEL_BUTTONS", 0),
+      ("ACC_CANCEL", "WHEEL_BUTTONS", 0),
       ("ACC_SPEED_INC", "WHEEL_BUTTONS", 0),
       ("ACC_SPEED_DEC", "WHEEL_BUTTONS", 0),
+      ("ACC_FOLLOW_INC", "WHEEL_BUTTONS", 0),
+      ("ACC_FOLLOW_DEC", "WHEEL_BUTTONS", 0),
     ]
 
     checks = [
