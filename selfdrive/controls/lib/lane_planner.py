@@ -3,6 +3,7 @@ import numpy as np
 from cereal import log
 from common.op_params import opParams
 
+
 def compute_path_pinv(length=50):
   deg = 3
   x = np.arange(length*1.0)
