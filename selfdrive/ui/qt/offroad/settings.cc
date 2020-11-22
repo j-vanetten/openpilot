@@ -3,14 +3,16 @@
 #include <sstream>
 #include <cassert>
 
-#include "settings.hpp"
-
 #include <QString>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
 #include <QPixmap>
+
+#include "wifi.hpp"
+#include "settings.hpp"
+#include "input_field.hpp"
 
 #include "common/params.h"
 
@@ -166,7 +168,7 @@ QWidget * device_panel() {
 }
 
 QWidget * developer_panel() {
-  QVBoxLayout *developer_layout = new QVBoxLayout;
+  QVBoxLayout *main_layout = new QVBoxLayout;
 
   // TODO: enable SSH toggle and github keys
 
@@ -181,13 +183,24 @@ QWidget * developer_panel() {
 
   for (auto l : labels) {
     QString text = QString::fromStdString(l.first + ": " + l.second);
-    developer_layout->addWidget(new QLabel(text));
+    main_layout->addWidget(new QLabel(text));
   }
 
   QWidget *widget = new QWidget;
-  widget->setLayout(developer_layout);
+  widget->setLayout(main_layout);
   return widget;
 }
+
+QWidget * network_panel() {
+  QVBoxLayout *main_layout = new QVBoxLayout;
+
+  main_layout->addWidget(new WifiUI());
+
+  QWidget *widget = new QWidget;
+  widget->setLayout(main_layout);
+  return widget;
+}
+
 
 void SettingsWindow::setActivePanel() {
   QPushButton *btn = qobject_cast<QPushButton*>(sender());
@@ -217,6 +230,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QWidget(parent) {
     {"device", device_panel()},
     {"toggles", toggles_panel()},
     {"developer", developer_panel()},
+    {"network", network_panel()},
   };
 
   for (auto &panel : panels) {
