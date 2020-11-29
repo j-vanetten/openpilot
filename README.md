@@ -21,6 +21,15 @@ The ACC setting will change to the targeted speed, but never exceeding the max s
 A quick press of the ACC+ and ACC- buttons will change this speed by 5 mph on the OpenPilot display, while a long deliberate press (1/2 second press) changes it by 1 mph.
 DO NOT hold the ACC+ or ACC- buttons for longer that a 1 second. Make quick or deliberate longer presses only.
 
+#### Where to look when setting ACC speed
+Do not look at the dashboard when setting your ACC max speed.
+Instead, only look at the one on the OpenPilot display.
+The reason you need to look at OpenPilot is because OpenPilot will be changing the one in the dashboard. 
+It will be adjusting it as needed, never raising it above the one set on the OpenPilot display.
+
+**ONLY look at the MAX speed on OpenPilot when setting the ACC speed instead of the dashboard!**
+![](https://github.com/j-vanetten/jvePilot/blob/hacc-release/common/images/openpilot.jpg)
+
 ### Features
 * Automatically changes ACC speed resulting in an improvement in breaking smoothness over the built in ACC
 * Smother driving in traffic as OpenPilot will do a better job at slowing for traffic
