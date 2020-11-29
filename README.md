@@ -20,8 +20,8 @@ Though, I would argue ACC does a decent job at slower speeds anyway.
 * Smother driving in traffic as OpenPilot will do a better job at slowing for traffic
 * Slow for cars cutting in before ACC does
 * Slow in turns so you don't have to change the ACC speed yourself
-* Supports the 4 distance settings of ACC (by changing radar values to OpenPilot)
-* Camera offset changing
+* Supports the 4 distance settings of ACC (by changing radar values reported to OpenPilot)
+* Easy camera offset changing
 
 ### How to use it 
 When using this branch, you will be setting the max ACC speed on the OpenPilot display instead of the one in the dashboard.
