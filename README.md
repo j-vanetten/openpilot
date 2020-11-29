@@ -3,7 +3,7 @@ I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features usi
 
 ## What is this Fork?
 This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC). 
-It does this by changing the ACC to match the value OpenPilot calculates as the desired speed.
+It does this by changing the ACC speed to match the value OpenPilot calculates as the desired speed.  
 This brings some of OpenPilots longitudinal control to these vehicles.
 Including things like slowing while cornering and slowing when it detects cut-ins.
 It will also smooth the breaking of ACC when driving in traffic.
@@ -11,15 +11,23 @@ It will also smooth the breaking of ACC when driving in traffic.
 ### How it does it
 Currently, on FCA vehicles, only the steering is controlled by OpenPilot and speed is left up to the ACC of the vehicle. 
 This fork takes control of the ACC speed setting and adjusts the ACC speed to match the speed OpenPilot would be targeting if it actually was able to control the gas and breaks. 
-It does this by adjusting the ACC speed setting to the desired speed.
-It is limited as ACC only goes down to 20mph so it doesn't help as low speeds.
+It does this by simulating ACC+ and ACC- button presses on the steering wheel to change the ACC speed.
+It is limited as ACC only goes down to 20 mph so it doesn't help as low speeds.
 Though, I would argue ACC does a decent job at slower speeds anyway.
 
+### Features
+* Automatically changes ACC speed resulting in an improvement in breaking smoothness over the built in ACC
+* Smother driving in traffic as OpenPilot will do a better job at slowing for traffic
+* Slow for cars cutting in before ACC does
+* Slow in turns so you don't have to change the ACC speed yourself
+* Supports the 4 distance settings of ACC (by changing radar values to OpenPilot)
+* Camera offset changing
+
 ### How to use it 
-When using this branch, you will be setting the max speed using the setting on OpenPilot display instead of the one in the dash.
-The ACC setting will change to the targeted speed, but never exceeding the max speed set on the OpenPilot display.
-A quick press of the ACC+ and ACC- buttons will change this speed by 5 mph on the OpenPilot display, while a long deliberate press (1/2 second press) changes it by 1 mph.
-DO NOT hold the ACC+ or ACC- buttons for longer that a 1 second. Make quick or deliberate longer presses only.
+When using this branch, you will be setting the max ACC speed on the OpenPilot display instead of the one in the dashboard.
+OpenPilot will then set the ACC setting in the dashboard to the targeted speed, but never exceeding the max speed set on the OpenPilot display.
+A quick press of the ACC+ and ACC- buttons will change this speed by 5 mph on the OpenPilot display, while a long deliberate press (about a 1/2 second press) changes it by 1 mph.
+DO NOT hold the ACC+ or ACC- buttons for longer that a 1 second. Either make quick or long deliberate presses only.
 
 #### Where to look when setting ACC speed
 Do not look at the dashboard when setting your ACC max speed.
@@ -30,32 +38,12 @@ It will be adjusting it as needed, never raising it above the one set on the Ope
 **ONLY look at the MAX speed on OpenPilot when setting the ACC speed instead of the dashboard!**
 ![](https://github.com/j-vanetten/jvePilot/blob/hacc-release/common/images/openpilot.jpg)
 
-### Features
-* Automatically changes ACC speed resulting in an improvement in breaking smoothness over the built in ACC
-* Smother driving in traffic as OpenPilot will do a better job at slowing for traffic
-* Slow in turns so you don't have to change the ACC speed yourself
-* Slow for cars cutting in before ACC does
-* Honors the 4 distance settings of ACC
-
-### Customizations
-* Camera offset. Set to 0.06, which is the OpenPilot default.
-* Slowing in curves. Enabled by default.
-* The amount of slowing that occurs. Defaults to 1. This is configurable as a ratio, so 1.2 is 20% faster than when it's set to the default value of 1.
-* Keep OpenPilot engaged even when pressing the gas. Disabled by default. This stopped working on v0.8 for me but I've kept it in case it still works in other vehicles. I'll be working on getting this fixed for mine.
-* Long deliberate press time. Default is 30 centiseconds or .30 seconds. How long you must hold the ACC+ or ACC- buttons to be considered a long deliberate press.
-* Lead distance ratios. The ratio to change the default OpenPilot follow distance by for each of the 4 ACC distance profiles.
-
-More information about these settings can be found in [Customizing](#customizing) section.
-
 ---
-### **Safety Notes** 
-* This is my experimental branch, so I'm not responsible for any damage this may cause to 
-* OpenPilot still does not have direct control of the gas and breaks! 
-Changing the ACC speed does not always result in the vehicle breaking unless the difference in speed is large enough. 
-If the speed difference is small, the vehicle just lets off the gas.
-* ACC can't go slower that 20mph
- 
- 
+
+# Install
+## Branches
+`/hacc-release` - The latest release.  Will contain the latest version I feel is ready for general use.
+
 ---
 # Customizing
 `opParms` is a handy tool to change parameters without diving into any json files or code.
@@ -78,15 +66,16 @@ Example: Setting this to `1.2` will cause OpenPilot to drive 20% faster in turns
 ### `disengage_on_gas`, Default: `True`
 Should OpenPilot disengage when the gas pedal is pressed? 
 Stock ACC doesn't deactivate when pressing on the gas. Disable this option to make OpenPilot act more like stock ACC.  
-NOTE: This brok for me in v0.8 of OpenPilot as it causes a LKAS fault when you press the gas while OpenPilot is active.  
+**NOTE: This broke for me as of v0.8 of OpenPilot as it causes a LKAS fault when you press the gas while OpenPilot is active.  
 I have left it as an option as I plan to look into fixing it or it may work on other vehicles.
+If you have issues setting this to `False`, just set it back to `True`**
 
 ### `acc_button_long_press`, Default: `30`, Live!
 Number of centiseconds to consider a button as long pressed.  (30 = .30 seconds)
 Quick pressing the ACC+ and ACC- buttons results in 5 mph changes to the set max speed. 
 This allows you to quickly change speeds when the speed limit changes.  
 But, when you get to the speed limit, sometime you want if you want to change by 1 mph to fine tune the speed you really want.
-This is accomplised by doing long deliberate presses.  
+This is accomplished by doing long deliberate presses.  
 With the default value of 30, pressing teh ACC+ or ACC- buttons for .3 seconds or more will result in a 1 mph change.
 DO NOT hold the buttons down long that 1 second as that will interfere with the OpenPilot controlled ACC setting.
 
@@ -96,7 +85,6 @@ This is done by adjusting the reported radar distance to the lead car.
 Having a ratio set to 2.6 causes this fork to report the lead car as being 2.6 times further away that it actually is.
 Causing openPilot to move closer to that car.  NOTE: It's impossible to get closer than what ACC will allow. 
 The default values are what worked for me to get OpenPilot to be close to the ACC distance while still allowing ACC be the limiting factor to the distance.
-  
 #### `lead_distance_ratio_1bar`, Default: `1.1`, Live!
 Ratio to adjust OpenPilot's default model distance when ACC follow distance is set to 1 bar 
 #### `lead_distance_ratio_2bars`, Default: `1.5`, Live!
@@ -105,6 +93,15 @@ Ratio to adjust OpenPilot's default model distance when ACC follow distance is s
 Ratio to adjust OpenPilot's default model distance when ACC follow distance is set to 3 bars
 #### `lead_distance_ratio_4bars`, Default: `2.6`, Live!
 Ratio to adjust OpenPilot's default model distance when ACC follow distance is set to 4 bars
+
+---
+
+### **Safety Notes** 
+* This is my experimental branch, so I'm not responsible for any damage this may cause to 
+* OpenPilot still does not have direct control of the gas and breaks! 
+Changing the ACC speed does not always result in the vehicle breaking unless the difference in speed is large enough. 
+If the speed difference is small, the vehicle just lets off the gas.
+* ACC can't go slower that 20mph
 
 ---
 
