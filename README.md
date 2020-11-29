@@ -2,15 +2,15 @@
 I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features using this vehicle.
 
 ## What is this Fork?
-This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC). 
-It does this by changing the ACC speed to match the value OpenPilot calculates as the desired speed.  
+This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC).
+It does this by changing the ACC speed to match the value OpenPilot calculates as the desired speed.
 This brings some of OpenPilots longitudinal control to these vehicles.
 Including things like slowing while cornering and slowing when it detects cut-ins.
 It will also smooth the breaking of ACC when driving in traffic.
 
 ### How it does it
-Currently, on FCA vehicles, only the steering is controlled by OpenPilot and speed is left up to the ACC of the vehicle. 
-This fork takes control of the ACC speed setting and adjusts the ACC speed to match the speed OpenPilot would be targeting if it actually was able to control the gas and breaks. 
+Currently, on FCA vehicles, only the steering is controlled by OpenPilot and speed is left up to the ACC of the vehicle.
+This fork takes control of the ACC speed setting and adjusts the ACC speed to match the speed OpenPilot would be targeting if it actually was able to control the gas and breaks.
 It does this by simulating ACC+ and ACC- button presses on the steering wheel to change the ACC speed.
 It is limited as ACC only goes down to 20 mph so it doesn't help as low speeds.
 Though, I would argue ACC does a decent job at slower speeds anyway.
@@ -32,7 +32,7 @@ DO NOT hold the ACC+ or ACC- buttons for longer that a 1 second. Either make qui
 #### Where to look when setting ACC speed
 Do not look at the dashboard when setting your ACC max speed.
 Instead, only look at the one on the OpenPilot display.
-The reason you need to look at OpenPilot is because OpenPilot will be changing the one in the dashboard. 
+The reason you need to look at OpenPilot is because OpenPilot will be changing the one in the dashboard.
 It will be adjusting it as needed, never raising it above the one set on the OpenPilot display.
 
 **ONLY look at the MAX speed on OpenPilot when setting the ACC speed instead of the dashboard!**
@@ -54,39 +54,39 @@ python op_edit.py  # or ./op_edit.py
 ```
 
 ### `camera_offset`, Default: `0.06`, Live!
-Your camera offset to use in lane_planner.py. 
+Your camera offset to use in lane_planner.py.
 Helps fix lane hugging
 
 ### `slow_in_turns`, Default: `True`
 Should OpenPilot slow down when in a curve?
 ### `slow_in_turns_ratio`, Default: `1.0`, Live!
-Adjust how much slowing occurs in a curve. 
+Adjust how much slowing occurs in a curve.
 Example: Setting this to `1.2` will cause OpenPilot to drive 20% faster in turns than if it was set to the default `1.0`.
 
 ### `disengage_on_gas`, Default: `True`
-Should OpenPilot disengage when the gas pedal is pressed? 
-Stock ACC doesn't deactivate when pressing on the gas. Disable this option to make OpenPilot act more like stock ACC.  
-**NOTE: This broke for me as of v0.8 of OpenPilot as it causes a LKAS fault when you press the gas while OpenPilot is active.  
+Should OpenPilot disengage when the gas pedal is pressed?
+Stock ACC doesn't deactivate when pressing on the gas. Disable this option to make OpenPilot act more like stock ACC.
+**NOTE: This broke for me as of v0.8 of OpenPilot as it causes a LKAS fault when you press the gas while OpenPilot is active.
 I have left it as an option as I plan to look into fixing it or it may work on other vehicles.
 If you have issues setting this to `False`, just set it back to `True`**
 
 ### `acc_button_long_press`, Default: `30`, Live!
 Number of centiseconds to consider a button as long pressed.  (30 = .30 seconds)
-Quick pressing the ACC+ and ACC- buttons results in 5 mph changes to the set max speed. 
-This allows you to quickly change speeds when the speed limit changes.  
+Quick pressing the ACC+ and ACC- buttons results in 5 mph changes to the set max speed.
+This allows you to quickly change speeds when the speed limit changes.
 But, when you get to the speed limit, sometime you want if you want to change by 1 mph to fine tune the speed you really want.
-This is accomplished by doing long deliberate presses.  
+This is accomplished by doing long deliberate presses.
 With the default value of 30, pressing teh ACC+ or ACC- buttons for .3 seconds or more will result in a 1 mph change.
 DO NOT hold the buttons down long that 1 second as that will interfere with the OpenPilot controlled ACC setting.
 
 ### Lead Distance Ratio
 The lead distance ratios are the ratio to adjust the distance OpenPilot follows based on the follow distance selected.
-This is done by adjusting the reported radar distance to the lead car.  
+This is done by adjusting the reported radar distance to the lead car.
 Having a ratio set to 2.6 causes this fork to report the lead car as being 2.6 times further away that it actually is.
-Causing openPilot to move closer to that car.  NOTE: It's impossible to get closer than what ACC will allow. 
+Causing openPilot to move closer to that car.  NOTE: It's impossible to get closer than what ACC will allow.
 The default values are what worked for me to get OpenPilot to be close to the ACC distance while still allowing ACC be the limiting factor to the distance.
 #### `lead_distance_ratio_1bar`, Default: `1.1`, Live!
-Ratio to adjust OpenPilot's default model distance when ACC follow distance is set to 1 bar 
+Ratio to adjust OpenPilot's default model distance when ACC follow distance is set to 1 bar
 #### `lead_distance_ratio_2bars`, Default: `1.5`, Live!
 Ratio to adjust OpenPilot's default model distance when ACC follow distance is set to 2 bars
 #### `lead_distance_ratio_3bars`, Default: `2.1`, Live!
@@ -97,9 +97,9 @@ Ratio to adjust OpenPilot's default model distance when ACC follow distance is s
 ---
 
 ### **Safety Notes** 
-* This is my experimental branch, so I'm not responsible for any damage this may cause to 
-* OpenPilot still does not have direct control of the gas and breaks! 
-Changing the ACC speed does not always result in the vehicle breaking unless the difference in speed is large enough. 
+* This is my experimental branch, so I'm not responsible for any damage this may cause to
+* OpenPilot still does not have direct control of the gas and breaks!
+Changing the ACC speed does not always result in the vehicle breaking unless the difference in speed is large enough.
 If the speed difference is small, the vehicle just lets off the gas.
 * ACC can't go slower that 20mph
 
