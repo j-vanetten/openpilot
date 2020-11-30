@@ -49,7 +49,7 @@ def update_v_cruise(v_cruise_kph, buttonEvents, enabled, buttonPressTimes, acc_b
             v_cruise_kph -= CV.MPH_TO_KPH
 
 
-  return v_cruise_kph
+  return max(v_cruise_kph, V_CRUISE_ENABLE_MIN)
 
 
 def initialize_v_cruise(v_ego, buttonEvents, v_cruise_last):

@@ -68,12 +68,12 @@ class CarState(CarStateBase):
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]['HIGH_BEAM_FLASH'])
 
     accConfig = cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2']
-    if accConfig == 2:
-      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_3bars')
+    if accConfig == 0:
+      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_1bar')
     elif accConfig == 1:
       ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_2bars')
-    elif accConfig == 0:
-      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_1bar')
+    elif accConfig == 2:
+      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_3bars')
     else:
       ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_4bars')
 

@@ -7,7 +7,7 @@
 #define LATEST_TERMS_VERSION "2"
 #define LATEST_TRAINING_VERSION "0.2.0"
 
-class OnboardingWindow : public QStackedWidget {
+class OnboardingWindow : public QWidget {
   Q_OBJECT
 
 public:
@@ -16,6 +16,7 @@ public:
 private:
   QWidget * terms_screen();
   QWidget * training_screen();
+  QStackedWidget *swidget;
 
 signals:
   void onboardingDone();
