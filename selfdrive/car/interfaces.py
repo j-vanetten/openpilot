@@ -1,5 +1,7 @@
 import os
 import time
+from typing import Dict
+
 from cereal import car
 from common.kalman.simple_kalman import KF1D
 from common.realtime import DT_CTRL
@@ -15,6 +17,7 @@ EventName = car.CarEvent.EventName
 MAX_CTRL_SPEED = (V_CRUISE_MAX + 4) * CV.KPH_TO_MS  # 144 + 4 = 92 mph
 
 # generic car and radar interfaces
+
 
 class CarInterfaceBase():
   def __init__(self, CP, CarController, CarState):
@@ -52,7 +55,7 @@ class CarInterfaceBase():
   def get_std_params(candidate, fingerprint):
     ret = car.CarParams.new_message()
     ret.carFingerprint = candidate
-    ret.isPandaBlack = True # TODO: deprecate this field
+    ret.isPandaBlack = True  # TODO: deprecate this field
 
     # standard ALC params
     ret.steerControlType = car.CarParams.SteerControlType.torque
@@ -70,6 +73,9 @@ class CarInterfaceBase():
     ret.brakeMaxV = [1.]
     ret.openpilotLongitudinalControl = False
     ret.startAccel = 0.0
+    ret.minSpeedCan = 0.3
+    ret.stoppingBrakeRate = 0.2 # brake_travel/s while trying to stop
+    ret.startingBrakeRate = 0.8 # brake_travel/s while releasing on restart
     ret.stoppingControl = False
     ret.longitudinalTuning.deadzoneBP = [0.]
     ret.longitudinalTuning.deadzoneV = [0.]
@@ -134,6 +140,7 @@ class CarInterfaceBase():
 
     return events
 
+
 class RadarInterfaceBase():
   def __init__(self, CP):
     self.pts = {}
@@ -146,6 +153,7 @@ class RadarInterfaceBase():
     if not self.no_radar_sleep:
       time.sleep(self.radar_ts)  # radard runs on RI updates
     return ret
+
 
 class CarStateBase:
   def __init__(self, CP):
@@ -177,10 +185,13 @@ class CarStateBase:
     return self.left_blinker_cnt > 0, self.right_blinker_cnt > 0
 
   @staticmethod
-  def parse_gear_shifter(gear):
-    return {'P': GearShifter.park, 'R': GearShifter.reverse, 'N': GearShifter.neutral,
-            'E': GearShifter.eco, 'T': GearShifter.manumatic, 'D': GearShifter.drive,
-            'S': GearShifter.sport, 'L': GearShifter.low, 'B': GearShifter.brake}.get(gear, GearShifter.unknown)
+  def parse_gear_shifter(gear: str) -> car.CarState.GearShifter:
+    d: Dict[str, car.CarState.GearShifter] = {
+        'P': GearShifter.park, 'R': GearShifter.reverse, 'N': GearShifter.neutral,
+        'E': GearShifter.eco, 'T': GearShifter.manumatic, 'D': GearShifter.drive,
+        'S': GearShifter.sport, 'L': GearShifter.low, 'B': GearShifter.brake
+    }
+    return d.get(gear, GearShifter.unknown)
 
   @staticmethod
   def get_cam_can_parser(CP):
