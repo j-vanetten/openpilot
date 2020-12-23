@@ -1,5 +1,6 @@
 # FCA Hybrid OpenPilot/ACC v0.8.0
 I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features using this vehicle.
+@debugged-hosting has confirmed it to work on a 2017 Gas Chrysler Pacifica
 
 ## What is this Fork?
 This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC).
