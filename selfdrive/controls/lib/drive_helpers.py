@@ -56,7 +56,7 @@ def initialize_v_cruise(v_ego, buttonEvents, v_cruise_last):
   # 250kph or above probably means we never had a set speed
   if v_cruise_last < 250:
     for b in buttonEvents:
-      if b.type == "accelCruise" or b.type == "resumeCruise":
+      if b.type == "resumeCruise":
         return v_cruise_last
 
   return int(round(clip(v_ego * CV.MS_TO_KPH, V_CRUISE_ENABLE_MIN, V_CRUISE_MAX)))
