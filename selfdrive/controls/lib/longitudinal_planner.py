@@ -3,6 +3,7 @@ import math
 import numpy as np
 from common.params import Params
 from common.numpy_fast import interp
+from common.op_params import opParams
 
 import cereal.messaging as messaging
 from common.realtime import sec_since_boot
@@ -83,6 +84,8 @@ class Planner():
 
     self.params = Params()
     self.first_loop = True
+
+    self.op_params = opParams()
 
   def choose_solution(self, v_cruise_setpoint, enabled):
     if enabled:
@@ -208,7 +211,7 @@ class Planner():
     longitudinalPlan.aStart = float(self.a_acc_start)
     longitudinalPlan.vTarget = float(self.v_acc)
     longitudinalPlan.aTarget = float(self.a_acc)
-    longitudinalPlan.vTargetFuture = float(min(MAX_SPEED, self.v_acc_future, self.max_turning_speed(sm, sm['carState'].vEgo)))
+    longitudinalPlan.vTargetFuture = float(min(MAX_SPEED, self.v_acc_future, self.max_turning_speed(sm)))
     longitudinalPlan.hasLead = self.mpc1.prev_lead_status
     longitudinalPlan.longitudinalPlanSource = self.longitudinalPlanSource
     longitudinalPlan.fcw = self.fcw
@@ -217,8 +220,9 @@ class Planner():
 
     pm.send('longitudinalPlan', plan_send)
 
-  def max_turning_speed(self, sm, v_ego):
+  def max_turning_speed(self, sm):
     if len(sm['model'].path.poly) and self.op_params.get('slow_in_turns'):
+      v_ego = sm['carState'].vEgo
       path = list(sm['model'].path.poly)
 
       # Curvature of polynomial https://en.wikipedia.org/wiki/Curvature#Curvature_of_the_graph_of_a_function
