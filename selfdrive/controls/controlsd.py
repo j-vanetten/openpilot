@@ -88,7 +88,7 @@ class Controls:
     controller_available = self.CP.enableCamera and self.CI.CC is not None and not passive and not self.CP.dashcamOnly
     community_feature_disallowed = self.CP.communityFeature and not community_feature_toggle
     self.read_only = not car_recognized or not controller_available or \
-                     self.CP.dashcamOnly or community_feature_disallowed
+                       self.CP.dashcamOnly or community_feature_disallowed
     if self.read_only:
       self.CP.safetyModel = car.CarParams.SafetyModel.noOutput
 
@@ -192,7 +192,7 @@ class Controls:
     if self.sm['lateralPlan'].laneChangeState == LaneChangeState.preLaneChange:
       direction = self.sm['lateralPlan'].laneChangeDirection
       if (CS.leftBlindspot and direction == LaneChangeDirection.left) or \
-          (CS.rightBlindspot and direction == LaneChangeDirection.right):
+         (CS.rightBlindspot and direction == LaneChangeDirection.right):
         self.events.add(EventName.laneChangeBlocked)
       else:
         if direction == LaneChangeDirection.left:
@@ -416,7 +416,7 @@ class Controls:
 
     # Send a "steering required alert" if saturation count has reached the limit
     if (lac_log.saturated and not CS.steeringPressed) or \
-        (self.saturated_count > STEER_ANGLE_SATURATION_TIMEOUT):
+       (self.saturated_count > STEER_ANGLE_SATURATION_TIMEOUT):
       # Check if we deviated from the path
       left_deviation = actuators.steer > 0 and lat_plan.dPathPoints[0] < -0.1
       right_deviation = actuators.steer < 0 and lat_plan.dPathPoints[0] > 0.1
@@ -456,7 +456,7 @@ class Controls:
 
     recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 5.0  # 5s blinker cooldown
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not recent_blinker \
-                  and not self.active and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
+                    and not self.active and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
 
     meta = self.sm['modelV2'].meta
     if len(meta.desirePrediction) and ldw_allowed:

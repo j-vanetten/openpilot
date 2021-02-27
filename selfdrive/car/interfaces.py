@@ -36,6 +36,7 @@ class CarInterfaceBase():
     self.CC = None
     if CarController is not None:
       self.CC = CarController(self.cp.dbc_name, CP, self.VM)
+
     self.disengage_on_gas = opParams().get('disengage_on_gas')
 
   @staticmethod
