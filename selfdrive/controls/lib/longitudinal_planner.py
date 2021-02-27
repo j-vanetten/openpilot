@@ -221,9 +221,9 @@ class Planner():
     pm.send('longitudinalPlan', plan_send)
 
   def max_turning_speed(self, sm):
-    if len(sm['model'].path.poly) and self.op_params.get('slow_in_turns'):
-      v_ego = sm['carState'].vEgo
-      path = list(sm['model'].path.poly)
+    model = sm['modelV2']
+    if len(model.path.poly) and self.op_params.get('slow_in_turns'):
+      path = list(model.path.poly)
 
       # Curvature of polynomial https://en.wikipedia.org/wiki/Curvature#Curvature_of_the_graph_of_a_function
       # y = a x^3 + b x^2 + c x + d, y' = 3 a x^2 + 2 b x + c, y'' = 6 a x + 2 b
@@ -233,6 +233,7 @@ class Planner():
       y_pp = 6 * path[0] * self.path_x + 2 * path[1]
       curv = y_pp / (1. + y_p**2)**1.5
 
+      v_ego = sm['carState'].vEgo
       a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
       v_curvature = np.sqrt(a_y_max / np.clip(np.abs(curv), 1e-4, None))
       model_speed = np.min(v_curvature)
