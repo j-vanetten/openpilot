@@ -3,14 +3,15 @@ from selfdrive.config import Conversions as CV
 from cereal import car
 
 # kph
-V_CRUISE_MAX = 144
+V_CRUISE_MAX = 135
 V_CRUISE_MIN = 8
 V_CRUISE_DELTA = 8
 V_CRUISE_ENABLE_MIN = 32 # FCA gets down to 32
+MPC_N = 16
+CAR_ROTATION_RADIUS = 0.0
 
 class MPC_COST_LAT:
   PATH = 1.0
-  LANE = 3.0
   HEADING = 1.0
   STEER_RATE = 1.0
 
