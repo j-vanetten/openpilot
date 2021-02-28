@@ -1,4 +1,4 @@
-# FCA Hybrid OpenPilot/ACC v0.8.1
+# FCA Hybrid OpenPilot/ACC v0.8.2
 I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features using this vehicle.
 @debugged-hosting has confirmed it to work on a 2017 Gas Chrysler Pacifica
 

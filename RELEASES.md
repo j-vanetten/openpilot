@@ -1,3 +1,8 @@
+Version jvePilot-0.8.2 (2021-02-28)
+========================
+ * OpenPilot v0.8.2
+ * Model change breaks curvature calculation. Switched to controlsState's curvature.  May be less ideal.
+
 Version 0.8.2 (2021-02-26)
 ========================
  * Use model points directly in MPC (no more polyfits), making lateral planning more accurate
