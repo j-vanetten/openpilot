@@ -13,7 +13,7 @@ from selfdrive.controls.lib.speed_smoother import speed_smoother
 from selfdrive.controls.lib.longcontrol import LongCtrlState
 from selfdrive.controls.lib.fcw import FCWChecker
 from selfdrive.controls.lib.long_mpc import LongitudinalMpc
-from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX
+from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, MPC_N
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2     # car smoothly decel at .2m/s^2 when user is distracted
@@ -189,7 +189,9 @@ class Planner():
     self.v_acc_next = v_acc_sol
     self.a_acc_next = a_acc_sol
 
-    curv = PP.cur_state.curvature
+    # find the largest curvature in the solution and use that.
+    curvs = list(PP.mpc_solution.curvature)
+    curv = max(abs(min(curvs)), abs(max(curvs)))
     if curv and self.op_params.get('slow_in_turns'):
       self.v_acc_future = float(min(self.v_acc_future, self.limit_speed_in_curv(sm, curv)))
 
@@ -225,6 +227,6 @@ class Planner():
   def limit_speed_in_curv(self, sm, curv):
     v_ego = sm['carState'].vEgo
     a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
-    v_curvature = np.sqrt(a_y_max / np.clip(np.abs(curv), 1e-4, None))
+    v_curvature = np.sqrt(a_y_max / np.clip(curv, 1e-4, None))
     model_speed = np.min(v_curvature)
     return model_speed * self.op_params.get('slow_in_turns_ratio')
