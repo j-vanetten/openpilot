@@ -33,8 +33,6 @@ _A_CRUISE_MAX_BP = [0.,  6.4, 22.5, 40.]
 _A_TOTAL_MAX_V = [1.7, 3.2]
 _A_TOTAL_MAX_BP = [20., 40.]
 
-MAX_SPEED = 255.0
-
 def calc_cruise_accel_limits(v_ego, following):
   a_cruise_min = interp(v_ego, _A_CRUISE_MIN_BP, _A_CRUISE_MIN_V)
 
@@ -191,6 +189,10 @@ class Planner():
     self.v_acc_next = v_acc_sol
     self.a_acc_next = a_acc_sol
 
+    curv = PP.cur_state.curvature
+    if curv and self.op_params.get('slow_in_turns'):
+      self.v_acc_future = float(min(self.v_acc_future, self.limit_speed_in_curv(sm, curv)))
+
     self.first_loop = False
 
   def publish(self, sm, pm):
@@ -211,7 +213,7 @@ class Planner():
     longitudinalPlan.aStart = float(self.a_acc_start)
     longitudinalPlan.vTarget = float(self.v_acc)
     longitudinalPlan.aTarget = float(self.a_acc)
-    longitudinalPlan.vTargetFuture = float(min(MAX_SPEED, self.v_acc_future, self.max_turning_speed(sm)))
+    longitudinalPlan.vTargetFuture = float(self.v_acc_future)
     longitudinalPlan.hasLead = self.mpc1.prev_lead_status
     longitudinalPlan.longitudinalPlanSource = self.longitudinalPlanSource
     longitudinalPlan.fcw = self.fcw
@@ -220,13 +222,9 @@ class Planner():
 
     pm.send('longitudinalPlan', plan_send)
 
-  def max_turning_speed(self, sm):
-    curv = sm['controlsState'].curvature
-    if curv and self.op_params.get('slow_in_turns'):
-      v_ego = sm['carState'].vEgo
-      a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
-      v_curvature = np.sqrt(a_y_max / np.clip(np.abs(curv), 1e-4, None))
-      model_speed = np.min(v_curvature)
-      return max(20.0 * CV.MPH_TO_MS, model_speed * self.op_params.get('slow_in_turns_ratio'))  # 25% faster than computed
-    else:
-      return MAX_SPEED
+  def limit_speed_in_curv(self, sm, curv):
+    v_ego = sm['carState'].vEgo
+    a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
+    v_curvature = np.sqrt(a_y_max / np.clip(np.abs(curv), 1e-4, None))
+    model_speed = np.min(v_curvature)
+    return model_speed * self.op_params.get('slow_in_turns_ratio')
