@@ -1,3 +1,26 @@
+Table of Contents
+=======================
+- [FCA Hybrid OpenPilot/ACC jvePilot-0.8.2(v1)](#fca-hybrid-openpilot-acc-jvepilot-082-v1-)
+  * [What is this Fork?](#what-is-this-fork-)
+    + [How it does it](#how-it-does-it)
+    + [Features](#features)
+    + [How to use it](#how-to-use-it)
+      - [Where to look when setting ACC speed](#where-to-look-when-setting-acc-speed)
+- [Install](#install)
+  * [Branches](#branches)
+- [Customizing](#customizing)
+  + [`camera_offset`, Default: `0.06`, Live!](#-camera-offset---default---006---live-)
+  + [`slow_in_turns`, Default: `True`](#-slow-in-turns---default---true-)
+  + [`slow_in_turns_ratio`, Default: `1.0`, Live!](#-slow-in-turns-ratio---default---10---live-)
+  + [`disengage_on_gas`, Default: `True`](#-disengage-on-gas---default---true-)
+  + [`acc_button_long_press`, Default: `30`, Live!](#-acc-button-long-press---default---30---live-)
+  + [Lead Distance Ratio](#lead-distance-ratio)
+    - [`lead_distance_ratio_1bar`, Default: `1.1`, Live!](#-lead-distance-ratio-1bar---default---11---live-)
+    - [`lead_distance_ratio_2bars`, Default: `1.5`, Live!](#-lead-distance-ratio-2bars---default---15---live-)
+    - [`lead_distance_ratio_3bars`, Default: `2.1`, Live!](#-lead-distance-ratio-3bars---default---21---live-)
+    - [`lead_distance_ratio_4bars`, Default: `2.6`, Live!](#-lead-distance-ratio-4bars---default---26---live-)
+  + [**Safety Notes**](#--safety-notes--)
+
 # FCA Hybrid OpenPilot/ACC jvePilot-0.8.2(v1)
 I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features using this vehicle.
 @debugged-hosting: Confirmed working on a 2017 Gas Chrysler Pacifica
@@ -49,7 +72,7 @@ It will be adjusting it as needed, never raising it above the one set on the Ope
 # Customizing
 `opParms` is a handy tool to change parameters without diving into any json files or code.
 First, ssh in to your EON and make sure you're in `/data/openpilot`, then start `opEdit`:
-```python
+```bash
 cd /data/openpilot
 python op_edit.py  # or ./op_edit.py
 ```
@@ -111,42 +134,21 @@ If the speed difference is small, the vehicle just lets off the gas.
 Table of Contents
 =======================
 
-- [FCA Hybrid OpenPilot/ACC v0.8.1](#fca-hybrid-openpilotacc-v081)
-  - [What is this Fork?](#what-is-this-fork)
-    - [How it does it](#how-it-does-it)
-    - [Features](#features)
-    - [How to use it](#how-to-use-it)
-      - [Where to look when setting ACC speed](#where-to-look-when-setting-acc-speed)
-- [Install](#install)
-  - [Branches](#branches)
-- [Customizing](#customizing)
-    - [`camera_offset`, Default: `0.06`, Live!](#camera_offset-default-006-live)
-    - [`slow_in_turns`, Default: `True`](#slow_in_turns-default-true)
-    - [`slow_in_turns_ratio`, Default: `1.0`, Live!](#slow_in_turns_ratio-default-10-live)
-    - [`disengage_on_gas`, Default: `True`](#disengage_on_gas-default-true)
-    - [`acc_button_long_press`, Default: `30`, Live!](#acc_button_long_press-default-30-live)
-    - [Lead Distance Ratio](#lead-distance-ratio)
-      - [`lead_distance_ratio_1bar`, Default: `1.1`, Live!](#lead_distance_ratio_1bar-default-11-live)
-      - [`lead_distance_ratio_2bars`, Default: `1.5`, Live!](#lead_distance_ratio_2bars-default-15-live)
-      - [`lead_distance_ratio_3bars`, Default: `2.1`, Live!](#lead_distance_ratio_3bars-default-21-live)
-      - [`lead_distance_ratio_4bars`, Default: `2.6`, Live!](#lead_distance_ratio_4bars-default-26-live)
-    - [**Safety Notes**](#safety-notes)
-- [Table of Contents](#table-of-contents)
-  - [What is openpilot?](#what-is-openpilot)
-  - [Integration with Stock Features](#integration-with-stock-features)
-  - [Supported Hardware](#supported-hardware)
-  - [Supported Cars](#supported-cars)
-  - [Community Maintained Cars and Features](#community-maintained-cars-and-features)
-  - [Installation Instructions](#installation-instructions)
-  - [Limitations of openpilot ALC and LDW](#limitations-of-openpilot-alc-and-ldw)
-  - [Limitations of openpilot ACC and FCW](#limitations-of-openpilot-acc-and-fcw)
-  - [Limitations of openpilot DM](#limitations-of-openpilot-dm)
-  - [User Data and comma Account](#user-data-and-comma-account)
-  - [Safety and Testing](#safety-and-testing)
-  - [Testing on PC](#testing-on-pc)
-  - [Community and Contributing](#community-and-contributing)
-  - [Directory Structure](#directory-structure)
-  - [Licensing](#licensing)
+* [What is openpilot?](#what-is-openpilot)
+* [Integration with Stock Features](#integration-with-stock-features)
+* [Supported Hardware](#supported-hardware)
+* [Supported Cars](#supported-cars)
+* [Community Maintained Cars and Features](#community-maintained-cars-and-features)
+* [Installation Instructions](#installation-instructions)
+* [Limitations of openpilot ALC and LDW](#limitations-of-openpilot-alc-and-ldw)
+* [Limitations of openpilot ACC and FCW](#limitations-of-openpilot-acc-and-fcw)
+* [Limitations of openpilot DM](#limitations-of-openpilot-dm)
+* [User Data and comma Account](#user-data-and-comma-account)
+* [Safety and Testing](#safety-and-testing)
+* [Testing on PC](#testing-on-pc)
+* [Community and Contributing](#community-and-contributing)
+* [Directory Structure](#directory-structure)
+* [Licensing](#licensing)
 
 ---
 
