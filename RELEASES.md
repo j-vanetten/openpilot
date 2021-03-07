@@ -1,7 +1,7 @@
 Version jvePilot-0.8.2(v1) (2021-02-28)
 ========================
  * OpenPilot v0.8.2
- * Model change broke curvature calculation. Switched to using curvature values directly from model.
+ * Read curvature values directly from modal and use the largest curvature to calculate max speed. 
 
 Version 0.8.2 (2021-02-26)
 ========================
