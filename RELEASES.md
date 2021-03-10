@@ -1,3 +1,8 @@
+Version jvePilot-0.8.2(v1.1) (2021-XX-XX)
+========================
+* Fix controls error on gas press
+* Remove disengage_on_gas option until it's working again
+
 Version jvePilot-0.8.2(v1) (2021-02-28)
 ========================
  * OpenPilot v0.8.2

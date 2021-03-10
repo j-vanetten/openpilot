@@ -12,7 +12,6 @@ Table of Contents
   + [`camera_offset`, Default: `0.06`, Live!](#-camera-offset---default---006---live-)
   + [`slow_in_turns`, Default: `True`](#-slow-in-turns---default---true-)
   + [`slow_in_turns_ratio`, Default: `1.0`, Live!](#-slow-in-turns-ratio---default---10---live-)
-  + [`disengage_on_gas`, Default: `True`](#-disengage-on-gas---default---true-)
   + [`acc_button_long_press`, Default: `30`, Live!](#-acc-button-long-press---default---30---live-)
   + [Lead Distance Ratio](#lead-distance-ratio)
     - [`lead_distance_ratio_1bar`, Default: `1.1`, Live!](#-lead-distance-ratio-1bar---default---11---live-)
@@ -86,13 +85,6 @@ Should OpenPilot slow down when in a curve?
 ### `slow_in_turns_ratio`, Default: `1.0`, Live!
 Adjust how much slowing occurs in a curve.
 Example: Setting this to `1.2` will cause OpenPilot to drive 20% faster in turns than if it was set to the default `1.0`.
-
-### `disengage_on_gas`, Default: `True`
-Should OpenPilot disengage when the gas pedal is pressed?
-Stock ACC doesn't deactivate when pressing on the gas. Disable this option to make OpenPilot act more like stock ACC.
-**NOTE: This broke for me as of v0.8 of OpenPilot as it causes a LKAS fault when you press the gas while OpenPilot is active.
-I have left it as an option as I plan to look into fixing it or it may work on other vehicles.
-If you have issues setting this to `False`, just set it back to `True`**
 
 ### `acc_button_long_press`, Default: `30`, Live!
 Number of centiseconds to consider a button as long pressed.  (30 = .30 seconds)
