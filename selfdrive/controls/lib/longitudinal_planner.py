@@ -192,9 +192,10 @@ class Planner():
 
     # find the largest curvature in the solution and use that.
     curvs = list(PP.mpc_solution.curvature)
-    curv = max(abs(min(curvs)), abs(max(curvs)))
-    if curv and self.op_params.get('slow_in_turns'):
-      self.v_acc_future = float(min(self.v_acc_future, self.limit_speed_in_curv(sm, curv)))
+    if len(curvs):
+      curv = max(abs(min(curvs)), abs(max(curvs)))
+      if self.op_params.get('slow_in_turns'):
+        self.v_acc_future = float(min(self.v_acc_future, self.limit_speed_in_curv(sm, curv)))
 
     self.first_loop = False
 
