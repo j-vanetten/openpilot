@@ -6,6 +6,8 @@ from selfdrive.car.interfaces import CarInterfaceBase
 
 ButtonType = car.CarState.ButtonEvent.Type
 
+GAS_RESUME_SPEED = 2.
+
 class CarInterface(CarInterfaceBase):
   @staticmethod
   def compute_gb(accel, speed):
@@ -54,7 +56,6 @@ class CarInterface(CarInterfaceBase):
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront)
 
     ret.enableCamera = True
-    ret.openpilotLongitudinalControl = True
 
     return ret
 
@@ -92,10 +93,19 @@ class CarInterface(CarInterfaceBase):
 
     # events
     events = self.create_common_events(ret, extra_gears=[car.CarState.GearShifter.low],
-                                       gas_resume_speed=2.)
+                                       gas_resume_speed=GAS_RESUME_SPEED, pcm_enable=False)
 
-    if ret.vEgo < self.CP.minSteerSpeed:
+    if ret.brakePressed and ret.vEgo < GAS_RESUME_SPEED:
+      events.add(car.CarEvent.EventName.accBrakeHold)
+    elif ret.vEgo < self.CP.minSteerSpeed:
       events.add(car.CarEvent.EventName.belowSteerSpeed)
+
+    if self.CS.accCancelButton:
+      events.add(car.CarEvent.EventName.buttonCancel)  # cancel button pressed
+    elif ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
+      events.add(car.CarEvent.EventName.pcmEnable)  # cruse is enabled
+    elif (not ret.cruiseState.enabled) and (ret.vEgo > GAS_RESUME_SPEED or (self.CS.out.cruiseState.enabled and (not ret.standstill))):
+      events.add(car.CarEvent.EventName.pcmDisable)  # give up, too fast to resume
 
     ret.events = events.to_msg()
 
@@ -112,6 +122,6 @@ class CarInterface(CarInterfaceBase):
       return []  # if we haven't seen a frame 220, then do not update.
 
     can_sends = self.CC.update(c.enabled, self.CS, c.actuators, c.cruiseControl.cancel, c.hudControl.visualAlert,
-                               self.CS.out.cruiseState.speed, c.cruiseControl.targetSpeed)
+                               self.CS.out.cruiseState.speed, c.cruiseControl.targetSpeed, GAS_RESUME_SPEED)
 
     return can_sends

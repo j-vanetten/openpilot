@@ -4,6 +4,7 @@ from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_comm
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
+from common.op_params import opParams
 
 MIN_ACC_SPEED_MPH = 20
 
@@ -21,7 +22,10 @@ class CarController():
 
     self.packer = CANPacker(dbc_name)
 
-  def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, acc_speed, target_speed):
+    op_params = opParams()
+    self.disable_auto_resume = op_params.get('disable_auto_resume')
+
+  def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, acc_speed, target_speed, gas_resume_speed):
     # this seems needed to avoid steering faults and to force the sync with the EPS counter
     frame = CS.lkas_counter
     if self.prev_frame == frame:
@@ -54,28 +58,33 @@ class CarController():
     if CS.accCancelButton or CS.accFollowDecButton or CS.accFollowIncButton:
       self.pause_control_until_frame = self.ccframe + 100  # Avoid pushing multiple buttons at the same time
 
+    button_counter_change = CS.buttonCounter != self.last_button_counter
+    if button_counter_change:
+      self.last_button_counter = CS.buttonCounter
+
     if pcm_cancel_cmd:
       new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter, 'ACC_CANCEL', True)
       can_sends.append(new_msg)
 
-    elif enabled and CS.buttonCounter != self.last_button_counter:
-      self.last_button_counter = CS.buttonCounter
-      # Move the adaptive curse control to the target speed
-      if self.ccframe >= self.pause_control_until_frame and self.ccframe % 10 <= 3:  # press for 40ms
-        # Using MPH since it's more coarse so there should be less wobble on the speed setting
-        current = round(acc_speed * CV.MS_TO_MPH)
-        target = round(target_speed * CV.MS_TO_MPH)
-
+    elif enabled and button_counter_change and not CS.out.brakePressed:
+      if self.ccframe >= self.pause_control_until_frame and self.ccframe % 10 <= 4:  # press for 50ms
         button_to_press = None
-        if target < current and current > MIN_ACC_SPEED_MPH:
-          button_to_press = 'ACC_SPEED_DEC'
-        elif target > current:
-          button_to_press = 'ACC_SPEED_INC'
+        if (not self.disable_auto_resume) and (not CS.out.cruiseState.enabled or CS.out.standstill):
+          if CS.out.vEgo <= gas_resume_speed:  # Keep trying while under gas_resume_speed
+            button_to_press = 'ACC_RESUME'
+        elif not CS.out.gasPressed:
+          # Move the adaptive curse control to the target speed
+          current = round(acc_speed * CV.MS_TO_MPH)
+          target = round(target_speed * CV.MS_TO_MPH)
+
+          if target < current and current > MIN_ACC_SPEED_MPH:
+            button_to_press = 'ACC_SPEED_DEC'
+          elif target > current:
+            button_to_press = 'ACC_SPEED_INC'
 
         if button_to_press is not None:
           new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter + 1, button_to_press, True)
           can_sends.append(new_msg)
-
 
     # LKAS_HEARTBIT is forwarded by Panda so no need to send it here.
     # frame is 100Hz (0.01s period)

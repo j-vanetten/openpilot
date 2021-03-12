@@ -1,3 +1,8 @@
+Version jvePilot-0.8.2(v2.0) (2021-03-28)
+========================
+* Auto resume feature added (set `disable_auto_resume`to `True` to disable)
+* Added back feature that keep jvePilot engaged while pressing gas (set `disengage_on_gas` to `True` to disable)
+
 Version jvePilot-0.8.2(v1.1) (2021-03-12)
 ========================
 * Protect from missing curvature data

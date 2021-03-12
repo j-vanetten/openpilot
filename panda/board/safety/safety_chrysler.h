@@ -4,8 +4,8 @@ const uint32_t CHRYSLER_RT_INTERVAL = 250000;  // 250ms between real time checks
 const int CHRYSLER_MAX_RATE_UP = 3;
 const int CHRYSLER_MAX_RATE_DOWN = 3;
 const int CHRYSLER_MAX_TORQUE_ERROR = 80;    // max torque cmd in excess of torque motor
-const int CHRYSLER_GAS_THRSLD = 30;  // 7% more than 2m/s
-const int CHRYSLER_STANDSTILL_THRSLD = 10;  // about 1m/s
+const int CHRYSLER_GAS_THRSLD = 7;  // 7kph
+const int CHRYSLER_STANDSTILL_THRSLD = 1;  // 1kph
 const CanMsg CHRYSLER_TX_MSGS[] = {{571, 0, 3}, {658, 0, 6}, {678, 0, 8}};
 
 AddrCheckStruct chrysler_rx_checks[] = {
@@ -78,37 +78,30 @@ static int chrysler_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     }
 
     // enter controls on rising edge of ACC, exit controls on ACC off
-    if (addr == 500) {
+    else if (addr == 500) {
       int cruise_engaged = ((GET_BYTE(to_push, 2) & 0x38) >> 3) == 7;
       if (cruise_engaged && !cruise_engaged_prev) {
         controls_allowed = 1;
-      }
-      if (!cruise_engaged) {
+      } else if (!cruise_engaged && (vehicle_speed > CHRYSLER_GAS_THRSLD || (cruise_engaged_prev && vehicle_moving))) {
         controls_allowed = 0;
       }
       cruise_engaged_prev = cruise_engaged;
     }
 
     // update speed
-    if (addr == 514) {
+    else if (addr == 514) {
       int speed_l = (GET_BYTE(to_push, 0) << 4) + (GET_BYTE(to_push, 1) >> 4);
       int speed_r = (GET_BYTE(to_push, 2) << 4) + (GET_BYTE(to_push, 3) >> 4);
       vehicle_speed = (speed_l + speed_r) / 2;
       vehicle_moving = (int)vehicle_speed > CHRYSLER_STANDSTILL_THRSLD;
     }
 
-    // exit controls on rising edge of gas press
-    if (addr == 308) {
-      gas_pressed = ((GET_BYTE(to_push, 5) & 0x7F) != 0) && ((int)vehicle_speed > CHRYSLER_GAS_THRSLD);
+    else if (addr == 308) {
+      gas_pressed = (GET_BYTE(to_push, 5) & 0x7F) != 0;
     }
 
-    // exit controls on rising edge of brake press
-    if (addr == 320) {
+    else if (addr == 320) {
       brake_pressed = (GET_BYTE(to_push, 0) & 0x7) == 5;
-      if (brake_pressed && (!brake_pressed_prev || vehicle_moving)) {
-        controls_allowed = 0;
-      }
-      brake_pressed_prev = brake_pressed;
     }
 
     generic_rx_checks((addr == 0x292));
@@ -159,7 +152,7 @@ static int chrysler_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
     }
 
     // no torque if controls is not allowed
-    if (!controls_allowed && (desired_torque != 0)) {
+    else if (!controls_allowed && (desired_torque != 0)) {
       violation = 1;
     }
 
@@ -176,8 +169,9 @@ static int chrysler_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
   }
 
   // Only the cancel, ACC+, and ACC- button presses are allowed
-  if (addr == 571) {
-    if (((GET_BYTE(to_send, 0) != 1) && (GET_BYTE(to_send, 0) != 4) && (GET_BYTE(to_send, 0) != 8))
+  else if (addr == 571) {
+    if (((GET_BYTE(to_send, 0) != 1) && (GET_BYTE(to_send, 0) != 16) // ACC_CANCEL && ACC_RESUME
+         && (GET_BYTE(to_send, 0) != 4) && (GET_BYTE(to_send, 0) != 8)) // ACC_SPEED_INC && ACC_SPEED_DEC
         || ((GET_BYTE(to_send, 1) & 1) == 1)) {
       tx = 0;
     }
@@ -197,7 +191,7 @@ static int chrysler_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
       bus_fwd = 2;
     }
     // forward all messages from camera except LKAS_COMMAND and LKAS_HUD
-    if ((bus_num == 2) && (addr != 658) && (addr != 678)) {
+    else if ((bus_num == 2) && (addr != 658) && (addr != 678)) {
       bus_fwd = 0;
     }
   }
