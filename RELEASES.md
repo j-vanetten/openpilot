@@ -1,6 +1,6 @@
-Version jvePilot-0.8.2(v1.1) (2021-XX-XX)
+Version jvePilot-0.8.2(v1.1) (2021-03-12)
 ========================
-* Fix controls error on gas press
+* Protect from missing curvature data
 * Remove disengage_on_gas option until it's working again
 
 Version jvePilot-0.8.2(v1) (2021-02-28)
