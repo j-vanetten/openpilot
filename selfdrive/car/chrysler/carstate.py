@@ -144,6 +144,8 @@ class CarState(CarStateBase):
       ("ACC_FOLLOW_INC", "WHEEL_BUTTONS", 0),
       ("ACC_FOLLOW_DEC", "WHEEL_BUTTONS", 0),
       ("ACC_DISTANCE_CONFIG_2", "DASHBOARD", 0),
+      ("BLIND_SPOT_WARNINGS", "BLIND_SPOT_LEFT", 0),
+      ("BLIND_SPOT_WARNINGS", "BLIND_SPOT_RIGHT", 0),
     ]
 
     checks = [
@@ -162,6 +164,7 @@ class CarState(CarStateBase):
       ("SEATBELT_STATUS", 2),
       ("DOORS", 1),
       ("TRACTION_BUTTON", 1),
+      ("BLIND_SPOT_WARNINGS", 2),
     ]
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
