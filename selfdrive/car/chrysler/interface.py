@@ -56,6 +56,7 @@ class CarInterface(CarInterfaceBase):
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront)
 
     ret.enableCamera = True
+    ret.openpilotLongitudinalControl = ret.enableCamera  # kind of...
 
     return ret
 
