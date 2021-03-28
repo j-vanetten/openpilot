@@ -49,6 +49,8 @@ class CarState(CarStateBase):
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw <= 0.1
 
+    ret.leftBlindspot = cp.vl["BLIND_SPOT_WARNINGS"]['BLIND_SPOT_LEFT']
+    ret.rightBlindspot = cp.vl["BLIND_SPOT_WARNINGS"]['BLIND_SPOT_RIGHT']
     ret.leftBlinker = cp.vl["STEERING_LEVERS"]['TURN_SIGNALS'] == 1
     ret.rightBlinker = cp.vl["STEERING_LEVERS"]['TURN_SIGNALS'] == 2
     ret.steeringAngleDeg = cp.vl["STEERING"]['STEER_ANGLE']
