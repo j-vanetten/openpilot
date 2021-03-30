@@ -49,8 +49,8 @@ class CarState(CarStateBase):
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw <= 0.1
 
-    #ret.leftBlindspot = cp.vl["BLIND_SPOT_WARNINGS"]['BLIND_SPOT_LEFT'] == 1
-    #ret.rightBlindspot = cp.vl["BLIND_SPOT_WARNINGS"]['BLIND_SPOT_RIGHT'] == 1
+    ret.leftBlindspot = cp.vl["BLIND_SPOT_WARNINGS"]['BLIND_SPOT_LEFT'] == 1
+    ret.rightBlindspot = cp.vl["BLIND_SPOT_WARNINGS"]['BLIND_SPOT_RIGHT'] == 1
     ret.leftBlinker = cp.vl["STEERING_LEVERS"]['TURN_SIGNALS'] == 1
     ret.rightBlinker = cp.vl["STEERING_LEVERS"]['TURN_SIGNALS'] == 2
     ret.steeringAngleDeg = cp.vl["STEERING"]['STEER_ANGLE']
@@ -144,8 +144,8 @@ class CarState(CarStateBase):
       ("ACC_FOLLOW_INC", "WHEEL_BUTTONS", 0),
       ("ACC_FOLLOW_DEC", "WHEEL_BUTTONS", 0),
       ("ACC_DISTANCE_CONFIG_2", "DASHBOARD", 0),
-      #("BLIND_SPOT_WARNINGS", "BLIND_SPOT_LEFT", 0),
-      #("BLIND_SPOT_WARNINGS", "BLIND_SPOT_RIGHT", 0),
+      ("BLIND_SPOT_LEFT", "BLIND_SPOT_WARNINGS", 0),
+      ("BLIND_SPOT_RIGHT", "BLIND_SPOT_WARNINGS", 0),
     ]
 
     checks = [
@@ -164,7 +164,7 @@ class CarState(CarStateBase):
       ("SEATBELT_STATUS", 2),
       ("DOORS", 1),
       ("TRACTION_BUTTON", 1),
-      #("BLIND_SPOT_WARNINGS", 2),
+      ("BLIND_SPOT_WARNINGS", 2),
     ]
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
