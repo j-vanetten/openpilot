@@ -50,9 +50,10 @@ While stopped, you can still disengage OpenPilot by pressing the Cancel button.
 ## Benefits of jvePilot
 * Smother driving in traffic as OpenPilot will do a better job at predicting traffic
 * Slow for cars cutting in before ACC does
-* Slow in turns so you don't have to change the set speed yourself
+* Slow in a turn so you don't have to change the set speed yourself
 * Auto resume after ACC comes to a stop behind vehicle
-* Pressing gas does not disengage jvePilot 
+* Pressing the gas does not disengage jvePilot 
+* Report blind spot indicators to openpilot for better lane change safety
 
 ## How to use it 
 When using this branch, you will be setting the max ACC speed on the OpenPilot display instead of the one in the dashboard.

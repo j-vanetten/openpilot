@@ -1,3 +1,8 @@
+Version jvePilot-0.8.2(v2.1) (2021-XX-XX)
+========================
+* Report blind spot indicators to openpilot so auto lane change can abort if something is detected
+* Enable Longitudinal Control flag.  Hopefully will result in even more smoothness in longitudinal control
+
 Version jvePilot-0.8.2(v2.0) (2021-03-28)
 ========================
 * Auto resume feature added (set `disable_auto_resume`to `True` to disable)
