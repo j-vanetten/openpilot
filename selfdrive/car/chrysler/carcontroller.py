@@ -72,7 +72,7 @@ class CarController():
         if (not self.disable_auto_resume) and (not CS.out.cruiseState.enabled or CS.out.standstill):
           if CS.out.vEgo <= gas_resume_speed:  # Keep trying while under gas_resume_speed
             button_to_press = 'ACC_RESUME'
-        elif not CS.out.gasPressed:
+        else:
           # Move the adaptive curse control to the target speed
           current = round(acc_speed * CV.MS_TO_MPH)
           target = round(target_speed * CV.MS_TO_MPH)

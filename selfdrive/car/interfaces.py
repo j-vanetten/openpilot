@@ -123,7 +123,7 @@ class CarInterfaceBase():
     if not cs_out.cruiseState.enabled and len(events.names) and cs_out.vEgo <= gas_resume_speed:
       events.add(EventName.pcmDisable)  # added safety.  Disable on anything sus if waiting to resume
 
-    if cs_out.gasPressed:
+    if cs_out.gasPressed and self.disable_on_gas:
       events.add(EventName.gasPressed)
 
     if cs_out.steerError:
@@ -131,7 +131,7 @@ class CarInterfaceBase():
     elif cs_out.steerWarning:
       events.add(EventName.steerTempUnavailable)
 
-    if (self.disable_on_gas and cs_out.gasPressed and (not self.CS.out.gasPressed) and cs_out.vEgo > gas_resume_speed) or \
+    if (cs_out.gasPressed and self.disable_on_gas and (not self.CS.out.gasPressed) and cs_out.vEgo > gas_resume_speed) or \
         (cs_out.brakePressed and (not self.CS.out.brakePressed) and not cs_out.standstill):
       events.add(EventName.pedalPressed)
 
