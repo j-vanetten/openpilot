@@ -3,7 +3,7 @@ Version jvePilot-0.8.3(v2.1) (2021-04-01)
 * Report blind spot indicators to openpilot so auto lane change can abort if something is detected
 * Enable Longitudinal Control flag.  Enabled lead car tracking
   
-Version jvePilot-0.8.3(v2.0) (2021-03-28)
+Version jvePilot-0.8.3(v2.0) (2021-04-01)
 ========================
 * Update to openpilot v0.8.3 
 
