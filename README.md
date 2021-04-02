@@ -1,6 +1,6 @@
 Table of Contents
 =======================
-- [FCA Hybrid OpenPilot(0.8.2)/ACC jvePilot(v2)](#fca-hybrid-openpilot-082--acc-jvepilot-v2-)
+- [FCA Hybrid OpenPilot/ACC jvePilot](#fca-hybrid-openpilot-acc-jvepilot)
   * [What is this Fork?](#what-is-this-fork-)
     + [Longitudinal control](#longitudinal-control)
     + [Auto Resume](#auto-resume)
@@ -24,7 +24,7 @@ Table of Contents
   + [`disable_on_gas`, Default: `False`](#-disable-on-gas---default---false-)
   + [**Safety Notes**](#--safety-notes--)
 
-# FCA Hybrid OpenPilot(0.8.2)/ACC jvePilot(v2)
+# FCA Hybrid OpenPilot/ACC jvePilot
 I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features using this vehicle.
 @debugged-hosting: Confirmed working on a 2017 Gas Chrysler Pacifica
 
