@@ -110,7 +110,7 @@ class Planner():
 
     self.v_acc_future = min([self.mpc1.v_mpc_future, self.mpc2.v_mpc_future, v_cruise_setpoint])
 
-  def update(self, sm, CP):
+  def update(self, sm, CP, lateral_planner):
     """Gets called when new radarState is available"""
     cur_time = sec_since_boot()
     v_ego = sm['carState'].vEgo
@@ -191,7 +191,7 @@ class Planner():
     self.a_acc_next = a_acc_sol
 
     if self.op_params.get('slow_in_turns'):
-      curvs = list(PP.mpc_solution.curvature)
+      curvs = list(lateral_planner.mpc_solution.curvature)
       if len(curvs):
         # find the largest curvature in the solution and use that.
         curv = max(abs(min(curvs)), abs(max(curvs)))
