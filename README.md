@@ -2,140 +2,180 @@ Table of Contents
 =======================
 - [FCA Hybrid OpenPilot/ACC jvePilot](#fca-hybrid-openpilot-acc-jvepilot)
   * [What is this Fork?](#what-is-this-fork-)
+  * [Benefits of jvePilot](#benefits-of-jvepilot)
     + [Longitudinal control](#longitudinal-control)
     + [Auto Resume](#auto-resume)
-  * [Benefits of jvePilot](#benefits-of-jvepilot)
+    + [Auto Follow](#auto-follow)
   * [How to use it](#how-to-use-it)
     + [Where to look when setting ACC speed](#where-to-look-when-setting-acc-speed)
 - [Install](#install)
   * [Branches](#branches)
   * [Panda Firmware Flashing](#panda-firmware-flashing)
 - [Customizing](#customizing)
-  + [`camera_offset`, Default: `0.06`, Live!](#-camera-offset---default---006---live-)
-  + [`slow_in_turns`, Default: `True`](#-slow-in-turns---default---true-)
-  + [`slow_in_turns_ratio`, Default: `1.0`, Live!](#-slow-in-turns-ratio---default---10---live-)
-  + [`acc_button_long_press`, Default: `30`, Live!](#-acc-button-long-press---default---30---live-)
+  + [Slow in Turns](#slow-in-turns)
+    - [`slow_in_turns`, Default: `True`](#-slow-in-turns---default---true-)
+    - [`slow_in_turns_ratio`, Default: `1.0`, Live!](#-slow-in-turns-ratio---default---10---live-)
+    - [`slow_in_turns_rotate`, Default: `0.0`, Live!](#-slow-in-turns-rotate---default---00---live-)
+  + [Auto Follow](#auto-follow-1)
+    - [`start_with_auto_follow_disabled`, Default: `False`](#-start-with-auto-follow-disabled---default---false-)
+    - [`auto_follow_2bars_speed`, Default: `15`, Live!](#-auto-follow-2bars-speed---default---15---live-)
+    - [`auto_follow_3bars_speed`, Default: `30`, Live!](#-auto-follow-3bars-speed---default---30---live-)
+    - [`auto_follow_4bars_speed`, Default: `60`, Live!](#-auto-follow-4bars-speed---default---60---live-)
   + [Lead Distance Ratio](#lead-distance-ratio)
     - [`lead_distance_ratio_1bar`, Default: `1.1`, Live!](#-lead-distance-ratio-1bar---default---11---live-)
     - [`lead_distance_ratio_2bars`, Default: `1.5`, Live!](#-lead-distance-ratio-2bars---default---15---live-)
     - [`lead_distance_ratio_3bars`, Default: `2.1`, Live!](#-lead-distance-ratio-3bars---default---21---live-)
     - [`lead_distance_ratio_4bars`, Default: `2.6`, Live!](#-lead-distance-ratio-4bars---default---26---live-)
-  + [`disable_auto_resume`, Default: `False`](#-disable-auto-resume---default---false-)
-  + [`disable_on_gas`, Default: `False`](#-disable-on-gas---default---false-)
-  + [**Safety Notes**](#--safety-notes--)
+  + [Other tweaks](#other-tweaks)
+    - [`camera_offset`, Default: `0.06`, Live!](#-camera-offset---default---006---live-)
+    - [`disable_auto_resume`, Default: `False`](#-disable-auto-resume---default---false-)
+    - [`disable_on_gas`, Default: `False`](#-disable-on-gas---default---false-)
+    - [`op_speed_adjust_ratio`, Default: `1.0`](#-op-speed-adjust-ratio---default---10-)
+    - [`acc_button_long_press`, Default: `30`, Live!](#-acc-button-long-press---default---30---live-)
 
 # FCA Hybrid OpenPilot/ACC jvePilot
 I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features using this vehicle.
+
 @debugged-hosting: Confirmed working on a 2017 Gas Chrysler Pacifica
 
 ## What is this Fork?
+This is my personal OpenPilot fork that includes features that I feel make it a better driving experience for me and possibly others.
+
+## Benefits of jvePilot
+* Smother driving in traffic as jvePilot will do a better job at predicting traffic and adjust ACC speed accordingly
+* Slow for cars cutting in before ACC does
+* Slow in a turn, so you don't have to change the set speed yourself (Speeds are configurable)
+* Auto resume after ACC comes to a stop behind vehicle (Can be disabled)
+* Auto follow feature to adjust the follow distance based on speed (Speeds are configurable)
+* Pressing the gas does not disengage jvePilot (Can be disabled)
+* Report blind spot indicators to jvePilot for better lane change safety
+
+### Longitudinal control
 This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC).
 It does this by changing the ACC speed to match the value OpenPilot calculates as the desired speed.
 This brings some of OpenPilots longitudinal control to these vehicles.
 Including things like slowing while cornering and slowing when it detects cut-ins.
 It will also smooth the braking of ACC when driving in traffic.
 
-### Longitudinal control
-On FCA vehicles, only the steering is controlled by OpenPilot and speed is left up to the ACC of the vehicle.
-This fork takes control of the ACC speed setting and adjusts the ACC speed to match the speed OpenPilot would be targeting if it actually was able to control the gas and brakes.
+On FCA vehicles, only the steering is controlled by jvePilot and speed is left up to the ACC of the vehicle.
+This fork takes control of the ACC speed setting and adjusts the ACC speed to match the speed jvePilot would be targeting if it actually was able to control the gas and brakes.
 It does this by simulating ACC+ and ACC- button presses on the steering wheel to change the ACC speed.
-It is limited as ACC only goes down to 20 mph so it doesn't help as low speeds.
+It is limited as ACC only goes down to 20 mph, so it doesn't help as low speeds.
 
 ### Auto Resume
 ACC will come to a stop behind vehicles, however, if stopped too long, it will either stay stopped until resume is pressed, or simply disengage ACC altogether.  
 For the case where ACC simply cancels, the driver has to press and hold the brake to keep the vehicle stopped.
 Auto resume makes life easier by resuming ACC when the vehicle in front of you begin to move, or, you let off the brake after coming to a standstill.
-While stopped, you can still disengage OpenPilot by pressing the Cancel button. 
+While stopped, you can still disengage jvePilot by pressing the Cancel button. 
 
-## Benefits of jvePilot
-* Smother driving in traffic as OpenPilot will do a better job at predicting traffic
-* Slow for cars cutting in before ACC does
-* Slow in a turn so you don't have to change the set speed yourself
-* Auto resume after ACC comes to a stop behind vehicle
-* Pressing the gas does not disengage jvePilot 
-* Report blind spot indicators to openpilot for better lane change safety
+### Auto Follow
+Auto Follow is a way to automate the changing of the stock follow distance setting.
+It sets the follow distance to closer at slow speeds and increases it the faster you go.
+Setting the follow speed to one/two bars helps with keeping up with cars that take off when stopped or at slow speeds.
+The faster you go, the more distance you want, so you can have more confidence in ACC being able to stop in case it needs to.
 
+The current enabled state of Auto Follow is displayed on the bottom of the jvePilot display.
+Pressing Follow + or - will disable Auto Follow giving you full control to set the follow distance. 
+To re-enable Auto Follow, hold either Follow + or - for half a second. 
+ 
 ## How to use it 
-When using this branch, you will be setting the max ACC speed on the OpenPilot display instead of the one in the dashboard.
-OpenPilot will then set the ACC setting in the dashboard to the targeted speed, but never exceeding the max speed set on the OpenPilot display.
-A quick press of the ACC+ and ACC- buttons will change this speed by 5 mph on the OpenPilot display, while a long deliberate press (about a 1/2 second press) changes it by 1 mph.
+When using this branch, you will be setting the max ACC speed on the jvePilot display instead of the one in the dashboard.
+jvePilot will then set the ACC setting in the dashboard to the targeted speed, but never exceeding the max speed set on the jvePilot display.
+A quick press of the ACC+ and ACC- buttons will change this speed by 5 mph on the jvePilot display, while a long deliberate press (about a 1/2 second press) changes it by 1 mph.
 DO NOT hold the ACC+ or ACC- buttons for longer that a 1 second. Either make quick or long deliberate presses only.
 
 ### Where to look when setting ACC speed
 Do not look at the dashboard when setting your ACC max speed.
-Instead, only look at the one on the OpenPilot display.
-The reason you need to look at OpenPilot is because OpenPilot will be changing the one in the dashboard.
-It will be adjusting it as needed, never raising it above the one set on the OpenPilot display.
+Instead, only look at the one on the jvePilot display.
+The reason you need to look at jvePilot is because jvePilot will be changing the one in the dashboard.
+It will be adjusting it as needed, never raising it above the one set on the jvePilot display.
 
-**ONLY look at the MAX speed on OpenPilot when setting the ACC speed instead of the dashboard!**
+**ONLY look at the MAX speed on jvePilot when setting the ACC speed instead of the dashboard!**
 ![](https://github.com/j-vanetten/jvePilot/blob/hacc-release/common/images/openpilot.jpg)
 
 ---
 
 # Install
+The easiest way to install jvePilot is to factory reset and use this Custom Software URL: `https://bit.ly/jvepilot`
+
 ## Branches
 `/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for general use.
 
 ## Panda Firmware Flashing
 If you get Controls Mismatch or LKAS faults, try this.  
-This is usually done automatically but sometimes you need to run it when you first install.  
+This is usually done automatically, but sometimes you need to run it when you first install.  
 
 Run this to force an update: `pkill -f boardd; cd /data/openpilot/panda/board; make; reboot`
 
 ---
 # Customizing
 `opParms` is a handy tool to change parameters without diving into any json files or code.
-First, ssh in to your EON and make sure you're in `/data/openpilot`, then start `opEdit`:
+First, ssh in to your device and make sure you're in `/data/openpilot`, then start `opEdit`:
 ```bash
 cd /data/openpilot
-python op_edit.py  # or ./op_edit.py
+./op_edit.py
 ```
 
-### `camera_offset`, Default: `0.06`, Live!
+### Slow in Turns
+#### `slow_in_turns`, Default: `True`
+Should jvePilot slow down when in a curve?
+#### `slow_in_turns_ratio`, Default: `1.0`, Live!
+Adjust how much slowing occurs in a curve.
+Example: Setting this to `1.2` will cause jvePilot to drive 20% faster in turns than if it was set to the default `1.0`.
+#### `slow_in_turns_rotate`, Default: `0.0`, Live!
+Experimental. Change speed drop-off angle. 
+Example: Start by changing this in `1.0` +/- increments to make the vehicle go slightly faster/slower through turns at faster speeds. 
+Personally, I use `2.0` on my Jeep to make it go a little faster in turns that the default value of `0.0`
+
+### Auto Follow
+#### `start_with_auto_follow_disabled`, Default: `False`
+Set to True if you want Auto Follow to be disabled by default
+#### `auto_follow_2bars_speed`, Default: `15`, Live!
+When your speed (in MPH) is below this setting, Auto Follow will set the follow setting to one bar.  
+When your reach this speed (in MPH), Auto Follow will set the follow setting to two bars.
+#### `auto_follow_3bars_speed`, Default: `30`, Live!
+When your reach this speed (in MPH), Auto Follow will set the follow setting to three bars.
+#### `auto_follow_4bars_speed`, Default: `60`, Live!
+When your reach this speed (in MPH), Auto Follow will set the follow setting to four bars.
+
+### Lead Distance Ratio
+The lead distance ratios are the ratio to adjust the distance jvePilot follows based on the follow distance selected.
+This is done by adjusting the reported radar distance to the lead car.
+Having a ratio set to 2.6 causes this fork to report the lead car as being 2.6 times further away that it actually is.
+Causing jvePilot to move closer to that car.  NOTE: It's impossible to get closer than what ACC will allow.
+The default values are what worked for me to get jvePilot to be close to the ACC distance while still allowing ACC be the limiting factor to the distance.
+#### `lead_distance_ratio_1bar`, Default: `1.1`, Live!
+Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 1 bar
+#### `lead_distance_ratio_2bars`, Default: `1.5`, Live!
+Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 2 bars
+#### `lead_distance_ratio_3bars`, Default: `2.1`, Live!
+Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 3 bars
+#### `lead_distance_ratio_4bars`, Default: `2.6`, Live!
+Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 4 bars
+
+### Other tweaks
+#### `camera_offset`, Default: `0.06`, Live!
 Your camera offset to use in lane_planner.py.
 Helps fix lane hugging
 
-### `slow_in_turns`, Default: `True`
-Should OpenPilot slow down when in a curve?
-### `slow_in_turns_ratio`, Default: `1.0`, Live!
-Adjust how much slowing occurs in a curve.
-Example: Setting this to `1.2` will cause OpenPilot to drive 20% faster in turns than if it was set to the default `1.0`.
-
-### `acc_button_long_press`, Default: `30`, Live!
-Number of centiseconds to consider a button as long pressed.  (30 = .30 seconds)
-Quick pressing the ACC+ and ACC- buttons results in 5 mph changes to the set max speed.
-This allows you to quickly change speeds when the speed limit changes.
-But, when you get to the speed limit, sometime you want if you want to change by 1 mph to fine tune the speed you really want.
-This is accomplished by doing long deliberate presses.
-With the default value of 30, pressing teh ACC+ or ACC- buttons for .3 seconds or more will result in a 1 mph change.
-DO NOT hold the buttons down long that 1 second as that will interfere with the OpenPilot controlled ACC setting.
-
-### Lead Distance Ratio
-The lead distance ratios are the ratio to adjust the distance OpenPilot follows based on the follow distance selected.
-This is done by adjusting the reported radar distance to the lead car.
-Having a ratio set to 2.6 causes this fork to report the lead car as being 2.6 times further away that it actually is.
-Causing openPilot to move closer to that car.  NOTE: It's impossible to get closer than what ACC will allow.
-The default values are what worked for me to get OpenPilot to be close to the ACC distance while still allowing ACC be the limiting factor to the distance.
-#### `lead_distance_ratio_1bar`, Default: `1.1`, Live!
-Ratio to adjust OpenPilot's default model distance when ACC follow distance is set to 1 bar
-#### `lead_distance_ratio_2bars`, Default: `1.5`, Live!
-Ratio to adjust OpenPilot's default model distance when ACC follow distance is set to 2 bars
-#### `lead_distance_ratio_3bars`, Default: `2.1`, Live!
-Ratio to adjust OpenPilot's default model distance when ACC follow distance is set to 3 bars
-#### `lead_distance_ratio_4bars`, Default: `2.6`, Live!
-Ratio to adjust OpenPilot's default model distance when ACC follow distance is set to 4 bars
-
-### `disable_auto_resume`, Default: `False`
+#### `disable_auto_resume`, Default: `False`
 Disable the feature that allows jvePilot to auto resume from an ACC stop.
 
-### `disable_on_gas`, Default: `False`
+#### `disable_on_gas`, Default: `False`
 Disable the feature that allows jvePilot to stay engaged when pressing the gas.
+
+#### `op_speed_adjust_ratio`, Default: `1.0`
+Adjust speed displayed by jvePilot to match the real world.
+I have to set this to `1.052` to increase the reported speed by 5.2% to match my Jeeps speedometer, which is pretty accurate.
+
+#### `acc_button_long_press`, Default: `30`, Live!
+Number of centiseconds to consider an ACC +/- button being pressed as long deliberate presses.  (30 = .30 seconds)
 
 ---
 
 ### **Safety Notes** 
-* This is my experimental branch, so I'm not responsible for any damage this may cause to
-* OpenPilot still does not have direct control of the gas and brakes!
+* This is my experimental branch, so I'm not responsible for any damage this may cause.
+* jvePilot still does not have direct control of the gas and brakes!
 Changing the ACC speed does not always result in the vehicle braking unless the difference in speed is large enough.
 If the speed difference is small, the vehicle just lets off the gas.
 * ACC can't go slower that 20mph

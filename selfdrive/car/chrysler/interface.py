@@ -3,10 +3,13 @@ from cereal import car
 from selfdrive.car.chrysler.values import CAR
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
+from selfdrive.config import Conversions as CV
+from common.op_params import opParams
 
 ButtonType = car.CarState.ButtonEvent.Type
 
 GAS_RESUME_SPEED = 2.
+op_params = opParams()
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
@@ -15,6 +18,9 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
+    speed_adjust_ratio = op_params.get('op_speed_adjust_ratio')
+    inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
+
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "chrysler"
     ret.safetyModel = car.CarParams.SafetyModel.chrysler
@@ -40,10 +46,10 @@ class CarInterface(CarInterfaceBase):
 
     ret.centerToFront = ret.wheelbase * 0.44
 
-    ret.minSteerSpeed = 3.8  # m/s
+    ret.minSteerSpeed = 3.8 * inverse_speed_adjust_ratio  # m/s
     if candidate in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
       # TODO allow 2019 cars to steer down to 13 m/s if already engaged.
-      ret.minSteerSpeed = 17.5  # m/s 17 on the way up, 13 on the way down once engaged.
+      ret.minSteerSpeed = 17.5 * inverse_speed_adjust_ratio  # m/s 17 on the way up, 13 on the way down once engaged.
 
     # starting with reasonable value for civic and scaling by mass and wheelbase
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
@@ -70,25 +76,6 @@ class CarInterface(CarInterfaceBase):
     # speeds
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
-    # accel/decel button presses
-    buttonEvents = []
-    if self.CS.accelCruiseButton or self.CS.accelCruiseButtonChanged:
-      be = car.CarState.ButtonEvent.new_message()
-      be.type = ButtonType.accelCruise
-      be.pressed = self.CS.accelCruiseButton
-      buttonEvents.append(be)
-    if self.CS.decelCruiseButton or self.CS.decelCruiseButtonChanged:
-      be = car.CarState.ButtonEvent.new_message()
-      be.type = ButtonType.decelCruise
-      be.pressed = self.CS.decelCruiseButton
-      buttonEvents.append(be)
-    if self.CS.resumeCruiseButton or self.CS.resumeCruiseButtonChanged:
-      be = car.CarState.ButtonEvent.new_message()
-      be.type = ButtonType.resumeCruise
-      be.pressed = self.CS.resumeCruiseButton
-      buttonEvents.append(be)
-    ret.buttonEvents = buttonEvents
-
     # events
     events = self.create_common_events(ret, extra_gears=[car.CarState.GearShifter.low],
                                        gas_resume_speed=GAS_RESUME_SPEED, pcm_enable=False)
@@ -98,7 +85,7 @@ class CarInterface(CarInterfaceBase):
     elif ret.vEgo < self.CP.minSteerSpeed:
       events.add(car.CarEvent.EventName.belowSteerSpeed)
 
-    if self.CS.accCancelButton:
+    if self.CS.button_pressed(ButtonType.cancel):
       events.add(car.CarEvent.EventName.buttonCancel)  # cancel button pressed
     elif ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
       events.add(car.CarEvent.EventName.pcmEnable)  # cruse is enabled

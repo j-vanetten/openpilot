@@ -1260,6 +1260,10 @@ struct ManagerState {
   }
 }
 
+struct AutoFollow {
+  enabled @0 :Bool;
+}
+
 struct Event {
   logMonoTime @0 :UInt64;  # nanoseconds
   valid @67 :Bool = true;
@@ -1356,5 +1360,7 @@ struct Event {
     kalmanOdometryDEPRECATED @65 :Legacy.KalmanOdometry;
     gpsLocationDEPRECATED @21 :GpsLocationData;
     uiLayoutStateDEPRECATED @57 :Legacy.UiLayoutState;
+
+    autoFollow @79 :AutoFollow;
   }
 }

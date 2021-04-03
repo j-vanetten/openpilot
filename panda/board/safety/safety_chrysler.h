@@ -168,14 +168,13 @@ static int chrysler_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
     }
   }
 
-  // Only the cancel, ACC+, and ACC- button presses are allowed
-  else if (addr == 571) {
-    if (((GET_BYTE(to_send, 0) != 1) && (GET_BYTE(to_send, 0) != 16) // ACC_CANCEL && ACC_RESUME
-         && (GET_BYTE(to_send, 0) != 4) && (GET_BYTE(to_send, 0) != 8)) // ACC_SPEED_INC && ACC_SPEED_DEC
-        || ((GET_BYTE(to_send, 1) & 1) == 1)) {
-      tx = 0;
-    }
-  }
+// We want all the button controls now
+//  // FORCE CANCEL: only the cancel button press is allowed
+//  if (addr == 571) {
+//    if ((GET_BYTE(to_send, 0) != 1) || ((GET_BYTE(to_send, 1) & 1) == 1)) {
+//      tx = 0;
+//    }
+//  }
 
   return tx;
 }

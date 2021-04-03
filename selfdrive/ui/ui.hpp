@@ -57,6 +57,8 @@ const int footer_h = 280;
 const Rect settings_btn = {50, 35, 200, 117};
 const Rect home_btn = {60, 1080 - 180 - 40, 180, 180};
 
+const Rect authFollow_btn = {1920/2 - 475/2, 940 - 130/2, 475, 130};
+
 const int UI_FREQ = 20;   // Hz
 
 typedef enum NetStatus {
@@ -131,6 +133,8 @@ typedef struct UIScene {
   float light_sensor, accel_sensor, gyro_sensor;
   bool started, ignition, is_metric, longitudinal_control, end_to_end;
   uint64_t started_frame;
+
+  bool autoFollowButtonEnabled;
 } UIScene;
 
 typedef struct UIState {
@@ -149,6 +153,7 @@ typedef struct UIState {
   std::map<std::string, int> images;
 
   SubMaster *sm;
+  PubMaster *pm;
 
   Sound *sound;
   UIStatus status;

@@ -296,17 +296,6 @@ class Controls:
 
     return CS
 
-  def updateButtonPressTimes(self, buttonEvents):
-    stillPressedTimes = {}
-
-    for b in buttonEvents:
-      if b.type in self.buttonPressTimes:
-        stillPressedTimes[b.type] = self.buttonPressTimes[b.type] + 1 # 0.01s
-      else:
-        stillPressedTimes[b.type] = 0
-
-    self.buttonPressTimes = stillPressedTimes
-
   def state_transition(self, CS):
     """Compute conditional state transitions and execute actions on state transitions"""
 
@@ -314,9 +303,7 @@ class Controls:
 
     # use our own set speed logic
     acc_button_long_press = self.op_params.get("acc_button_long_press")
-    self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled,
-                                        self.buttonPressTimes, acc_button_long_press)
-    self.updateButtonPressTimes(CS.buttonEvents)
+    self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled, acc_button_long_press)
 
     # decrease the soft disable timer at every step, as it's reset on
     # entrance in SOFT_DISABLING state

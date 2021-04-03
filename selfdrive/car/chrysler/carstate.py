@@ -8,20 +8,25 @@ from common.op_params import opParams
 
 ButtonType = car.CarState.ButtonEvent.Type
 
+LEAD_RADAR_CONFIG = ['lead_distance_ratio_1bar', 'lead_distance_ratio_2bars', 'lead_distance_ratio_3bars', 'lead_distance_ratio_4bars']
+CHECK_BUTTONS = {ButtonType.cancel: 'ACC_CANCEL',
+                 ButtonType.resumeCruise: 'ACC_RESUME',
+                 ButtonType.accelCruise: 'ACC_SPEED_INC',
+                 ButtonType.decelCruise: 'ACC_SPEED_DEC',
+                 ButtonType.followInc: 'ACC_FOLLOW_INC',
+                 ButtonType.followDec: 'ACC_FOLLOW_DEC'}
+
 class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
     self.op_params = opParams()
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["GEAR"]['PRNDL']
-    self.prevResumeCruiseButton = False
-    self.prevAccelCruiseButton = False
-    self.prevDecelCruiseButton = False
-    self.accCancelButton = False
-    self.accFollowDecButton = False
-    self.accFollowIncButton = False
+    self.accDistanceConfig = -1
 
   def update(self, cp, cp_cam):
+    speed_adjust_ratio = self.op_params.get('op_speed_adjust_ratio')
+    inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
 
     ret = car.CarState.new_message()
 
@@ -45,7 +50,7 @@ class CarState(CarStateBase):
     ret.wheelSpeeds.rr = cp.vl['WHEEL_SPEEDS']['WHEEL_SPEED_RR']
     ret.wheelSpeeds.rl = cp.vl['WHEEL_SPEEDS']['WHEEL_SPEED_RL']
     ret.wheelSpeeds.fr = cp.vl['WHEEL_SPEEDS']['WHEEL_SPEED_FR']
-    ret.vEgoRaw = (cp.vl['SPEED_1']['SPEED_LEFT'] + cp.vl['SPEED_1']['SPEED_RIGHT']) / 2.
+    ret.vEgoRaw = (cp.vl['SPEED_1']['SPEED_LEFT'] + cp.vl['SPEED_1']['SPEED_RIGHT']) / 2. * speed_adjust_ratio
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw <= 0.1
 
@@ -71,15 +76,8 @@ class CarState(CarStateBase):
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]['HIGH_BEAM_FLASH'])
 
-    accConfig = cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2']
-    if accConfig == 0:
-      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_1bar')
-    elif accConfig == 1:
-      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_2bars')
-    elif accConfig == 2:
-      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_3bars')
-    else:
-      ret.leadDistanceRadarRatio = self.op_params.get('lead_distance_ratio_4bars')
+    self.accDistanceConfig = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
+    ret.leadDistanceRadarRatio = self.op_params.get(LEAD_RADAR_CONFIG[self.accDistanceConfig]) * inverse_speed_adjust_ratio
 
     self.lkas_counter = cp_cam.vl["LKAS_COMMAND"]['COUNTER']
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]['CAR_MODEL']
@@ -88,23 +86,39 @@ class CarState(CarStateBase):
     # Track buttons
     self.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
 
-    self.resumeCruiseButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_RESUME'])
-    self.resumeCruiseButtonChanged = (self.prevResumeCruiseButton != self.resumeCruiseButton)
-    self.prevResumeCruiseButton = self.resumeCruiseButton
-
-    self.accelCruiseButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_SPEED_INC'])
-    self.accelCruiseButtonChanged = (self.prevAccelCruiseButton != self.accelCruiseButton)
-    self.prevAccelCruiseButton = self.accelCruiseButton
-
-    self.decelCruiseButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_SPEED_DEC'])
-    self.decelCruiseButtonChanged = (self.prevDecelCruiseButton != self.decelCruiseButton)
-    self.prevDecelCruiseButton = self.decelCruiseButton
-
-    self.accCancelButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_CANCEL'])
-    self.accFollowDecButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_DEC'])
-    self.accFollowIncButton = bool(cp.vl["WHEEL_BUTTONS"]['ACC_FOLLOW_INC'])
+    button_events = []
+    for buttonType in CHECK_BUTTONS:
+      self.check_button(button_events, buttonType, bool(cp.vl["WHEEL_BUTTONS"][CHECK_BUTTONS[buttonType]]))
+    ret.buttonEvents = button_events
 
     return ret
+
+  def check_button(self, button_events, button_type, pressed):
+    pressed_frames = 0
+    pressed_changed = False
+    for ob in self.out.buttonEvents:
+      if ob.type == button_type:
+        pressed_frames = ob.pressedFrames
+        pressed_changed = ob.pressed != pressed
+        break
+
+    if pressed or pressed_changed:
+      be = car.CarState.ButtonEvent.new_message()
+      be.type = button_type
+      be.pressed = pressed
+      be.pressedFrames = pressed_frames
+
+      if not pressed_changed:
+        be.pressedFrames += 1
+
+      button_events.append(be)
+
+  def button_pressed(self, button_type, pressed=True):
+    for b in self.out.buttonEvents:
+      if b.type == button_type:
+        if b.pressed == pressed:
+          return b
+        break
 
   @staticmethod
   def get_can_parser(CP):
