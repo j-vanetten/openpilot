@@ -124,8 +124,10 @@ Adjust how much slowing occurs in a curve.
 Example: Setting this to `1.2` will cause jvePilot to drive 20% faster in turns than if it was set to the default `1.0`.
 #### `slow_in_turns_rotate`, Default: `0.0`, Live!
 Experimental. Change speed drop-off angle. 
-Example: Start by changing this in `1.0` +/- increments to make the vehicle go slightly faster/slower through turns at faster speeds. 
-Personally, I use `2.0` on my Jeep to make it go a little faster in turns that the default value of `0.0`
+This adjusts how much amount the vehicle slows as the curve increases. 
+Increase if you see too much slowing at faster speeds, while slower speeds feel correct.
+Example: Start by changing this in `1.0` +/- increments to make the vehicle go faster in more shallow curves.
+Personally, I use `2.0` on my Jeep to make it go a little faster in a particular off ramp.
 
 ### Auto Follow
 #### `start_with_auto_follow_disabled`, Default: `False`
