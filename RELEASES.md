@@ -1,8 +1,8 @@
 Version jvePilot-0.8.3(v2.2) (2021-04-10)
 ========================
 * Change follow distance based on speed
-* Add option to adjust the reported speed
 * Add another option to adjust curve slowing at faster speeds 
+* Add option to adjust the displayed speed
 * jvePilot branding
 * jvePilot-release as a tested branch
 

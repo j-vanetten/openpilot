@@ -229,6 +229,12 @@ class Planner():
   def limit_speed_in_curv(self, sm, curv):
     v_ego = sm['carState'].vEgo
     a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
+
+    # rotate the line
+    angle = self.op_params.get('slow_in_turns_rotate')
+    if angle != 0:
+      _, a_y_max = self.rotate((0, 2.975), (v_ego, a_y_max), angle * 0.0174533)
+
     v_curvature = np.sqrt(a_y_max / np.clip(curv, 1e-4, None))
     model_speed = np.min(v_curvature)
     return model_speed * self.op_params.get('slow_in_turns_ratio')
