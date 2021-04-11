@@ -60,7 +60,8 @@ service_list = {
   "testLiveLocation": Service(8045, False, 0.),
   "testJoystick": Service(8056, False, 0.),
 
-  "autoFollow": Service(8079, False, 0.),
+  "jvePilotState": Service(8200, False, 0.),
+  "jvePilotUIState": Service(8201, False, 0.),
 }
 
 

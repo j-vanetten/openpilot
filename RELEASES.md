@@ -1,3 +1,8 @@
+Version jvePilot-0.8.3(v3.0) (2021-XX-XX)
+========================
+* ACC Eco
+* Code changes to better consolidate state/control messaging
+
 Version jvePilot-0.8.3(v2.2) (2021-04-11)
 ========================
 * Change follow distance based on speed

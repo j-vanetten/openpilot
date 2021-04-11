@@ -53,14 +53,16 @@ class Controls:
     self.pm = pm
     if self.pm is None:
       self.pm = messaging.PubMaster(['sendcan', 'controlsState', 'carState',
-                                     'carControl', 'carEvents', 'carParams'])
+                                     'carControl', 'carEvents', 'carParams',
+                                     'jvePilotState'])
 
     self.sm = sm
     if self.sm is None:
       ignore = ['ubloxRaw', 'driverCameraState', 'managerState'] if SIMULATION else None
       self.sm = messaging.SubMaster(['deviceState', 'pandaState', 'modelV2', 'liveCalibration', 'ubloxRaw',
                                      'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
-                                     'roadCameraState', 'driverCameraState', 'managerState', 'liveParameters', 'radarState'], ignore_alive=ignore)
+                                     'roadCameraState', 'driverCameraState', 'managerState', 'liveParameters', 'radarState',
+                                     'jvePilotUIState'], ignore_alive=ignore)
 
     self.can_sock = can_sock
     if can_sock is None:
@@ -131,6 +133,11 @@ class Controls:
     self.current_alert_types = [ET.PERMANENT]
     self.logged_comm_issue = False
     self.buttonPressTimes = {}
+
+    self.jvePilotState = car.JvePilotState.new_message()
+    self.jvePilotState.carControl.autoFollow = not self.op_params.get('start_with_auto_follow_disabled')
+    self.jvePilotState.carControl.accEco = True
+    self.ui_notify()
 
     self.sm['liveCalibration'].calStatus = Calibration.CALIBRATED
     self.sm['deviceState'].freeSpacePercent = 100
@@ -294,7 +301,22 @@ class Controls:
 
     self.distance_traveled += CS.vEgo * DT_CTRL
 
+    if self.jvePilotState.notifyUi:
+      self.ui_notify()
+    elif self.sm.updated['jvePilotUIState']:
+      self.jvePilotState.carControl.autoFollow = self.sm['jvePilotUIState'].autoFollow
+      self.jvePilotState.carControl.accEco = self.sm['jvePilotUIState'].accEco
+
     return CS
+
+  def ui_notify(self):
+    self.jvePilotState.notifyUi = False
+
+    msg = messaging.new_message('jvePilotUIState')
+    msg.jvePilotUIState = self.sm['jvePilotUIState']
+    msg.jvePilotUIState.autoFollow = self.jvePilotState.carControl.autoFollow
+    msg.jvePilotUIState.accEco = self.jvePilotState.carControl.accEco
+    self.pm.send('jvePilotState', msg)
 
   def state_transition(self, CS):
     """Compute conditional state transitions and execute actions on state transitions"""
@@ -434,6 +456,8 @@ class Controls:
     """Send actuators and hud commands to the car, send controlsstate and MPC logging"""
 
     CC = car.CarControl.new_message()
+    CC.jvePilotState.carState = CS.jvePilotCarState
+    CC.jvePilotState.carControl = self.jvePilotState.carControl
     CC.enabled = self.enabled
     CC.actuators = actuators
 
@@ -446,7 +470,7 @@ class Controls:
     speed_override = max(0.0, (self.LoC.v_pid + CS.cruiseState.speedOffset) * brake_discount)
     CC.cruiseControl.speedOverride = float(speed_override if self.CP.enableCruise else 0.0)
     CC.cruiseControl.accelOverride = self.CI.calc_accel_override(CS.aEgo, self.sm['longitudinalPlan'].aTarget, CS.vEgo, self.sm['longitudinalPlan'].vTarget)
-    CC.cruiseControl.targetSpeed = self.sm['longitudinalPlan'].vTargetFuture
+    CC.jvePilotState.carControl.vTargetFuture = self.sm['longitudinalPlan'].vTargetFuture
 
     CC.hudControl.setSpeed = float(self.v_cruise_kph * CV.KPH_TO_MS)
     CC.hudControl.speedVisible = self.enabled
@@ -487,6 +511,8 @@ class Controls:
       # send car controls over can
       can_sends = self.CI.apply(CC)
       self.pm.send('sendcan', can_list_to_can_capnp(can_sends, msgtype='sendcan', valid=CS.canValid))
+      self.jvePilotState.carControl = CC.jvePilotState.carControl
+      self.jvePilotState.notifyUi = CC.jvePilotState.notifyUi
 
     force_decel = (self.sm['driverMonitoringState'].awarenessStatus < 0.) or \
                   (self.state == State.softDisabling)

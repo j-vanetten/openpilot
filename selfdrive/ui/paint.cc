@@ -272,32 +272,47 @@ static void ui_draw_driver_view(UIState *s) {
   ui_draw_circle_image(s, icon_x, icon_y, face_size, "driver_face", face_detected);
 }
 
-static void ui_draw_af_button(UIState *s) {
-  int btn_w = 475;
-  int btn_h = 130;
-  int x = 1920 / 2;
-  int y = 940;
-  int btn_x = x - btn_w / 2;
-  int btn_y = y - btn_h / 2;
+static void ui_draw_button(UIState *s, Rect btn, const char *text, bool enabled) {
+  int btn_x = btn.x;
+  int btn_y = btn.y;
+  int btn_w = btn.right() - btn.x;
+  int btn_h = btn.bottom() - btn.y;
+  int center_x = btn_x + (btn_w / 2);
+  int center_y = btn_y + (btn_h / 2);
 
   nvgBeginPath(s->vg);
   nvgRoundedRect(s->vg, btn_x, btn_y, btn_w, btn_h, 25);
-  if (s->scene.autoFollowButtonEnabled) {  // change outline color based on status of button
+  if (enabled) {  // change outline color based on status of button
     nvgStrokeColor(s->vg, nvgRGBA(55, 184, 104, 255));
   } else {
-    nvgStrokeColor(s->vg, nvgRGBA(184, 55, 55, 255));
+    nvgStrokeColor(s->vg, nvgRGBA(200, 200, 200, 200));
   }
   nvgStrokeWidth(s->vg, 12);
   nvgStroke(s->vg);
 
   nvgBeginPath(s->vg);  // dark background for readability
   nvgRoundedRect(s->vg, btn_x, btn_y, btn_w, btn_h, 25);
-  nvgFillColor(s->vg, nvgRGBA(75, 75, 75, 75));
+  if (enabled) {  // change background color based on status of button
+    nvgFillColor(s->vg, nvgRGBA(55, 184, 104, 75));
+  } else {
+    nvgFillColor(s->vg, nvgRGBA(0, 0, 0, 75));
+  }
   nvgFill(s->vg);
 
   nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 255));
   nvgFontSize(s->vg, 60);
-  nvgText(s->vg, x, y + btn_h / 8, s->scene.autoFollowButtonEnabled ? "Auto Follow" : "Auto Follow OFF", NULL);
+  nvgText(s->vg, center_x, center_y + btn_h / 8, text, NULL);
+}
+
+static void ui_draw_jve_pilot_buttons(UIState *s) {
+  if (s->scene.autoFollowButtonEnabled != -1) {
+    bool autoFollowButtonEnabled = s->scene.autoFollowButtonEnabled == 1;
+    ui_draw_button(s, authFollow_btn, autoFollowButtonEnabled ? "Auto Follow" : "Auto Follow OFF", autoFollowButtonEnabled);
+  }
+  if (s->scene.accEcoButtonEnabled != -1) {
+    bool accEcoButtonEnabled = s->scene.accEcoButtonEnabled == 1;
+    ui_draw_image(s, accEco_img, accEcoButtonEnabled ? "acc_eco_on" : "acc_eco_off", accEcoButtonEnabled ? 1.0f : 0.7f);
+  }
 }
 
 static void ui_draw_vision_header(UIState *s) {
@@ -312,7 +327,7 @@ static void ui_draw_vision_header(UIState *s) {
   ui_draw_vision_speed(s);
   ui_draw_vision_event(s);
 
-  ui_draw_af_button(s);
+  ui_draw_jve_pilot_buttons(s);
 }
 
 static void ui_draw_vision_footer(UIState *s) {
@@ -546,6 +561,8 @@ void ui_nvg_init(UIState *s) {
 
   // init images
   std::vector<std::pair<const char *, const char *>> images = {
+      {"acc_eco_on", "../assets/img_eco_on.png"},
+      {"acc_eco_off", "../assets/img_eco_off.png"},
       {"wheel", "../assets/img_chffr_wheel.png"},
       {"trafficSign_turn", "../assets/img_trafficSign_turn.png"},
       {"driver_face", "../assets/img_driver_face.png"},

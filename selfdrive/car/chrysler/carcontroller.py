@@ -26,13 +26,11 @@ class CarController():
 
     self.packer = CANPacker(dbc_name)
 
-    self.pm = messaging.PubMaster(['autoFollow'])
     self.op_params = opParams()
     self.disable_auto_resume = self.op_params.get('disable_auto_resume')
     self.start_with_auto_follow_disabled = self.op_params.get('start_with_auto_follow_disabled')
-    self.auto_follow_enabled = not self.start_with_auto_follow_disabled
 
-  def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, acc_speed, target_speed, gas_resume_speed):
+  def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, jvepilot_state):
     # this seems needed to avoid steering faults and to force the sync with the EPS counter
     frame = CS.lkas_counter
     if self.prev_frame == frame:
@@ -67,24 +65,23 @@ class CarController():
     if CS.button_pressed(ButtonType.cancel) or follow_inc_button or follow_dec_button:
       self.pause_control_until_frame = self.ccframe + 25  # Avoid pushing multiple buttons at the same time
 
-    # for 2 seconds at startup, let the UI know what state we are in
-    if self.ccframe <= 200 and self.ccframe % 25 == 0:
-      self.af_notify(self.auto_follow_enabled)
-
-    if self.auto_follow_enabled:
+    if jvepilot_state.carControl.autoFollow:
       follow_inc_button = CS.button_pressed(ButtonType.followInc, False)
       follow_dec_button = CS.button_pressed(ButtonType.followDec, False)
       if (follow_inc_button and follow_inc_button.pressedFrames < 50) or (follow_dec_button and follow_dec_button.pressedFrames < 50):
-        self.af_notify(False)  # override
+        jvepilot_state.carControl.autoFollow = False
+        jvepilot_state.notifyUi = True
     elif (follow_inc_button and follow_inc_button.pressedFrames >= 50) or (follow_dec_button and follow_dec_button.pressedFrames >= 50):
-      self.af_notify(True)  # long pressed to re-enable
+      jvepilot_state.carControl.autoFollow = True
+      jvepilot_state.notifyUi = True
 
-    button_counter_change = CS.buttonCounter != self.last_button_counter
+    button_counter = jvepilot_state.carState.buttonCounter
+    button_counter_change = button_counter != self.last_button_counter
     if button_counter_change:
-      self.last_button_counter = CS.buttonCounter
+      self.last_button_counter = button_counter
 
     if pcm_cancel_cmd:
-      new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter, 'ACC_CANCEL', True)
+      new_msg = create_wheel_buttons_command(self, self.packer, button_counter + 1, 'ACC_CANCEL', True)
       can_sends.append(new_msg)
 
     elif enabled and button_counter_change and not CS.out.brakePressed:
@@ -95,15 +92,20 @@ class CarController():
             button_to_press = 'ACC_RESUME'
         elif CS.out.cruiseState.enabled:
           distance_config = self.target_follow(CS)
-          if self.auto_follow_enabled and CS.accDistanceConfig != distance_config:
-            if CS.accDistanceConfig > distance_config:
+          if jvepilot_state.carControl.autoFollow and jvepilot_state.carState.accFollowDistance != distance_config:
+            if jvepilot_state.carState.accFollowDistance > distance_config:
               button_to_press = 'ACC_FOLLOW_DEC'
             else:
               button_to_press = 'ACC_FOLLOW_INC'
           else:
             # Move the adaptive curse control to the target speed
+            acc_speed = CS.out.cruiseState.speed
             current = round(acc_speed * CV.MS_TO_MPH)
-            target = round(target_speed * CV.MS_TO_MPH)
+            target = round(jvepilot_state.carControl.vTargetFuture * CV.MS_TO_MPH)
+
+            if jvepilot_state.carControl.accEco:  # if eco mode
+              current_speed = round(CS.out.vEgo * CV.MS_TO_MPH)
+              target = min(target, current_speed + self.op_params.get('acc_eco_max_future_speed'))
 
             if target < current and current > MIN_ACC_SPEED_MPH:
               button_to_press = 'ACC_SPEED_DEC'
@@ -111,7 +113,7 @@ class CarController():
               button_to_press = 'ACC_SPEED_INC'
 
         if button_to_press is not None:
-          new_msg = create_wheel_buttons_command(self, self.packer, CS.buttonCounter + 1, button_to_press, True)
+          new_msg = create_wheel_buttons_command(self, self.packer, button_counter + 1, button_to_press, True)
           can_sends.append(new_msg)
 
     # LKAS_HEARTBIT is forwarded by Panda so no need to send it here.
@@ -131,12 +133,6 @@ class CarController():
     self.prev_frame = frame
 
     return can_sends
-
-  def af_notify(self, enabled):
-    self.auto_follow_enabled = enabled
-    msg = messaging.new_message('autoFollow')
-    msg.autoFollow.enabled = enabled
-    self.pm.send('autoFollow', msg)
 
   def target_follow(self, CS):
     if CS.out.vEgo < self.op_params.get('auto_follow_2bars_speed') * CV.MPH_TO_MS:

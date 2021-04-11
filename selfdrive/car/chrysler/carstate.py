@@ -22,7 +22,6 @@ class CarState(CarStateBase):
     self.op_params = opParams()
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["GEAR"]['PRNDL']
-    self.accDistanceConfig = -1
 
   def update(self, cp, cp_cam):
     speed_adjust_ratio = self.op_params.get('op_speed_adjust_ratio')
@@ -76,15 +75,15 @@ class CarState(CarStateBase):
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]['HIGH_BEAM_FLASH'])
 
-    self.accDistanceConfig = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
-    ret.leadDistanceRadarRatio = self.op_params.get(LEAD_RADAR_CONFIG[self.accDistanceConfig]) * inverse_speed_adjust_ratio
+    ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
+    ret.jvePilotCarState.leadDistanceRadarRatio = self.op_params.get(LEAD_RADAR_CONFIG[ret.jvePilotCarState.accFollowDistance]) * inverse_speed_adjust_ratio
 
     self.lkas_counter = cp_cam.vl["LKAS_COMMAND"]['COUNTER']
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]['CAR_MODEL']
     self.lkas_status_ok = cp_cam.vl["LKAS_HEARTBIT"]['LKAS_STATUS_OK']
 
     # Track buttons
-    self.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
+    ret.jvePilotCarState.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
 
     button_events = []
     for buttonType in CHECK_BUTTONS:

@@ -66,8 +66,9 @@ class LongitudinalMpc():
     self.cur_state[0].x_ego = 0.0
 
     if lead is not None and lead.status:
-      if CS.leadDistanceRadarRatio > 0:
-        x_lead = lead.dRel * CS.leadDistanceRadarRatio # Make the car seem further away so we can get closer
+      lead_ratio = CS.jvePilotCarState.leadDistanceRadarRatio
+      if lead_ratio > 0:
+        x_lead = lead.dRel * lead_ratio  # Make the car seem further away so we can get closer
       else:
         x_lead = lead.dRel
 

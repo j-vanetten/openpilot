@@ -47,8 +47,10 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 * Slow in a turn, so you don't have to change the set speed yourself (Speeds are configurable)
 * Auto resume after ACC comes to a stop behind vehicle (Can be disabled)
 * Auto follow feature to adjust the follow distance based on speed (Speeds are configurable)
+* ACC Eco to limit the throttle when accelerating  
 * Pressing the gas does not disengage jvePilot (Can be disabled)
 * Report blind spot indicators to jvePilot for better lane change safety
+* Setting to sync jvePilot speed to vehicle speedometer 
 
 ### Longitudinal control
 This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC).
@@ -78,6 +80,10 @@ The current enabled state of Auto Follow is displayed on the bottom of the jvePi
 Pressing Follow + or - will disable Auto Follow giving you full control to set the follow distance. 
 To re-enable Auto Follow, hold either Follow + or - for half a second. 
  
+### ACC Eco
+When enabled, jvePilot will limit how far ahead the ACC setting is above the current speed.  
+This prevents the vehicle from using an aggressive throttle to get up to speed saving on gas/battery.
+
 ## How to use it 
 When using this branch, you will be setting the max ACC speed on the jvePilot display instead of the one in the dashboard.
 jvePilot will then set the ACC setting in the dashboard to the targeted speed, but never exceeding the max speed set on the jvePilot display.
@@ -139,6 +145,11 @@ When your reach this speed (in MPH), Auto Follow will set the follow setting to 
 When your reach this speed (in MPH), Auto Follow will set the follow setting to three bars.
 #### `auto_follow_4bars_speed`, Default: `60`, Live!
 When your reach this speed (in MPH), Auto Follow will set the follow setting to four bars.
+
+### ACC Eco
+#### `acc_eco_max_future_speed`, Default: 7, Live!
+Max speed ahead ACC should be from the current speed when accelerating.
+Lower this if you feel the vehicle is still too aggressive on the throttle.
 
 ### Lead Distance Ratio
 The lead distance ratios are the ratio to adjust the distance jvePilot follows based on the follow distance selected.

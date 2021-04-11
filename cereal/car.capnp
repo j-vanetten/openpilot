@@ -9,6 +9,24 @@ $Java.outerClassname("Car");
 
 # ******* events causing controls state machine transition *******
 
+struct JvePilotState {
+  notifyUi @0 :Bool;
+  carState @1 :JvePilotState.CarState;
+  carControl @2 :JvePilotState.CarControl;
+
+  struct CarState {
+    leadDistanceRadarRatio @0 :Float32;
+    accFollowDistance @1 :UInt8;
+    buttonCounter @2 :UInt8;
+  }
+
+  struct CarControl {
+    vTargetFuture @0 :Float32;
+    autoFollow @1 :Bool;
+    accEco @2 :Bool;
+  }
+}
+
 struct CarEvent @0x9b1657f34caf3ad3 {
   name @0 :EventName;
 
@@ -188,9 +206,6 @@ struct CarState {
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
 
-  # Radar distance adjustment. Make vehicle seem further away to fool OP into getting closer
-  leadDistanceRadarRatio @37 :Float32; # Ratio of how much further to make the lead vehicle seem so we can follow closer
-
   struct WheelSpeeds {
     # optional wheel speeds
     fl @0 :Float32;
@@ -244,6 +259,8 @@ struct CarState {
       followDec @13;
     }
   }
+
+  jvePilotCarState @37: JvePilotState.CarState;
 
   errorsDEPRECATED @0 :List(CarEvent.EventName);
 }
@@ -308,7 +325,6 @@ struct CarControl {
     override @1: Bool;
     speedOverride @2: Float32;
     accelOverride @3: Float32;
-    targetSpeed @4 :Float32; # The target speed for the vehicle
   }
 
   struct HUDControl {
@@ -348,6 +364,8 @@ struct CarControl {
       chimeWarning2Repeat @8;
     }
   }
+
+  jvePilotState @8: JvePilotState;
 
   gasDEPRECATED @1 :Float32;
   brakeDEPRECATED @2 :Float32;
