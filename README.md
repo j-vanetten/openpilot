@@ -36,6 +36,7 @@ Table of Contents
     - [`disable_on_gas`, Default: `False`](#disable_on_gas-default-false)
     - [`op_speed_adjust_ratio`, Default: `1.0`](#op_speed_adjust_ratio-default-10)
     - [`acc_button_long_press`, Default: `30`, Live!](#acc_button_long_press-default-30-live)
+    - [`reverse_acc_button_change`, Default: `False`](#reverse_acc_button_change-false)
   - [**Safety Notes**](#safety-notes)
 
 # FCA Hybrid OpenPilot/ACC jvePilot
@@ -189,6 +190,8 @@ I have to set this to `1.052` to increase the reported speed by 5.2% to match my
 #### `acc_button_long_press`, Default: `30`, Live!
 Number of centiseconds to consider an ACC +/- button being pressed as long deliberate presses.  (30 = .30 seconds)
 
+#### `reverse_acc_button_change`, Default: `True`
+Reverse the stock ACC +/- button's 1mph on short press and 5mph on long press.  Set to `False` to return to stock
 ---
 
 ### **Safety Notes** 
