@@ -36,7 +36,7 @@ def update_v_cruise(v_cruise_kph, buttonEvents, enabled, acc_button_long_press, 
   # would have the effect of both enabling and changing speed is checked after the state transition
   for b in buttonEvents:
     if enabled and not b.pressed:
-      if b.pressedFrames < acc_button_long_press == reverse_acc_long_press:
+      if (b.pressedFrames < acc_button_long_press) == reverse_acc_long_press:
         if b.type == car.CarState.ButtonEvent.Type.accelCruise:
           v_cruise_kph += V_CRUISE_DELTA - (v_cruise_kph % V_CRUISE_DELTA)
         elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
