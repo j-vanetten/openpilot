@@ -310,7 +310,7 @@ static void ui_draw_jve_pilot_buttons(UIState *s) {
     ui_draw_button(s, authFollow_btn, autoFollowEnabled ? "Auto Follow" : "Auto Follow OFF", autoFollowEnabled);
   }
   if (s->scene.accEco != -1) {
-    const char *img = s->scene.accEco == 1 ? "acc_eco_1" : s->scene.accEco == 2 ? "acc_eco_2" : "acc_eco_off"
+    const char *img = s->scene.accEco == 1 ? "acc_eco_1" : s->scene.accEco == 2 ? "acc_eco_2" : "acc_eco_off";
     ui_draw_image(s, accEco_img, img, s->scene.accEco != 0 ? 1.0f : 0.7f);
   }
 }
