@@ -23,7 +23,7 @@ struct JvePilotState {
   struct CarControl {
     vTargetFuture @0 :Float32;
     autoFollow @1 :Bool;
-    accEco @2 :Bool;
+    accEco @2 :UInt8;
   }
 }
 

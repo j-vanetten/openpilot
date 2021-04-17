@@ -65,8 +65,8 @@ void ui_init(UIState *s) {
   });
 
   s->scene.started = false;
-  s->scene.autoFollowButtonEnabled = -1;
-  s->scene.accEcoButtonEnabled = -1;
+  s->scene.autoFollowEnabled = -1;
+  s->scene.accEco = -1;
   s->status = STATUS_OFFROAD;
 
   ui_nvg_init(s);
@@ -244,8 +244,8 @@ static void update_sockets(UIState *s) {
   scene.started = scene.deviceState.getStarted() || scene.driver_view;
 
   if (sm.updated("jvePilotState")) {
-    scene.autoFollowButtonEnabled = sm["jvePilotState"].getJvePilotUIState().getAutoFollow() ? 1 : 0;
-    scene.accEcoButtonEnabled = sm["jvePilotState"].getJvePilotUIState().getAccEco() ? 1 : 0;
+    scene.autoFollowEnabled = sm["jvePilotState"].getJvePilotUIState().getAutoFollow() ? 1 : 0;
+    scene.accEco = sm["jvePilotState"].getJvePilotUIState().getAccEco();
   }
 }
 

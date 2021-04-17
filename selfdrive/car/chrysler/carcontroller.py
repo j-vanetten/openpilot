@@ -125,9 +125,12 @@ class CarController():
     current = round(acc_speed * CV.MS_TO_MPH)
     target = round(jvepilot_state.carControl.vTargetFuture * CV.MS_TO_MPH)
 
-    if jvepilot_state.carControl.accEco:  # if eco mode
+    if jvepilot_state.carControl.accEco == 1:  # if eco mode
       current_speed = round(CS.out.vEgo * CV.MS_TO_MPH)
-      target = min(target, current_speed + self.op_params.get('acc_eco_max_future_speed'))
+      target = min(target, current_speed + self.op_params.get('acc_eco_1_future_speed'))
+    elif jvepilot_state.carControl.accEco == 2:  # if eco mode
+      current_speed = round(CS.out.vEgo * CV.MS_TO_MPH)
+      target = min(target, current_speed + self.op_params.get('acc_eco_2_future_speed'))
 
     if target < current and current > MIN_ACC_SPEED_MPH:
       return 'ACC_SPEED_DEC'

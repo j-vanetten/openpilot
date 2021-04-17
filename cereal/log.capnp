@@ -1262,7 +1262,7 @@ struct ManagerState {
 
 struct JvePilotUIState {
   autoFollow @0 :Bool;
-  accEco @1 :Bool;
+  accEco @1 :UInt8;
 }
 
 struct Event {

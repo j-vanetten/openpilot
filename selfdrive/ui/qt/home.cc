@@ -51,8 +51,8 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
 void HomeWindow::notify_state(UIState* ui_state) {
   MessageBuilder msg;
   auto state = msg.initEvent().initJvePilotUIState();
-  state.setAutoFollow(ui_state->scene.autoFollowButtonEnabled);
-  state.setAccEco(ui_state->scene.accEcoButtonEnabled);
+  state.setAutoFollow(ui_state->scene.autoFollowEnabled);
+  state.setAccEco(ui_state->scene.accEco);
   ui_state->pm->send("jvePilotUIState", msg);
 }
 
@@ -73,10 +73,10 @@ void HomeWindow::mousePressEvent(QMouseEvent* e) {
   // Handle sidebar collapsing
   if (ui_state->scene.started) {
     if (authFollow_btn.ptInRect(e->x(), e->y())) {
-      ui_state->scene.autoFollowButtonEnabled = !ui_state->scene.autoFollowButtonEnabled;
+      ui_state->scene.autoFollowEnabled = !ui_state->scene.autoFollowEnabled;
       notify_state(ui_state);
     } else if (accEco_img.ptInRect(e->x(), e->y())) {
-      ui_state->scene.accEcoButtonEnabled = !ui_state->scene.accEcoButtonEnabled;
+      ui_state->scene.accEco = ui_state->scene.accEco == 2 ? 0 : ui_state->scene.accEco + 1;
       notify_state(ui_state);
     } else if (e->x() >= ui_state->viz_rect.x - bdr_s) {
       ui_state->sidebar_collapsed = !ui_state->sidebar_collapsed;

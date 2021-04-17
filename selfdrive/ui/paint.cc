@@ -305,13 +305,13 @@ static void ui_draw_button(UIState *s, Rect btn, const char *text, bool enabled)
 }
 
 static void ui_draw_jve_pilot_buttons(UIState *s) {
-  if (s->scene.autoFollowButtonEnabled != -1) {
-    bool autoFollowButtonEnabled = s->scene.autoFollowButtonEnabled == 1;
-    ui_draw_button(s, authFollow_btn, autoFollowButtonEnabled ? "Auto Follow" : "Auto Follow OFF", autoFollowButtonEnabled);
+  if (s->scene.autoFollowEnabled != -1) {
+    bool autoFollowEnabled = s->scene.autoFollowEnabled == 1;
+    ui_draw_button(s, authFollow_btn, autoFollowEnabled ? "Auto Follow" : "Auto Follow OFF", autoFollowEnabled);
   }
-  if (s->scene.accEcoButtonEnabled != -1) {
-    bool accEcoButtonEnabled = s->scene.accEcoButtonEnabled == 1;
-    ui_draw_image(s, accEco_img, accEcoButtonEnabled ? "acc_eco_2" : "acc_eco_off", accEcoButtonEnabled ? 1.0f : 0.7f);
+  if (s->scene.accEco != -1) {
+    char *img = s->scene.accEco == 1 ? "acc_eco_1" : s->scene.accEco == 2 ? "acc_eco_2" : "acc_eco_off"
+    ui_draw_image(s, accEco_img, img, s->scene.accEco != 0 ? 1.0f : 0.7f);
   }
 }
 
