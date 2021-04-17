@@ -137,15 +137,15 @@ class CarController():
   def auto_follow_button(self, CS, jvepilot_state):
     if jvepilot_state.carControl.autoFollow:
       crossover = [0,
-                   self.op_params.get('auto_follow_2bars_speed'),
-                   self.op_params.get('auto_follow_3bars_speed'),
-                   self.op_params.get('auto_follow_4bars_speed')]
+                   self.op_params.get('auto_follow_2bars_speed') * CV.MPH_TO_MS,
+                   self.op_params.get('auto_follow_3bars_speed') * CV.MPH_TO_MS,
+                   self.op_params.get('auto_follow_4bars_speed') * CV.MPH_TO_MS]
 
-      if CS.out.vEgo < crossover[1] * CV.MPH_TO_MS:
+      if CS.out.vEgo < crossover[1]:
         target_follow = 0
-      elif CS.out.vEgo < crossover[2] * CV.MPH_TO_MS:
+      elif CS.out.vEgo < crossover[2]:
         target_follow = 1
-      elif CS.out.vEgo < crossover[3] * CV.MPH_TO_MS:
+      elif CS.out.vEgo < crossover[3]:
         target_follow = 2
       else:
         target_follow = 3
