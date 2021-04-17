@@ -31,18 +31,25 @@ def get_steer_max(CP, v_ego):
   return interp(v_ego, CP.steerMaxBP, CP.steerMaxV)
 
 
-def update_v_cruise(v_cruise_kph, buttonEvents, enabled, acc_button_long_press, reverse_acc_long_press):
+def update_v_cruise(v_cruise_kph, button_events, enabled, acc_button_long_press, reverse_acc_long_press):
   # handle button presses. TODO: this should be in state_control, but a decelCruise press
   # would have the effect of both enabling and changing speed is checked after the state transition
-  for b in buttonEvents:
-    if enabled and not b.pressed:
-      if (b.pressedFrames < acc_button_long_press) == reverse_acc_long_press:
+  for b in button_events:
+    if enabled:
+      short_press = not b.pressed and b.pressedFrames < acc_button_long_press
+      long_press = b.pressed and b.pressedFrames % acc_button_long_press == 0
+
+      if reverse_acc_long_press:
+        short_press = not short_press
+        long_press = not long_press
+
+      if long_press:
         if b.type == car.CarState.ButtonEvent.Type.accelCruise:
           v_cruise_kph += V_CRUISE_DELTA - (v_cruise_kph % V_CRUISE_DELTA)
         elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
           v_cruise_kph -= V_CRUISE_DELTA - ((V_CRUISE_DELTA - v_cruise_kph) % V_CRUISE_DELTA)
         v_cruise_kph = clip(v_cruise_kph, V_CRUISE_MIN, V_CRUISE_MAX)
-      else:
+      elif short_press:
         if b.type == car.CarState.ButtonEvent.Type.accelCruise:
           v_cruise_kph += CV.MPH_TO_KPH
         elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
@@ -51,10 +58,10 @@ def update_v_cruise(v_cruise_kph, buttonEvents, enabled, acc_button_long_press, 
   return max(v_cruise_kph, V_CRUISE_ENABLE_MIN)
 
 
-def initialize_v_cruise(v_ego, buttonEvents, v_cruise_last):
+def initialize_v_cruise(v_ego, button_events, v_cruise_last):
   # 250kph or above probably means we never had a set speed
   if v_cruise_last < 250:
-    for b in buttonEvents:
+    for b in button_events:
       if b.type == "resumeCruise":
         return v_cruise_last
 
