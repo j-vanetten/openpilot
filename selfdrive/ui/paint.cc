@@ -311,7 +311,7 @@ static void ui_draw_jve_pilot_buttons(UIState *s) {
   }
   if (s->scene.accEcoButtonEnabled != -1) {
     bool accEcoButtonEnabled = s->scene.accEcoButtonEnabled == 1;
-    ui_draw_image(s, accEco_img, accEcoButtonEnabled ? "acc_eco_on" : "acc_eco_off", accEcoButtonEnabled ? 1.0f : 0.7f);
+    ui_draw_image(s, accEco_img, accEcoButtonEnabled ? "acc_eco_2" : "acc_eco_off", accEcoButtonEnabled ? 1.0f : 0.7f);
   }
 }
 
@@ -561,8 +561,9 @@ void ui_nvg_init(UIState *s) {
 
   // init images
   std::vector<std::pair<const char *, const char *>> images = {
-      {"acc_eco_on", "../assets/img_eco_on.png"},
-      {"acc_eco_off", "../assets/img_eco_off.png"},
+      {"acc_eco_1", "../assets/jvepilot/img_acc_eco_1.png"},
+      {"acc_eco_2", "../assets/jvepilot/img_acc_eco_2.png"},
+      {"acc_eco_off", "../assets/jvepilot/img_acc_eco_off.png"},
       {"wheel", "../assets/img_chffr_wheel.png"},
       {"trafficSign_turn", "../assets/img_trafficSign_turn.png"},
       {"driver_face", "../assets/img_driver_face.png"},
