@@ -67,6 +67,7 @@ class opParams:
       'slow_in_turns_ratio': Param(1, VT.number, 'Adjust how much slowing occurs. (1.25 = 25% faster in turns than the default)', live=True),
       'slow_in_turns_rotate': Param(0, VT.number, 'This adjusts how much amount the vehicle slows as the curve increases', live=True),
       'acc_button_long_press': Param(30, VT.number, 'Number of centiseconds to consider a button as long pressed.  (30 = .30 seconds)', live=True),
+      'reverse_acc_long_press': Param(True, VT.number, 'Reverse how much long and short presses change ACC speed. Enabled make is so short presses change it by 5mph', live=True),
       'lead_distance_ratio_1bar': Param(2.6, VT.number, 'Lead car adjusted radar distance ratio 1 bar', live=True),
       'lead_distance_ratio_2bars': Param(2.1, VT.number, 'Lead car adjusted radar distance ratio 2 bar', live=True),
       'lead_distance_ratio_3bars': Param(1.5, VT.number, 'Lead car adjusted radar distance ratio 3 bar', live=True),

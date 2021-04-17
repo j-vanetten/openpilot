@@ -31,23 +31,22 @@ def get_steer_max(CP, v_ego):
   return interp(v_ego, CP.steerMaxBP, CP.steerMaxV)
 
 
-def update_v_cruise(v_cruise_kph, buttonEvents, enabled, acc_button_long_press):
+def update_v_cruise(v_cruise_kph, buttonEvents, enabled, acc_button_long_press, reverse_acc_long_press):
   # handle button presses. TODO: this should be in state_control, but a decelCruise press
   # would have the effect of both enabling and changing speed is checked after the state transition
   for b in buttonEvents:
     if enabled and not b.pressed:
-      if b.pressedFrames < acc_button_long_press:
+      if b.pressedFrames < acc_button_long_press == reverse_acc_long_press:
         if b.type == car.CarState.ButtonEvent.Type.accelCruise:
           v_cruise_kph += V_CRUISE_DELTA - (v_cruise_kph % V_CRUISE_DELTA)
         elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
           v_cruise_kph -= V_CRUISE_DELTA - ((V_CRUISE_DELTA - v_cruise_kph) % V_CRUISE_DELTA)
         v_cruise_kph = clip(v_cruise_kph, V_CRUISE_MIN, V_CRUISE_MAX)
-      else:
+      elif b.pressedFrames % acc_button_long_press == 0:
         if b.type == car.CarState.ButtonEvent.Type.accelCruise:
           v_cruise_kph += CV.MPH_TO_KPH
         elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
           v_cruise_kph -= CV.MPH_TO_KPH
-
 
   return max(v_cruise_kph, V_CRUISE_ENABLE_MIN)
 

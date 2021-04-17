@@ -48,6 +48,7 @@ class Controls:
     config_realtime_process(3, Priority.CTRL_HIGH)
 
     self.op_params = opParams()
+    self.reverse_acc_long_press = self.op_params.get("reverse_acc_long_press")
 
     # Setup sockets
     self.pm = pm
@@ -325,7 +326,7 @@ class Controls:
 
     # use our own set speed logic
     acc_button_long_press = self.op_params.get("acc_button_long_press")
-    self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled, acc_button_long_press)
+    self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled, acc_button_long_press, self.reverse_acc_long_press)
 
     # decrease the soft disable timer at every step, as it's reset on
     # entrance in SOFT_DISABLING state
