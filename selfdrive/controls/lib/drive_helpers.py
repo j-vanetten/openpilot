@@ -42,7 +42,7 @@ def update_v_cruise(v_cruise_kph, buttonEvents, enabled, acc_button_long_press, 
         elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
           v_cruise_kph -= V_CRUISE_DELTA - ((V_CRUISE_DELTA - v_cruise_kph) % V_CRUISE_DELTA)
         v_cruise_kph = clip(v_cruise_kph, V_CRUISE_MIN, V_CRUISE_MAX)
-      elif b.pressedFrames % acc_button_long_press == 0:
+      else:
         if b.type == car.CarState.ButtonEvent.Type.accelCruise:
           v_cruise_kph += CV.MPH_TO_KPH
         elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
