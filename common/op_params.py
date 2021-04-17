@@ -80,7 +80,7 @@ class opParams:
       'auto_follow_3bars_speed': Param(30, VT.number, 'Set follow distance to 3 bars when reaching this MPH', live=True),
       'auto_follow_4bars_speed': Param(60, VT.number, 'Set follow distance to 4 bars when reaching this MPH', live=True),
       'acc_eco_1_future_speed': Param(7, VT.number, 'At level 1, how much ahead should ACC Eco be when accelerating', live=True),
-      'acc_eco_2_future_speed': Param(4, VT.number, 'At level 2, How much ahead should ACC Eco be when accelerating', live=True),
+      'acc_eco_2_future_speed': Param(5, VT.number, 'At level 2, How much ahead should ACC Eco be when accelerating', live=True),
     }
 
     self._params_file = '/data/op_params.json'

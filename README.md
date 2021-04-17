@@ -89,6 +89,7 @@ To re-enable Auto Follow, hold either Follow + or - for half a second.
 ### ACC Eco
 When enabled, jvePilot will limit how far ahead the ACC setting is above the current speed.  
 This prevents the vehicle from using an aggressive throttle to get up to speed saving on gas/battery.
+There are two eco levels that can be configured.
 
 ## How to use it 
 When using this branch, you will be setting the max ACC speed on the jvePilot display instead of the one in the dashboard.
@@ -153,9 +154,10 @@ When your reach this speed (in MPH), Auto Follow will set the follow setting to 
 When your reach this speed (in MPH), Auto Follow will set the follow setting to four bars.
 
 ### ACC Eco
-#### `acc_eco_max_future_speed`, Default: 7, Live!
-Max speed ahead ACC should be from the current speed when accelerating.
-Lower this if you feel the vehicle is still too aggressive on the throttle.
+#### `acc_eco_1_future_speed`, Default: 7, Live!
+Use this setting to adjust ACC Eco level 1 (one green leaf) a balance of speed and eco-ness  
+#### `acc_eco_2_future_speed`, Default: 5, Live!
+Use this setting to adjust ACC Eco level 2 (two green leaves) for maximum eco-ness
 
 ### Lead Distance Ratio
 The lead distance ratios are the ratio to adjust the distance jvePilot follows based on the follow distance selected.
