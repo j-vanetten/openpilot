@@ -39,6 +39,9 @@ def manager_init():
     ("OpenpilotEnabledToggle", "1"),
     ("VisionRadarToggle", "0"),
     ("IsDriverViewEnabled", "0"),
+
+    ("jvePilot.carState.accEco", "1"),
+    ("jvePilot.settings.slowInTurns", "1"),
   ]
 
   if params.get("RecordFrontLock", encoding='utf-8') == "1":

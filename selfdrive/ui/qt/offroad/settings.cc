@@ -16,6 +16,20 @@
 #include "common/util.h"
 #include "selfdrive/hardware/hw.h"
 
+QWidget * jvePilot_panel() {
+  QVBoxLayout *toggles_list = new QVBoxLayout();
+
+  toggles_list->addWidget(new ParamControl("jvePilot.settings.slowInCurves",
+                                            "Enable Slow in Curves",
+                                            "When in a curve, jvePilot will slow down",
+                                            "../assets/img_trafficSign_turn.png"
+                                              ));
+  toggles_list->addWidget(horizontal_line());
+
+  QWidget *widget = new QWidget;
+  widget->setLayout(toggles_list);
+  return widget;
+}
 
 QWidget * toggles_panel() {
   QVBoxLayout *toggles_list = new QVBoxLayout();
@@ -243,7 +257,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     {"Device", device},
     {"Network", network_panel(this)},
     {"Toggles", toggles_panel()},
-    {"jvePilot", toggles_panel()},
+    {"jvePilot", jvePilot_panel()},
     {"Developer", new DeveloperPanel()},
   };
 

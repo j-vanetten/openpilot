@@ -137,7 +137,7 @@ class Controls:
 
     self.jvePilotState = car.JvePilotState.new_message()
     self.jvePilotState.carControl.autoFollow = not self.op_params.get('start_with_auto_follow_disabled')
-    self.jvePilotState.carControl.accEco = int(params.get("jvePilot.accEco", encoding='utf8') or "1")
+    self.jvePilotState.carControl.accEco = int(params.get("jvePilot.carState.accEco", encoding='utf8') or "1")
     self.ui_notify()
 
     self.sm['liveCalibration'].calStatus = Calibration.CALIBRATED
@@ -307,7 +307,7 @@ class Controls:
     elif self.sm.updated['jvePilotUIState']:
       self.jvePilotState.carControl.autoFollow = self.sm['jvePilotUIState'].autoFollow
       self.jvePilotState.carControl.accEco = self.sm['jvePilotUIState'].accEco
-      Params().put("jvePilot.accEco", str(self.sm['jvePilotUIState'].accEco))
+      put_nonblocking("jvePilot.carState.accEco", str(self.sm['jvePilotUIState'].accEco))
 
     return CS
 
