@@ -227,10 +227,10 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     font-size: 90px;
     font-weight: bold;
     border 1px grey solid;
-    border-radius: 100px;
+    border-radius: 85px;
     background-color: #292929;
   )");
-  close_btn->setFixedSize(200, 200);
+  close_btn->setFixedSize(170, 170);
   sidebar_layout->addSpacing(45);
   sidebar_layout->addWidget(close_btn, 0, Qt::AlignCenter);
   QObject::connect(close_btn, SIGNAL(released()), this, SIGNAL(closeSettings()));
@@ -243,6 +243,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     {"Device", device},
     {"Network", network_panel(this)},
     {"Toggles", toggles_panel()},
+    {"jvePilot", toggles_panel()},
     {"Developer", new DeveloperPanel()},
   };
 
@@ -256,10 +257,10 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
         color: grey;
         border: none;
         background: none;
-        font-size: 65px;
+        font-size: 60px;
         font-weight: 500;
-        padding-top: 35px;
-        padding-bottom: 35px;
+        padding-top: 25px;
+        padding-bottom: 25px;
       }
       QPushButton:checked {
         color: white;
