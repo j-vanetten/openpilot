@@ -63,7 +63,6 @@ class opParams:
     VT = ValueTypes()
     self.fork_params = {
       'camera_offset': Param(0.06, VT.number, 'Your camera offset to use in lane_planner.py', live=True),
-      'slow_in_turns': Param(True, bool, 'Slow while in turns'),
       'slow_in_turns_ratio': Param(1, VT.number, 'Adjust how much slowing occurs. (1.25 = 25% faster in turns than the default)', live=True),
       'slow_in_turns_rotate': Param(0, VT.number, 'This adjusts how much amount the vehicle slows as the curve increases', live=True),
       'acc_button_long_press': Param(30, VT.number, 'Number of centiseconds to consider a button as long pressed.  (30 = .30 seconds)', live=True),
