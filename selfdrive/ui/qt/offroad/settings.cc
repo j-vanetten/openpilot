@@ -20,10 +20,17 @@ QWidget * jvePilot_panel() {
   QVBoxLayout *toggles_list = new QVBoxLayout();
 
   toggles_list->addWidget(new ParamControl("jvePilot.settings.slowInCurves",
-                                            "Enable Slow in Curves",
-                                            "When in a curve, jvePilot will slow down",
-                                            "../assets/img_trafficSign_turn.png"
-                                              ));
+                                            "Slow in Curves",
+                                            "When in a curve, jvePilot will slow down for you.",
+                                            "../assets/jvePilot/settings/img_slow_in_curves.png"
+                                          ));
+  toggles_list->addWidget(horizontal_line());
+
+  toggles_list->addWidget(new ParamControl("jvePilot.settings.reverseAccButtonChange",
+                                            "Reverse ACC +/- Speed Changes",
+                                            "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 mph increments.  Hold a little longer to change by 1 mph.  Disable to keep stock setting.",
+                                            "../assets/settings/img_acc_speed_change.png"
+                                          ));
   toggles_list->addWidget(horizontal_line());
 
   QWidget *widget = new QWidget;

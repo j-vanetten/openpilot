@@ -47,9 +47,6 @@ class Controls:
   def __init__(self, sm=None, pm=None, can_sock=None):
     config_realtime_process(3, Priority.CTRL_HIGH)
 
-    self.op_params = opParams()
-    self.reverse_acc_button_change = self.op_params.get("reverse_acc_button_change")
-
     # Setup sockets
     self.pm = pm
     if self.pm is None:
@@ -78,6 +75,7 @@ class Controls:
 
     # read params
     params = Params()
+    self.reverse_acc_button_change = params.get("jvePilot.settings.reverseAccButtonChange", encoding='utf8') == "1"
     self.is_metric = params.get("IsMetric", encoding='utf8') == "1"
     self.is_ldw_enabled = params.get("IsLdwEnabled", encoding='utf8') == "1"
     community_feature_toggle = params.get("CommunityFeaturesToggle", encoding='utf8') == "1"
@@ -135,6 +133,7 @@ class Controls:
     self.logged_comm_issue = False
     self.buttonPressTimes = {}
 
+    self.op_params = opParams()
     self.jvePilotState = car.JvePilotState.new_message()
     self.jvePilotState.carControl.autoFollow = not self.op_params.get('start_with_auto_follow_disabled')
     self.jvePilotState.carControl.accEco = int(params.get("jvePilot.carState.accEco", encoding='utf8') or "1")

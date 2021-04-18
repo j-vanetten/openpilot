@@ -42,6 +42,7 @@ def manager_init():
 
     ("jvePilot.carState.accEco", "1"),
     ("jvePilot.settings.slowInTurns", "1"),
+    ("jvePilot.settings.reverseAccButtonChange", "1"),
   ]
 
   if params.get("RecordFrontLock", encoding='utf-8') == "1":
