@@ -95,7 +95,7 @@ Tapping the button cycles between off, level 1, and level 2 eco settings.
 Level 2 provides the slowest acceleration and is selected when both leaves are green.    
 Level 1 should provide a balance is selected when only one leaf is green.
 If you feel these settings are not right for you or your vehicle, see the [ACC Eco](#acc-eco) setting to adjust them. 
-Much like your vehicles eco/sport modes, the current setting is persisted between drive.
+Much like your vehicles eco/sport modes, the current setting is persisted between drives.
 
 ## How to use it 
 When using this branch, you will be setting the max ACC speed on the jvePilot display instead of the one in the dashboard.
