@@ -84,12 +84,18 @@ The faster you go, the more distance you want, so you can have more confidence i
 
 The current enabled state of Auto Follow is displayed on the bottom of the jvePilot display.
 Pressing Follow + or - will disable Auto Follow giving you full control to set the follow distance. 
-To re-enable Auto Follow, hold either Follow + or - for half a second. 
+To re-enable Auto Follow, hold either Follow + or - for half a second or tap the button on the display. 
  
 ### ACC Eco
 When enabled, jvePilot will limit how far ahead the ACC setting is above the current speed.  
 This prevents the vehicle from using an aggressive throttle to get up to speed saving on gas/battery.
-There are two eco levels that can be configured.
+
+The ACC Eco button is located in the lower right corner of the display.  
+Tapping the button cycles between off, level 1, and level 2 eco settings.
+Level 2 provides the slowest acceleration and is selected when both leaves are green.    
+Level 1 should provide a balance is selected when only one leaf is green.
+If you feel these settings are not right for you or your vehicle, see the [ACC Eco](#acc-eco) setting to adjust them. 
+
 
 ## How to use it 
 When using this branch, you will be setting the max ACC speed on the jvePilot display instead of the one in the dashboard.
@@ -154,8 +160,10 @@ When your reach this speed (in MPH), Auto Follow will set the follow setting to 
 When your reach this speed (in MPH), Auto Follow will set the follow setting to four bars.
 
 ### ACC Eco
+These setting are how far ahead, in MPH, of your current speed ACC will be set.  
+The higher the number, the more aggressive ACC will be when accelerating.
 #### `acc_eco_1_future_speed`, Default: 7, Live!
-Use this setting to adjust ACC Eco level 1 (one green leaf) a balance of speed and eco-ness  
+Use this setting to adjust ACC Eco level 1 (one green leaf) for a balance of speed and eco-ness  
 #### `acc_eco_2_future_speed`, Default: 5, Live!
 Use this setting to adjust ACC Eco level 2 (two green leaves) for maximum eco-ness
 
