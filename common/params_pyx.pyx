@@ -14,11 +14,12 @@ cdef enum TxType:
   CLEAR_ON_PANDA_DISCONNECT = 3
 
 keys = {
+  b"jvePilot.carState.accEco": [TxType.PERSISTENT],
   b"jvePilot.settings.slowInTurns": [TxType.PERSISTENT],
   b"jvePilot.settings.reverseAccSpeedChange": [TxType.PERSISTENT],
   b"jvePilot.settings.autoResume": [TxType.PERSISTENT],
-  b"jvePilot.carState.accEco": [TxType.PERSISTENT],
   b"jvePilot.settings.disableOnGas": [TxType.PERSISTENT],
+  b"jvePilot.settings.autoFollow": [TxType.PERSISTENT],
   b"AccessToken": [TxType.CLEAR_ON_MANAGER_START],
   b"ApiCache_DriveStats": [TxType.PERSISTENT],
   b"ApiCache_Device": [TxType.PERSISTENT],

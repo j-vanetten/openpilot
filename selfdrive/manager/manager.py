@@ -45,6 +45,7 @@ def manager_init():
     ("jvePilot.settings.reverseAccSpeedChange", "1"),
     ("jvePilot.settings.autoResume", "1"),
     ("jvePilot.settings.disableOnGas", "0"),
+    ("jvePilot.settings.autoFollow", "1"),
   ]
 
   if params.get("RecordFrontLock", encoding='utf-8') == "1":

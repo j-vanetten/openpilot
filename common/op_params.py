@@ -71,7 +71,6 @@ class opParams:
       'lead_distance_ratio_3bars': Param(1.5, VT.number, 'Lead car adjusted radar distance ratio 3 bar', live=True),
       'lead_distance_ratio_4bars': Param(1.1, VT.number, 'Lead car adjusted radar distance ratio 4 bar', live=True),
       'op_speed_adjust_ratio': Param(1, VT.number, 'Use to align the OpenPilot speed to the correct vehicle speed', live=True),
-      'start_with_auto_follow_disabled': Param(False, bool, 'Startup with auto follow disabled'),
       'auto_follow_2bars_speed': Param(15, VT.number, 'Set follow distance to 2 bars when reaching this MPH', live=True),
       'auto_follow_3bars_speed': Param(30, VT.number, 'Set follow distance to 3 bars when reaching this MPH', live=True),
       'auto_follow_4bars_speed': Param(60, VT.number, 'Set follow distance to 4 bars when reaching this MPH', live=True),

@@ -135,7 +135,7 @@ class Controls:
     self.reverse_acc_button_change = params.get("jvePilot.settings.reverseAccSpeedChange", encoding='utf8') == "1"
     self.op_params = opParams()
     self.jvePilotState = car.JvePilotState.new_message()
-    self.jvePilotState.carControl.autoFollow = not self.op_params.get('start_with_auto_follow_disabled')
+    self.jvePilotState.carControl.autoFollow = params.get('jvePilot.settings.autoFollow', encoding='utf8') == "0"
     self.jvePilotState.carControl.accEco = int(params.get("jvePilot.carState.accEco", encoding='utf8') or "1")
     self.ui_notify()
 

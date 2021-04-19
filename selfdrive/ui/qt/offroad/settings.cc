@@ -46,6 +46,13 @@ toggles_list->addWidget(horizontal_line());
                                             "../assets/jvepilot/settings/icon_gas_pedal.png"
                                           ));
 
+toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamControl("jvePilot.settings.autoFollow",
+                                            "Start with Auto Follow Enabled",
+                                            "When enabled, jvePilot will enable Auto Follow on the start of every drive.",
+                                            "../assets/jvepilot/settings/icon_auto_follow.png"
+                                          ));
+
   QWidget *widget = new QWidget;
   widget->setLayout(toggles_list);
   return widget;
