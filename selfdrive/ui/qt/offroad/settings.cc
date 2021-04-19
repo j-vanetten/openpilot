@@ -22,21 +22,21 @@ QWidget * jvePilot_panel() {
   toggles_list->addWidget(new ParamControl("jvePilot.settings.slowInCurves",
                                             "Slow in Curves",
                                             "When in a curve, jvePilot will slow down for you.",
-                                            "../assets/jvePilot/settings/img_slow_in_curves.png"
+                                            "../assets/jvePilot/settings/icon_slow_in_curves.png"
                                           ));
 
   toggles_list->addWidget(horizontal_line());
   toggles_list->addWidget(new ParamControl("jvePilot.settings.reverseAccSpeedChange",
-                                            "Reverse ACC +/- Speed Changes",
+                                            "Reverse ACC +/- Speeds",
                                             "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 mph increments.  Hold a little longer to change by 1 mph.  Disable to keep stock setting.",
-                                            "../assets/settings/img_acc_speed_change.png"
+                                            "../assets/jvePilot/settings/icon_acc_speed_change.png"
                                           ));
 
 toggles_list->addWidget(horizontal_line());
   toggles_list->addWidget(new ParamControl("jvePilot.settings.autoResume",
                                             "Auto Resume",
                                             "When enabled, jvePilot will resume after ACC comes to a stop behind another vehicle.",
-                                            "../assets/settings/img_auto_resume.png"
+                                            "../assets/jvePilot/settings/icon_auto_resume.png"
                                           ));
 
   QWidget *widget = new QWidget;
