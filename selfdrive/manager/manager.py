@@ -42,7 +42,7 @@ def manager_init():
 
     ("jvePilot.carState.accEco", "1"),
     ("jvePilot.settings.slowInTurns", "1"),
-    ("jvePilot.settings.reverseAccButtonChange", "1"),
+    ("jvePilot.settings.reverseAccSpeedChange", "1"),
     ("jvePilot.settings.autoResume", "1"),
   ]
 
