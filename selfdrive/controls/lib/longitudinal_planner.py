@@ -190,7 +190,7 @@ class Planner():
     self.v_acc_next = v_acc_sol
     self.a_acc_next = a_acc_sol
 
-    if self.params.get("jvePilot.settings.slowInTurns", encoding='utf8') == "1":
+    if self.params.get('jvePilot.settings.slowInTurns', encoding='utf8') == "1":
       curvs = list(lateral_planner.mpc_solution.curvature)
       if len(curvs):
         # find the largest curvature in the solution and use that.

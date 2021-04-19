@@ -40,7 +40,7 @@ class CarInterfaceBase():
 
     params = Params()
     self.disable_auto_resume = params.get('jvePilot.settings.autoResume', encoding='utf8') == "0"
-    self.disable_on_gas = params.get("jvePilot.settings.disableOnGas", encoding='utf8') == "1"
+    self.disable_on_gas = params.get('jvePilot.settings.disableOnGas', encoding='utf8') == "1"
 
   @staticmethod
   def calc_accel_override(a_ego, a_target, v_ego, v_target):
