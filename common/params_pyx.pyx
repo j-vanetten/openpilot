@@ -18,6 +18,7 @@ keys = {
   b"jvePilot.settings.reverseAccSpeedChange": [TxType.PERSISTENT],
   b"jvePilot.settings.autoResume": [TxType.PERSISTENT],
   b"jvePilot.carState.accEco": [TxType.PERSISTENT],
+  b"jvePilot.settings.disableOnGas": [TxType.PERSISTENT],
   b"AccessToken": [TxType.CLEAR_ON_MANAGER_START],
   b"ApiCache_DriveStats": [TxType.PERSISTENT],
   b"ApiCache_Device": [TxType.PERSISTENT],

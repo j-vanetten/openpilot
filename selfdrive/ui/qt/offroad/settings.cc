@@ -39,6 +39,13 @@ toggles_list->addWidget(horizontal_line());
                                             "../assets/jvepilot/settings/icon_auto_resume.png"
                                           ));
 
+toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamControl("jvePilot.settings.disableOnGas",
+                                            "Disable on Gas",
+                                            "When enabled, jvePilot will disengage jvePilot when the gas pedal is pressed.",
+                                            "../assets/jvepilot/settings/icon_gas_pedal.png"
+                                          ));
+
   QWidget *widget = new QWidget;
   widget->setLayout(toggles_list);
   return widget;

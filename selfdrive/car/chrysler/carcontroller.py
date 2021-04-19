@@ -29,7 +29,7 @@ class CarController():
 
     self.params = Params()
     self.op_params = opParams()
-    self.disable_auto_resume = self.params.get('jvePilot.settings.autoResume', encoding='utf8') == "1"
+    self.disable_auto_resume = self.params.get('jvePilot.settings.autoResume', encoding='utf8') == "0"
     self.start_with_auto_follow_disabled = self.op_params.get('start_with_auto_follow_disabled')
     self.autoFollowDistanceLock = None
 
