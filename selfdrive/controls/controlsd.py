@@ -75,7 +75,6 @@ class Controls:
 
     # read params
     params = Params()
-    self.reverse_acc_button_change = params.get("jvePilot.settings.reverseAccButtonChange", encoding='utf8') == "1"
     self.is_metric = params.get("IsMetric", encoding='utf8') == "1"
     self.is_ldw_enabled = params.get("IsLdwEnabled", encoding='utf8') == "1"
     community_feature_toggle = params.get("CommunityFeaturesToggle", encoding='utf8') == "1"
@@ -133,6 +132,7 @@ class Controls:
     self.logged_comm_issue = False
     self.buttonPressTimes = {}
 
+    self.reverse_acc_button_change = params.get("jvePilot.settings.reverseAccSpeedChange", encoding='utf8') == "1"
     self.op_params = opParams()
     self.jvePilotState = car.JvePilotState.new_message()
     self.jvePilotState.carControl.autoFollow = not self.op_params.get('start_with_auto_follow_disabled')

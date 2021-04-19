@@ -6,6 +6,7 @@ from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
 
 from common.op_params import opParams
+from common.params import Params
 from cereal import car
 import cereal.messaging as messaging
 ButtonType = car.CarState.ButtonEvent.Type
@@ -26,8 +27,9 @@ class CarController():
 
     self.packer = CANPacker(dbc_name)
 
+    self.params = Params()
     self.op_params = opParams()
-    self.disable_auto_resume = self.op_params.get('disable_auto_resume')
+    self.disable_auto_resume = self.params.get('autoResume', encoding='utf8') == "1"
     self.start_with_auto_follow_disabled = self.op_params.get('start_with_auto_follow_disabled')
     self.autoFollowDistanceLock = None
 
