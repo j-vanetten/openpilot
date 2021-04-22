@@ -54,15 +54,19 @@ static void ui_init_vision(UIState *s) {
 
 
 void ui_init(UIState *s) {
+  s->pm = new PubMaster({"jvePilotUIState"});
   s->sm = new SubMaster({
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "liveLocationKalman",
-    "pandaState", "carParams", "driverState", "driverMonitoringState", "sensorEvents", "carState", "ubloxGnss", "autoFollow"
+    "pandaState", "carParams", "driverState", "driverMonitoringState", "sensorEvents", "carState", "ubloxGnss",
+    "jvePilotState",
 #ifdef QCOM2
     "roadCameraState",
 #endif
   });
 
   s->scene.started = false;
+  s->scene.autoFollowEnabled = -1;
+  s->scene.accEco = -1;
   s->status = STATUS_OFFROAD;
 
   ui_nvg_init(s);
@@ -71,8 +75,6 @@ void ui_init(UIState *s) {
   s->vipc_client_rear = new VisionIpcClient("camerad", VISION_STREAM_RGB_BACK, true);
   s->vipc_client_front = new VisionIpcClient("camerad", VISION_STREAM_RGB_FRONT, true);
   s->vipc_client = s->vipc_client_rear;
-
-  s->scene.autoFollowButtonEnabled = false;
 }
 
 static int get_path_length_idx(const cereal::ModelDataV2::XYZTData::Reader &line, const float path_height) {
@@ -241,8 +243,9 @@ static void update_sockets(UIState *s) {
 #endif
   scene.started = scene.deviceState.getStarted() || scene.driver_view;
 
-  if (sm.updated("autoFollow")) {
-    scene.autoFollowButtonEnabled = sm["autoFollow"].getAutoFollow().getEnabled();
+  if (sm.updated("jvePilotState")) {
+    scene.autoFollowEnabled = sm["jvePilotState"].getJvePilotUIState().getAutoFollow() ? 1 : 0;
+    scene.accEco = sm["jvePilotState"].getJvePilotUIState().getAccEco();
   }
 }
 

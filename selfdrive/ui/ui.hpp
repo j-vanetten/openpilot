@@ -57,8 +57,6 @@ const int footer_h = 280;
 const Rect settings_btn = {50, 35, 200, 117};
 const Rect home_btn = {60, 1080 - 180 - 40, 180, 180};
 
-const Rect authFollow_btn = {1920/2 - 475/2, 940 - 130/2, 475, 130};
-
 const int UI_FREQ = 20;   // Hz
 
 typedef enum NetStatus {
@@ -134,7 +132,8 @@ typedef struct UIScene {
   bool started, ignition, is_metric, longitudinal_control, end_to_end;
   uint64_t started_frame;
 
-  bool autoFollowButtonEnabled;
+  int autoFollowEnabled;
+  int accEco;
 } UIScene;
 
 typedef struct UIState {

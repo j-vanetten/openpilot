@@ -91,6 +91,8 @@ protected:
   void mousePressEvent(QMouseEvent* e) override;
 
 private:
+  void notify_state(UIState* ui_state);
+
   OffroadHome* home;
   QStackedLayout* layout;
 };

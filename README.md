@@ -1,37 +1,43 @@
 Table of Contents
 =======================
-- [FCA Hybrid OpenPilot/ACC jvePilot](#fca-hybrid-openpilot-acc-jvepilot)
-  * [What is this Fork?](#what-is-this-fork-)
-  * [Benefits of jvePilot](#benefits-of-jvepilot)
-    + [Longitudinal control](#longitudinal-control)
-    + [Auto Resume](#auto-resume)
-    + [Auto Follow](#auto-follow)
-  * [How to use it](#how-to-use-it)
-    + [Where to look when setting ACC speed](#where-to-look-when-setting-acc-speed)
+# Table of contents
+- [FCA Hybrid OpenPilot/ACC jvePilot](#fca-hybrid-openpilotacc-jvepilot)
+  - [What is this Fork?](#what-is-this-fork)
+  - [Benefits of jvePilot](#benefits-of-jvepilot)
+    - [Longitudinal control](#longitudinal-control)
+    - [Auto Resume](#auto-resume)
+    - [Auto Follow](#auto-follow)
+    - [ACC Eco](#acc-eco)
+  - [How to use it](#how-to-use-it)
+    - [Where to look when setting ACC speed](#where-to-look-when-setting-acc-speed)
 - [Install](#install)
-  * [Branches](#branches)
-  * [Panda Firmware Flashing](#panda-firmware-flashing)
+  - [Branches](#branches)
+  - [Panda Firmware Flashing](#panda-firmware-flashing)
 - [Customizing](#customizing)
-  + [Slow in Turns](#slow-in-turns)
-    - [`slow_in_turns`, Default: `True`](#-slow-in-turns---default---true-)
-    - [`slow_in_turns_ratio`, Default: `1.0`, Live!](#-slow-in-turns-ratio---default---10---live-)
-    - [`slow_in_turns_rotate`, Default: `0.0`, Live!](#-slow-in-turns-rotate---default---00---live-)
-  + [Auto Follow](#auto-follow-1)
-    - [`start_with_auto_follow_disabled`, Default: `False`](#-start-with-auto-follow-disabled---default---false-)
-    - [`auto_follow_2bars_speed`, Default: `15`, Live!](#-auto-follow-2bars-speed---default---15---live-)
-    - [`auto_follow_3bars_speed`, Default: `30`, Live!](#-auto-follow-3bars-speed---default---30---live-)
-    - [`auto_follow_4bars_speed`, Default: `60`, Live!](#-auto-follow-4bars-speed---default---60---live-)
-  + [Lead Distance Ratio](#lead-distance-ratio)
-    - [`lead_distance_ratio_1bar`, Default: `1.1`, Live!](#-lead-distance-ratio-1bar---default---11---live-)
-    - [`lead_distance_ratio_2bars`, Default: `1.5`, Live!](#-lead-distance-ratio-2bars---default---15---live-)
-    - [`lead_distance_ratio_3bars`, Default: `2.1`, Live!](#-lead-distance-ratio-3bars---default---21---live-)
-    - [`lead_distance_ratio_4bars`, Default: `2.6`, Live!](#-lead-distance-ratio-4bars---default---26---live-)
-  + [Other tweaks](#other-tweaks)
-    - [`camera_offset`, Default: `0.06`, Live!](#-camera-offset---default---006---live-)
-    - [`disable_auto_resume`, Default: `False`](#-disable-auto-resume---default---false-)
-    - [`disable_on_gas`, Default: `False`](#-disable-on-gas---default---false-)
-    - [`op_speed_adjust_ratio`, Default: `1.0`](#-op-speed-adjust-ratio---default---10-)
-    - [`acc_button_long_press`, Default: `30`, Live!](#-acc-button-long-press---default---30---live-)
+  - [Slow in Turns](#slow-in-turns)
+    - [`slow_in_turns`, Default: `True`](#slow_in_turns-default-true)
+    - [`slow_in_turns_ratio`, Default: `1.0`, Live!](#slow_in_turns_ratio-default-10-live)
+    - [`slow_in_turns_rotate`, Default: `0.0`, Live!](#slow_in_turns_rotate-default-00-live)
+  - [Auto Follow](#auto-follow)
+    - [`start_with_auto_follow_disabled`, Default: `False`](#start_with_auto_follow_disabled-default-false)
+    - [`auto_follow_2bars_speed`, Default: `15`, Live!](#auto_follow_2bars_speed-default-15-live)
+    - [`auto_follow_3bars_speed`, Default: `30`, Live!](#auto_follow_3bars_speed-default-30-live)
+    - [`auto_follow_4bars_speed`, Default: `60`, Live!](#auto_follow_4bars_speed-default-60-live)
+  - [ACC Eco](#acc-eco)
+    - [`acc_eco_max_future_speed`, Default: 7, Live!](#acc_eco_max_future_speed-default-7-live)
+  - [Lead Distance Ratio](#lead-distance-ratio)
+    - [`lead_distance_ratio_1bar`, Default: `1.1`, Live!](#lead_distance_ratio_1bar-default-11-live)
+    - [`lead_distance_ratio_2bars`, Default: `1.5`, Live!](#lead_distance_ratio_2bars-default-15-live)
+    - [`lead_distance_ratio_3bars`, Default: `2.1`, Live!](#lead_distance_ratio_3bars-default-21-live)
+    - [`lead_distance_ratio_4bars`, Default: `2.6`, Live!](#lead_distance_ratio_4bars-default-26-live)
+  - [Other tweaks](#other-tweaks)
+    - [`camera_offset`, Default: `0.06`, Live!](#camera_offset-default-006-live)
+    - [`disable_auto_resume`, Default: `False`](#disable_auto_resume-default-false)
+    - [`disable_on_gas`, Default: `False`](#disable_on_gas-default-false)
+    - [`op_speed_adjust_ratio`, Default: `1.0`](#op_speed_adjust_ratio-default-10)
+    - [`acc_button_long_press`, Default: `30`, Live!](#acc_button_long_press-default-30-live)
+    - [`reverse_acc_button_change`, Default: `False`](#reverse_acc_button_change-false)
+  - [**Safety Notes**](#safety-notes)
 
 # FCA Hybrid OpenPilot/ACC jvePilot
 I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features using this vehicle.
@@ -47,8 +53,10 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 * Slow in a turn, so you don't have to change the set speed yourself (Speeds are configurable)
 * Auto resume after ACC comes to a stop behind vehicle (Can be disabled)
 * Auto follow feature to adjust the follow distance based on speed (Speeds are configurable)
+* ACC Eco to limit the throttle when accelerating  
 * Pressing the gas does not disengage jvePilot (Can be disabled)
 * Report blind spot indicators to jvePilot for better lane change safety
+* Setting to sync jvePilot speed to vehicle speedometer 
 
 ### Longitudinal control
 This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC).
@@ -76,8 +84,19 @@ The faster you go, the more distance you want, so you can have more confidence i
 
 The current enabled state of Auto Follow is displayed on the bottom of the jvePilot display.
 Pressing Follow + or - will disable Auto Follow giving you full control to set the follow distance. 
-To re-enable Auto Follow, hold either Follow + or - for half a second. 
+To re-enable Auto Follow, hold either Follow + or - for half a second or tap the button on the display. 
  
+### ACC Eco
+When enabled, jvePilot will limit how far ahead the ACC setting is above the current speed.  
+This prevents the vehicle from using an aggressive throttle to get up to speed saving on gas/battery.
+
+The ACC Eco button is located in the lower right corner of the display.  
+Tapping the button cycles between off, level 1, and level 2 eco settings.
+Level 2 provides the slowest acceleration and is selected when both leaves are green.    
+Level 1 should provide a balance is selected when only one leaf is green.
+If you feel these settings are not right for you or your vehicle, see the [ACC Eco](#acc-eco) setting to adjust them. 
+Much like your vehicles eco/sport modes, the current setting is persisted between drives.
+
 ## How to use it 
 When using this branch, you will be setting the max ACC speed on the jvePilot display instead of the one in the dashboard.
 jvePilot will then set the ACC setting in the dashboard to the targeted speed, but never exceeding the max speed set on the jvePilot display.
@@ -140,6 +159,14 @@ When your reach this speed (in MPH), Auto Follow will set the follow setting to 
 #### `auto_follow_4bars_speed`, Default: `60`, Live!
 When your reach this speed (in MPH), Auto Follow will set the follow setting to four bars.
 
+### ACC Eco
+These setting are how far ahead, in MPH, of your current speed ACC will be set.  
+The higher the number, the more aggressive ACC will be when accelerating.
+#### `acc_eco_1_future_speed`, Default: 7, Live!
+Use this setting to adjust ACC Eco level 1 (one green leaf) for a balance of speed and eco-ness  
+#### `acc_eco_2_future_speed`, Default: 5, Live!
+Use this setting to adjust ACC Eco level 2 (two green leaves) for maximum eco-ness
+
 ### Lead Distance Ratio
 The lead distance ratios are the ratio to adjust the distance jvePilot follows based on the follow distance selected.
 This is done by adjusting the reported radar distance to the lead car.
@@ -173,6 +200,8 @@ I have to set this to `1.052` to increase the reported speed by 5.2% to match my
 #### `acc_button_long_press`, Default: `30`, Live!
 Number of centiseconds to consider an ACC +/- button being pressed as long deliberate presses.  (30 = .30 seconds)
 
+#### `reverse_acc_button_change`, Default: `True`
+Reverse the stock ACC +/- button's 1mph on short press and 5mph on long press.  Set to `False` to return to stock
 ---
 
 ### **Safety Notes** 

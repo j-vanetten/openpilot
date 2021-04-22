@@ -1260,8 +1260,9 @@ struct ManagerState {
   }
 }
 
-struct AutoFollow {
-  enabled @0 :Bool;
+struct JvePilotUIState {
+  autoFollow @0 :Bool;
+  accEco @1 :UInt8;
 }
 
 struct Event {
@@ -1361,6 +1362,6 @@ struct Event {
     gpsLocationDEPRECATED @21 :GpsLocationData;
     uiLayoutStateDEPRECATED @57 :Legacy.UiLayoutState;
 
-    autoFollow @79 :AutoFollow;
+    jvePilotUIState @79 :JvePilotUIState;
   }
 }

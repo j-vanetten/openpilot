@@ -107,6 +107,6 @@ class CarInterface(CarInterfaceBase):
       return []  # if we haven't seen a frame 220, then do not update.
 
     can_sends = self.CC.update(c.enabled, self.CS, c.actuators, c.cruiseControl.cancel, c.hudControl.visualAlert,
-                               self.CS.out.cruiseState.speed, c.cruiseControl.targetSpeed, GAS_RESUME_SPEED)
+                               GAS_RESUME_SPEED, c.jvePilotState)
 
     return can_sends
