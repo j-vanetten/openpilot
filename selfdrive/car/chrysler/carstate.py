@@ -8,10 +8,10 @@ from common.cached_params import CachedParams
 
 ButtonType = car.CarState.ButtonEvent.Type
 
-LEAD_RADAR_CONFIG = ['jvePilot.settings.accEco.accFollow1RadarRatio',
-                     'jvePilot.settings.accEco.accFollow2RadarRatio',
-                     'jvePilot.settings.accEco.accFollow3RadarRatio',
-                     'jvePilot.settings.accEco.accFollow4RadarRatio']
+LEAD_RADAR_CONFIG = ['jvePilot.settings.accFollow1RadarRatio',
+                     'jvePilot.settings.accFollow2RadarRatio',
+                     'jvePilot.settings.accFollow3RadarRatio',
+                     'jvePilot.settings.accFollow4RadarRatio']
 CHECK_BUTTONS = {ButtonType.cancel: 'ACC_CANCEL',
                  ButtonType.resumeCruise: 'ACC_RESUME',
                  ButtonType.accelCruise: 'ACC_SPEED_INC',
