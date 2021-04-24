@@ -19,34 +19,13 @@
 QWidget * jvePilot_panel() {
   QVBoxLayout *toggles_list = new QVBoxLayout();
 
-  // accEco
-  QList<struct ConfigButton> ecoConfigs = { 
-    { "jvePilot.settings.accEco.speedAheadLevel1",
-      "7", 1, 200, 
-      "Keep ahead at ACC Eco level 1",
-      "Default: 7 mph\n"
-        "The higher the number the more acceleration that occurs."
-    },
-    { "jvePilot.settings.accEco.speedAheadLevel2",
-      "5", 1, 200, 
-      "Keep ahead at ACC Eco level 2",
-      "Default: 5 mph\n"
-        "The higher the number the more acceleration that occurs."
-    }
-  };
-  toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new LabelControl( "ACC Eco", 
-                                            "", 
-                                            "Use these settings to tune how much acceleration occrus by limiting how much ACC is set above your current speed.", 
-                                            &ecoConfigs));
-
   // slowInCurves
   QList<struct ConfigButton> slowInCurvesConfigs = { 
     { "jvePilot.settings.slowInCurves.speedRatio", 
       "1.0", 0.1, 2, 
       "Speed Ratio",
       "Default: 1.0\n"
-        "Use this to tune the speed in curves to you likeing.\n"
+        "Use this to tune the speed in curves to you liking.\n"
         "Examples:\n"
         "  1.2 to go 20% faster in curves.\n"
         "  0.9 to go 10% slower in curves."
@@ -58,7 +37,7 @@ QWidget * jvePilot_panel() {
         "Use this to tune the speed as the curve gets tighter.\n"
         "Example:\n"
         "  2 to go faster as the curve gets tighter.\n"
-        "  -2 to go slower as the curge gets tighter."
+        "  -2 to go slower as the curve gets tighter."
     }
   };
   toggles_list->addWidget(new ParamControl("jvePilot.settings.slowInCurves",
@@ -100,7 +79,9 @@ QWidget * jvePilot_panel() {
   toggles_list->addWidget(horizontal_line());
   toggles_list->addWidget(new ParamControl("jvePilot.settings.reverseAccSpeedChange",
                                             "Reverse ACC +/- Speeds",
-                                            "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 mph increments.  Hold a little longer to change by 1 mph.  Disable to keep stock setting.",
+                                            "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 mph increments."
+                                            " Hold a little longer to change by 1 mph."
+                                            " Disable to keep stock setting.",
                                             "../assets/jvepilot/settings/icon_acc_speed_change.png"
                                           ));
 
@@ -140,10 +121,31 @@ QWidget * jvePilot_panel() {
     }
   };
   toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new LabelControl( "ACC Eco", 
+  toggles_list->addWidget(new LabelControl( "jvePilot Device Settings",
                                             "", 
-                                            "Use these settings to tune how much acceleration occrus by limiting how much ACC is set above your current speed.", 
+                                            "Use these settings to tune how much acceleration occurs by limiting how much ACC is set above your current speed.",
                                             &miscConfigs));
+
+  // accEco
+  QList<struct ConfigButton> ecoConfigs = {
+    { "jvePilot.settings.accEco.speedAheadLevel1",
+      "7", 1, 200,
+      "Keep ahead at ACC Eco level 1",
+      "Default: 7 mph\n"
+        "The higher the number the more acceleration that occurs."
+    },
+    { "jvePilot.settings.accEco.speedAheadLevel2",
+      "5", 1, 200,
+      "Keep ahead at ACC Eco level 2",
+      "Default: 5 mph\n"
+        "The higher the number the more acceleration that occurs."
+    }
+  };
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new LabelControl( "ACC Eco",
+                                            "",
+                                            "Use these settings to tune how much acceleration occurs by limiting how much ACC is set above your current speed.",
+                                            &ecoConfigs));
 
   // acc follow distance
   QList<struct ConfigButton> accFollowDistanceConfigs = { 

@@ -10,7 +10,6 @@ from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX
 from selfdrive.controls.lib.events import Events
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from common.op_params import opParams
 from common.params import Params
 
 GearShifter = car.CarState.GearShifter

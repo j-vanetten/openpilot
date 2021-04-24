@@ -6,12 +6,13 @@ from common.numpy_fast import clip
 from common.realtime import sec_since_boot, config_realtime_process, Priority, Ratekeeper, DT_CTRL
 from common.profiler import Profiler
 from common.params import Params, put_nonblocking
-from common.op_params import opParams
+from common.cached_params import CachedParams
 import cereal.messaging as messaging
 from selfdrive.config import Conversions as CV
 from selfdrive.swaglog import cloudlog
 from selfdrive.boardd.boardd import can_list_to_can_capnp
 from selfdrive.car.car_helpers import get_car, get_startup_event, get_one_can
+from selfdrive.controls.lib.lane_planner import CAMERA_OFFSET
 from selfdrive.controls.lib.drive_helpers import update_v_cruise, initialize_v_cruise
 from selfdrive.controls.lib.longcontrol import LongControl, STARTING_TARGET_SPEED
 from selfdrive.controls.lib.latcontrol_pid import LatControlPID
@@ -132,8 +133,8 @@ class Controls:
     self.logged_comm_issue = False
     self.buttonPressTimes = {}
 
-    self.reverse_acc_button_change = params.get('jvePilot.settings.reverseAccSpeedChange', encoding='utf8') == "1"
-    self.op_params = opParams()
+    self.reverse_acc_button_change = self.cachedParams.get('jvePilot.settings.reverseAccSpeedChange', encoding='utf8') == "1"
+    self.cachedParams = CachedParams()
     self.jvePilotState = car.JvePilotState.new_message()
     self.jvePilotState.carControl.autoFollow = params.get('jvePilot.settings.autoFollow', encoding='utf8') == "1"
     self.jvePilotState.carControl.accEco = int(params.get('jvePilot.carState.accEco', encoding='utf8') or "1")
@@ -325,8 +326,7 @@ class Controls:
     self.v_cruise_kph_last = self.v_cruise_kph
 
     # use our own set speed logic
-    acc_button_long_press = self.op_params.get("acc_button_long_press")
-    self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled, acc_button_long_press, self.reverse_acc_button_change)
+    self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled, self.reverse_acc_button_change)
 
     # decrease the soft disable timer at every step, as it's reset on
     # entrance in SOFT_DISABLING state
@@ -492,9 +492,9 @@ class Controls:
       l_lane_change_prob = meta.desirePrediction[Desire.laneChangeLeft - 1]
       r_lane_change_prob = meta.desirePrediction[Desire.laneChangeRight - 1]
 
-      CAMERA_OFFSET = self.op_params.get('camera_offset')
-      l_lane_close = left_lane_visible and (self.sm['modelV2'].laneLines[1].y[0] > -(1.08 + CAMERA_OFFSET))
-      r_lane_close = right_lane_visible and (self.sm['modelV2'].laneLines[2].y[0] < (1.08 - CAMERA_OFFSET))
+      device_offset = float(self.cachedParams.get('jvePilot.settings.deviceOffset', 5000))
+      l_lane_close = left_lane_visible and (self.sm['modelV2'].laneLines[1].y[0] > -(1.08 + CAMERA_OFFSET + device_offset))
+      r_lane_close = right_lane_visible and (self.sm['modelV2'].laneLines[2].y[0] < (1.08 - CAMERA_OFFSET + device_offset))
 
       CC.hudControl.leftLaneDepart = bool(l_lane_change_prob > LANE_DEPARTURE_THRESHOLD and l_lane_close)
       CC.hudControl.rightLaneDepart = bool(r_lane_change_prob > LANE_DEPARTURE_THRESHOLD and r_lane_close)

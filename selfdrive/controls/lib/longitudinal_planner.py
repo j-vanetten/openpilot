@@ -3,7 +3,7 @@ import math
 import numpy as np
 from common.params import Params
 from common.numpy_fast import interp
-from common.op_params import opParams
+from common.cached_params import CachedParams
 
 import cereal.messaging as messaging
 from common.realtime import sec_since_boot
@@ -84,7 +84,7 @@ class Planner():
     self.params = Params()
     self.first_loop = True
 
-    self.op_params = opParams()
+    self.cachedParams = CachedParams()
 
   def choose_solution(self, v_cruise_setpoint, enabled):
     if enabled:
@@ -190,7 +190,7 @@ class Planner():
     self.v_acc_next = v_acc_sol
     self.a_acc_next = a_acc_sol
 
-    if self.params.get('jvePilot.settings.slowInTurns', encoding='utf8') == "1":
+    if self.cachedParams.get('jvePilot.settings.slowInTurns', 5000) == "1":
       curvs = list(lateral_planner.mpc_solution.curvature)
       if len(curvs):
         # find the largest curvature in the solution and use that.
@@ -231,13 +231,13 @@ class Planner():
     a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
 
     # rotate the line
-    angle = self.op_params.get('slow_in_turns_rotate')
+    angle = float(self.cachedParams.get('jvePilot.settings.slowInTurns.speedDropoffAngle', 5000))
     if angle != 0:
       _, a_y_max = self.rotate((0, 2.975), (v_ego, a_y_max), angle * 0.0174533)
 
     v_curvature = np.sqrt(a_y_max / np.clip(curv, 1e-4, None))
     model_speed = np.min(v_curvature)
-    return model_speed * self.op_params.get('slow_in_turns_ratio')
+    return model_speed * float(self.cachedParams.get('jvePilot.settings.slowInTurns.speedRatio', 5000))
 
   def rotate(self, origin, point, angle):
     ox, oy = origin

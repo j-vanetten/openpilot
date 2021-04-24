@@ -62,20 +62,6 @@ class opParams:
 
     VT = ValueTypes()
     self.fork_params = {
-      'camera_offset': Param(0.06, VT.number, 'Your camera offset to use in lane_planner.py', live=True),
-      'slow_in_turns_ratio': Param(1, VT.number, 'Adjust how much slowing occurs. (1.25 = 25% faster in turns than the default)', live=True),
-      'slow_in_turns_rotate': Param(0, VT.number, 'This adjusts how much amount the vehicle slows as the curve increases', live=True),
-      'acc_button_long_press': Param(30, VT.number, 'Number of centiseconds to consider a button as long pressed.  (30 = .30 seconds)', live=True),
-      'lead_distance_ratio_1bar': Param(2.6, VT.number, 'Lead car adjusted radar distance ratio 1 bar', live=True),
-      'lead_distance_ratio_2bars': Param(2.1, VT.number, 'Lead car adjusted radar distance ratio 2 bar', live=True),
-      'lead_distance_ratio_3bars': Param(1.5, VT.number, 'Lead car adjusted radar distance ratio 3 bar', live=True),
-      'lead_distance_ratio_4bars': Param(1.1, VT.number, 'Lead car adjusted radar distance ratio 4 bar', live=True),
-      'op_speed_adjust_ratio': Param(1, VT.number, 'Use to align the OpenPilot speed to the correct vehicle speed', live=True),
-      'auto_follow_2bars_speed': Param(15, VT.number, 'Set follow distance to 2 bars when reaching this MPH', live=True),
-      'auto_follow_3bars_speed': Param(30, VT.number, 'Set follow distance to 3 bars when reaching this MPH', live=True),
-      'auto_follow_4bars_speed': Param(60, VT.number, 'Set follow distance to 4 bars when reaching this MPH', live=True),
-      'acc_eco_1_future_speed': Param(7, VT.number, 'At level 1, how much ahead should ACC Eco be when accelerating', live=True),
-      'acc_eco_2_future_speed': Param(5, VT.number, 'At level 2, How much ahead should ACC Eco be when accelerating', live=True),
     }
 
     self._params_file = '/data/op_params.json'

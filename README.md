@@ -35,7 +35,6 @@ Table of Contents
     - [`disable_auto_resume`, Default: `False`](#disable_auto_resume-default-false)
     - [`disable_on_gas`, Default: `False`](#disable_on_gas-default-false)
     - [`op_speed_adjust_ratio`, Default: `1.0`](#op_speed_adjust_ratio-default-10)
-    - [`acc_button_long_press`, Default: `30`, Live!](#acc_button_long_press-default-30-live)
     - [`reverse_acc_button_change`, Default: `False`](#reverse_acc_button_change-false)
   - [**Safety Notes**](#safety-notes)
 
@@ -196,9 +195,6 @@ Disable the feature that allows jvePilot to stay engaged when pressing the gas.
 #### `op_speed_adjust_ratio`, Default: `1.0`
 Adjust speed displayed by jvePilot to match the real world.
 I have to set this to `1.052` to increase the reported speed by 5.2% to match my Jeeps speedometer, which is pretty accurate.
-
-#### `acc_button_long_press`, Default: `30`, Live!
-Number of centiseconds to consider an ACC +/- button being pressed as long deliberate presses.  (30 = .30 seconds)
 
 #### `reverse_acc_button_change`, Default: `True`
 Reverse the stock ACC +/- button's 1mph on short press and 5mph on long press.  Set to `False` to return to stock
