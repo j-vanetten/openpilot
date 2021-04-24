@@ -64,12 +64,12 @@ QString InputDialog::getText(const QString &prompt, int minLength) {
   return ret ? d.text() : QString();
 }
 
-QString InputDialog::getConfigDecimal(const QString &prompt, std::string existingValue) {
+QString InputDialog::getConfigDecimal(const QString &prompt, std::string existingValue, float min, float max) {
   InputDialog d = InputDialog(prompt);
   const QString existing = QString::fromStdString(existingValue);
   d.setText(existing);
   d.setMinLength(1);
-  const auto validator = new QDoubleValidator(0.1, 2, 2);
+  const auto validator = new QDoubleValidator(min, max, 4);
   d.setValidator(*validator);
   const int ret = d.exec();
   return ret ? d.text() : QString();

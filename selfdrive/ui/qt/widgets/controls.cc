@@ -59,11 +59,17 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
       config_layout->addWidget(horizontal_line());
       const ConfigButton btn = btns->at(i);
 
-      const auto value = Params().get(btn.param);
-      const auto title = QString::fromStdString(btn.title.toStdString() + ": " + value);
+      auto value = Params().get(btn.param);
+      if (QString::fromStdString(value).isNull() || QString::fromStdString(value).isEmpty()) {
+        Params().write_db_value(btn.param, btn.default_value);
+        value = btn.default_value;
+      }
+      
+      const auto existng_value = value;
+      const auto title = QString::fromStdString(btn.title.toStdString() + ": " + existng_value);
       const auto b = new ButtonControl(title, "CHANGE", btn.text, [=]() {});
       b->released([=]() { 
-          auto set_value = InputDialog::getConfigDecimal(title, value);
+          auto set_value = InputDialog::getConfigDecimal(title, existng_value, btn.min, btn.max);
           if (set_value.length() > 0) {
             Params().write_db_value(btn.param, set_value.toStdString());
             b->setLabel(QString::fromStdString(btn.title.toStdString() + ": " + set_value.toStdString()));

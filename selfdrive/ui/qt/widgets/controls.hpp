@@ -15,9 +15,11 @@ QFrame *horizontal_line(QWidget *parent = nullptr);
 struct ConfigButton {
   public:
   std::string param;
+  std::string default_value;
+  float min;
+  float max;
   QString title;
   QString text; 
-  QString description;
 };
 
 class AbstractControl : public QFrame {
