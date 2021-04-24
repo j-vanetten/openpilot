@@ -8,7 +8,7 @@ class CachedParams:
     self.params = Params()
 
   def get_float(self, key, ms):
-    float(self.get(key, ms))
+    return float(self.get(key, ms))
 
   def get(self, key, ms):
     current_ms = round(time.time() * 1000)
