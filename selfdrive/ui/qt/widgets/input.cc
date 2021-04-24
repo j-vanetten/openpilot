@@ -72,7 +72,14 @@ QString InputDialog::getConfigDecimal(const QString &prompt, std::string existin
   const auto validator = new QDoubleValidator(min, max, 4);
   d.setValidator(*validator);
   const int ret = d.exec();
-  return ret ? d.text() : QString();
+  if (ret) {
+    auto input = d.text();
+    int pos = 0;
+    if (validator->validate(input, pos) == QValidator::Acceptable) {
+      return d.text();
+    }
+  }
+  return QString();
 }
 
 QString InputDialog::text() {
