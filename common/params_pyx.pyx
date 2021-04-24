@@ -16,6 +16,7 @@ cdef enum TxType:
 keys = {
   b"jvePilot.carState.accEco": [TxType.PERSISTENT],
   b"jvePilot.settings.slowInTurns": [TxType.PERSISTENT],
+  b"jvePilot.settings.slowInTurns.speedRatio": [TxType.PERSISTENT],
   b"jvePilot.settings.reverseAccSpeedChange": [TxType.PERSISTENT],
   b"jvePilot.settings.autoResume": [TxType.PERSISTENT],
   b"jvePilot.settings.disableOnGas": [TxType.PERSISTENT],

@@ -15,9 +15,12 @@ class InputDialog : public QDialog {
 public:
   explicit InputDialog(const QString &prompt_text, QWidget* parent = 0);
   static QString getText(const QString &prompt, int minLength = -1);
+  static QString getConfigDecimal(const QString &prompt, std::string existingValue);
   QString text();
   void setMessage(const QString &message, bool clearInputField = true);
   void setMinLength(int length);
+  void setValidator(const QValidator &validator);
+  void setText(const QString &test);
   void show();
 
 private:

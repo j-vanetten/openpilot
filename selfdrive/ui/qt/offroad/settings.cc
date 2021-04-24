@@ -19,10 +19,18 @@
 QWidget * jvePilot_panel() {
   QVBoxLayout *toggles_list = new QVBoxLayout();
 
+  QList<struct ConfigButton> btns = { {"jvePilot.settings.slowInCurves.speedRatio", "Speed Ratio",
+                                          "Default: 1.0\n"
+                                          "Use this to tune the speed in curves to you likeing\n."
+                                          "Example: Increase to 1.2 to go 20% faster in curves.\n"
+                                          "Example:Decrese to 0.9 to go 10% slower in curves."
+                                          }};
+
   toggles_list->addWidget(new ParamControl("jvePilot.settings.slowInCurves",
                                             "Slow in Curves",
                                             "When in a curve, jvePilot will slow down for you.",
-                                            "../assets/jvepilot/settings/icon_slow_in_curves.png"
+                                            "../assets/jvepilot/settings/icon_slow_in_curves.png",
+                                            &btns
                                           ));
 
   toggles_list->addWidget(horizontal_line());
@@ -32,21 +40,21 @@ QWidget * jvePilot_panel() {
                                             "../assets/jvepilot/settings/icon_acc_speed_change.png"
                                           ));
 
-toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(horizontal_line());
   toggles_list->addWidget(new ParamControl("jvePilot.settings.autoResume",
                                             "Auto Resume",
                                             "When enabled, jvePilot will resume after ACC comes to a stop behind another vehicle.",
                                             "../assets/jvepilot/settings/icon_auto_resume.png"
                                           ));
 
-toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(horizontal_line());
   toggles_list->addWidget(new ParamControl("jvePilot.settings.disableOnGas",
                                             "Disable on Gas",
                                             "When enabled, jvePilot will disengage jvePilot when the gas pedal is pressed.",
                                             "../assets/jvepilot/settings/icon_gas_pedal.png"
                                           ));
 
-toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(horizontal_line());
   toggles_list->addWidget(new ParamControl("jvePilot.settings.autoFollow",
                                             "Start with Auto Follow Enabled",
                                             "When enabled, jvePilot will enable Auto Follow on the start of every drive.",

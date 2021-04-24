@@ -1,4 +1,5 @@
 #include <QPushButton>
+#include <QDoubleValidator>
 
 #include "input.hpp"
 #include "qt_window.hpp"
@@ -63,6 +64,17 @@ QString InputDialog::getText(const QString &prompt, int minLength) {
   return ret ? d.text() : QString();
 }
 
+QString InputDialog::getConfigDecimal(const QString &prompt, std::string existingValue) {
+  InputDialog d = InputDialog(prompt);
+  const QString existing = QString::fromStdString(existingValue);
+  d.setText(existing);
+  d.setMinLength(1);
+  const auto validator = new QDoubleValidator(0.1, 2, 2);
+  d.setValidator(*validator);
+  const int ret = d.exec();
+  return ret ? d.text() : QString();
+}
+
 QString InputDialog::text() {
   return line->text();
 }
@@ -111,6 +123,13 @@ void InputDialog::setMinLength(int length){
   minLength = length;
 }
 
+void InputDialog::setValidator(const QValidator &validator) {
+  line->setValidator(&validator);
+}
+
+void InputDialog::setText(const QString &text) {
+  line->setText(text);
+}
 
 ConfirmationDialog::ConfirmationDialog(const QString &prompt_text, const QString &confirm_text, const QString &cancel_text,
                                        QWidget *parent):QDialog(parent) {
