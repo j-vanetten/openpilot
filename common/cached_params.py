@@ -8,6 +8,9 @@ class CachedParams:
     self.params = Params()
 
   def get_float(self, key, ms):
+    float(self.get(key, ms))
+
+  def get(self, key, ms):
     current_ms = round(time.time() * 1000)
     if key in CACHE:
       cached = CACHE[key]
@@ -17,4 +20,4 @@ class CachedParams:
     gotten = self.params.get(key, encoding='utf8')
     CACHE[key] = [current_ms, gotten]
 
-    return float(gotten)
+    return gotten

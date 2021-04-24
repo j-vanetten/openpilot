@@ -28,7 +28,7 @@ class CarController():
     self.packer = CANPacker(dbc_name)
 
     self.params = Params()
-    self.cached_params = CachedParams()
+    self.cachedParams = CachedParams()
     self.disable_auto_resume = self.params.get('jvePilot.settings.autoResume', encoding='utf8') == "0"
     self.autoFollowDistanceLock = None
 
@@ -128,10 +128,10 @@ class CarController():
 
     if jvepilot_state.carControl.accEco == 1:  # if eco mode
       current_speed = round(CS.out.vEgo * CV.MS_TO_MPH)
-      target = min(target, int(current_speed + self.cached_params.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)))
+      target = min(target, int(current_speed + self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)))
     elif jvepilot_state.carControl.accEco == 2:  # if eco mode
       current_speed = round(CS.out.vEgo * CV.MS_TO_MPH)
-      target = min(target, current_speed + int(current_speed + self.cached_params.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)))
+      target = min(target, current_speed + int(current_speed + self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)))
 
     if target < current and current > MIN_ACC_SPEED_MPH:
       return 'ACC_SPEED_DEC'
@@ -141,9 +141,9 @@ class CarController():
   def auto_follow_button(self, CS, jvepilot_state):
     if jvepilot_state.carControl.autoFollow:
       crossover = [0,
-                   self.cached_params.get_float('jvePilot.settings.autoFollow.speed1-2Bars', 1000) * CV.MPH_TO_MS,
-                   self.cached_params.get_float('jvePilot.settings.autoFollow.speed2-3Bars', 1000) * CV.MPH_TO_MS,
-                   self.cached_params.get_float('jvePilot.settings.autoFollow.speed3-4Bars', 1000) * CV.MPH_TO_MS]
+                   self.cachedParams.get_float('jvePilot.settings.autoFollow.speed1-2Bars', 1000) * CV.MPH_TO_MS,
+                   self.cachedParams.get_float('jvePilot.settings.autoFollow.speed2-3Bars', 1000) * CV.MPH_TO_MS,
+                   self.cachedParams.get_float('jvePilot.settings.autoFollow.speed3-4Bars', 1000) * CV.MPH_TO_MS]
 
       if CS.out.vEgo < crossover[1]:
         target_follow = 0

@@ -231,13 +231,13 @@ class Planner():
     a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
 
     # rotate the line
-    angle = float(self.cachedParams.get('jvePilot.settings.slowInTurns.speedDropoffAngle', 5000))
+    angle = self.cachedParams.get_float('jvePilot.settings.slowInTurns.speedDropoffAngle', 5000)
     if angle != 0:
       _, a_y_max = self.rotate((0, 2.975), (v_ego, a_y_max), angle * 0.0174533)
 
     v_curvature = np.sqrt(a_y_max / np.clip(curv, 1e-4, None))
     model_speed = np.min(v_curvature)
-    return model_speed * float(self.cachedParams.get('jvePilot.settings.slowInTurns.speedRatio', 5000))
+    return model_speed * self.cachedParams.get_float('jvePilot.settings.slowInTurns.speedRatio', 5000)
 
   def rotate(self, origin, point, angle):
     ox, oy = origin

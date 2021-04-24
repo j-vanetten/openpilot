@@ -9,7 +9,7 @@ from common.cached_params import CachedParams
 ButtonType = car.CarState.ButtonEvent.Type
 
 GAS_RESUME_SPEED = 2.
-cached_params = CachedParams()
+cachedParams = CachedParams()
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
@@ -18,7 +18,7 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
-    speed_adjust_ratio = cached_params.get_float('jvePilot.settings.speedAdjustRatio', 5000)
+    speed_adjust_ratio = cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
     inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
 
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)

@@ -47,7 +47,7 @@ class LanePlanner:
       # left and right ll x is the same
       self.ll_x = md.laneLines[1].x
       # only offset left and right lane lines; offsetting path does not make sense
-      device_offset = float(self.cachedParams.get('jvePilot.settings.deviceOffset', 5000))
+      device_offset = self.cachedParams.get_float('jvePilot.settings.deviceOffset', 5000)
       self.lll_y = np.array(md.laneLines[1].y) - CAMERA_OFFSET + device_offset
       self.rll_y = np.array(md.laneLines[2].y) - CAMERA_OFFSET + device_offset
       self.lll_prob = md.laneLineProbs[1]

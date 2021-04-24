@@ -22,12 +22,12 @@ CHECK_BUTTONS = {ButtonType.cancel: 'ACC_CANCEL',
 class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
-    self.cached_params = CachedParams()
+    self.cachedParams = CachedParams()
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["GEAR"]['PRNDL']
 
   def update(self, cp, cp_cam):
-    speed_adjust_ratio = self.cached_params.get_float('jvePilot.settings.speedAdjustRatio', 5000)
+    speed_adjust_ratio = self.cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
     inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
 
     ret = car.CarState.new_message()
@@ -79,7 +79,7 @@ class CarState(CarStateBase):
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]['HIGH_BEAM_FLASH'])
 
     ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
-    ret.jvePilotCarState.leadDistanceRadarRatio = self.cached_params.get_float(LEAD_RADAR_CONFIG[ret.jvePilotCarState.accFollowDistance], 1000) * inverse_speed_adjust_ratio
+    ret.jvePilotCarState.leadDistanceRadarRatio = self.cachedParams.get_float(LEAD_RADAR_CONFIG[ret.jvePilotCarState.accFollowDistance], 1000) * inverse_speed_adjust_ratio
 
     self.lkas_counter = cp_cam.vl["LKAS_COMMAND"]['COUNTER']
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]['CAR_MODEL']
