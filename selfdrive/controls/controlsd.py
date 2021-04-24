@@ -134,7 +134,7 @@ class Controls:
     self.buttonPressTimes = {}
 
     self.cachedParams = CachedParams()
-    self.reverse_acc_button_change = self.cachedParams.get('jvePilot.settings.reverseAccSpeedChange', encoding='utf8') == "1"
+    self.reverse_acc_button_change = self.cachedParams.get('jvePilot.settings.reverseAccSpeedChange', 0) == "1"
     self.jvePilotState = car.JvePilotState.new_message()
     self.jvePilotState.carControl.autoFollow = params.get('jvePilot.settings.autoFollow', encoding='utf8') == "1"
     self.jvePilotState.carControl.accEco = int(params.get('jvePilot.carState.accEco', encoding='utf8') or "1")
