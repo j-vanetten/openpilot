@@ -137,29 +137,29 @@ Clicking on the text of feature of will show more information about it.
 ## Slow in Curves
 jvePilot will slow in curves so that you don't have to.
 * Default: On
-* Live Changes: Yes
+* Vehicle Restart Required: No
 ### Speed Ratio 
 Use this to tune the speed in curves to you liking.
 Setting this to 1.2 will cause jvePilot to drive 20% faster in turns than if it was set to the default of 1.0
 * Default: 1.0
 * Units: Ratio
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values (0.1, 2)
 
 ## Reverse ACC +/- Speeds
 Reverse the stock ACC +/- button's 1mph on short press and 5mph on long press.  Turn off to return to stock style.
 * Default: On
-* Live Changes: Yes
+* Vehicle Restart Required: Yes
 
 ## Auto Resume
 This feature allows jvePilot to auto resume from an ACC stop.
 * Default: On
-* Live Changes: Yes
+* Vehicle Restart Required: Yes
 
 ## Disable on Gas
 When enabled, jvePilot will disengage when you press the gas
 * Default: Off
-* Live Changes: Yes
+* Vehicle Restart Required: Yes
 
 ## Auto Follow
 If you don't want auto follow enabled on every start, turn this off.
@@ -168,21 +168,21 @@ When your speed (in MPH) is below this setting, Auto Follow will set the follow 
 When you reach this speed (in MPH), Auto Follow will set the follow setting to two bars.
 * Default: 15
 * Units: MPH
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values (-1, 300)
 ### 2-3 Bar Change Over
 When your speed (in MPH) is below this setting, Auto Follow will set the follow setting to two bars.
 When you reach this speed (in MPH), Auto Follow will set the follow setting to three bars.
 * Default: 30
 * Units: MPH
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values (-1, 300)
 ### 2-3 Bar Change Over
 When your speed (in MPH) is below this setting, Auto Follow will set the follow setting to three bars.
 When you reach this speed (in MPH), Auto Follow will set the follow setting to four bars.
 * Default: 65
 * Units: MPH
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values (-1, 300)
 
 ## ACC Eco
@@ -193,13 +193,13 @@ The higher the number, the more aggressive ACC will be when accelerating.
 Use this setting to adjust ACC Eco level 1 (one green leaf) for a balance of speed and eco-ness  
 * Default: 7
 * Units: MPH
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values 1, 100
 ### Keep ahead at ACC Eco level 1
 Use this setting to adjust ACC Eco level 2 (two green leaves) for maximum eco-ness
 * Default: 5
 * Units: MPH
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values 1, 100
 
 ## jvePilot Control Settings
@@ -208,14 +208,14 @@ Compensate for mounting your device off center in the windshield.
 If you mounted your device off center, use this setting to compensate.
 * Default: 0
 * Units: Meters
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values -1, 1
 ### Speed Adjust Ratio
 Adjust speed displayed by jvePilot to match the real world.
 I have to set this to `1.052` to increase the reported speed by 5.2% to match my Jeeps speedometer, which is pretty accurate.
 * Default: 0
 * Units: Ratio
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values 0.9, 1.1
 ### Lead Distance Ratio
 The lead distance ratios are the ratio to adjust the distance jvePilot follows based on the follow distance selected.
@@ -228,25 +228,25 @@ The default values are what worked for me to get jvePilot to be close to the ACC
 Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 1 bar
 * Default: 2.6
 * Units: Ratio
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values 0.5, 4
 #### Ratio at Follow Level 2
 Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 2 bar
 * Default: 2.1
 * Units: Ratio
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values 0.5, 4
 #### Ratio at Follow Level 3
 Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 3 bar
 * Default: 1.5
 * Units: Ratio
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values 0.5, 4
 #### Ratio at Follow Level 4
 Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 4 bar
 * Default: 1.1
 * Units: Ratio
-* Live Changes: Yes
+* Vehicle Restart Required: No
 * Min/Max values 0.5, 4
 
 ---
