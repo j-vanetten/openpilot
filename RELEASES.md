@@ -1,10 +1,13 @@
+Version jvePilot-0.8.3(v3.1) (2021-XX-XX)
+========================
+* No more opEdit. Move everything to the UI
+
 Version jvePilot-0.8.3(v3.0) (2021-04-22)
 ========================
 * ACC Eco
 * Fix Auto Follow ping/pong
 * Code changes to better consolidate state/control messaging
 * Option to reverse 1mph or 5mph on short ACC +/- presses 
-
 
 Version jvePilot-0.8.3(v2.2) (2021-04-11)
 ========================

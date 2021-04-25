@@ -26,36 +26,36 @@ QWidget * jvePilot_panel() {
       "Speed Ratio",
       "Default: 1.0\n"
         "Use this to tune the speed in curves to you liking."
-    },
-    { "jvePilot.settings.slowInCurves.speedDropoffAngle",
-      "0.0", -360, 360, 
-      "Speed Dropoff",
-      "Default: 0\n"
-        "Use this to tune the speed as the curve gets tighter."
     }
+//    ,{ "jvePilot.settings.slowInCurves.speedDropOffAngle",
+//      "0.0", -10, 10,
+//      "Speed Drop Off",
+//      "Default: 0\n"
+//        "Experimental. Use this to tune the speed as the curve gets tighter."
+//    }
   };
   toggles_list->addWidget(new ParamControl("jvePilot.settings.slowInCurves",
                                             "Slow in Curves",
-                                            "When in a curve, jvePilot will slow down for you.",
+                                            "jvePilot will slow in curves so that you don't have to.",
                                             "../assets/jvepilot/settings/icon_slow_in_curves.png",
                                             &slowInCurvesConfigs
                                           ));
   // autoFollow
   QList<struct ConfigButton> autoFollowConfigs = { 
     { "jvePilot.settings.autoFollow.speed1-2Bars",
-      "15", 0, 300, 
+      "15", -1, 300,
       "1-2 Bar Change Over",
       "Default: 15 mph\n"
         "Use this to change the speed at which Auto Follow will switch between one to two bars."
     },
     { "jvePilot.settings.autoFollow.speed2-3Bars",
-      "30", 0, 300, 
+      "30", -1, 300,
       "2-3 Bar Change Over",
       "Default: 30 mph\n"
         "Use this to change the speed at which Auto Follow will switch between two to three bars."
     },
     { "jvePilot.settings.autoFollow.speed3-4Bars",
-      "65", 0, 300, 
+      "65", -1, 300,
       "3-4 Bar Change Over",
       "Default: 65 mph\n"
         "Use this to change the speed at which Auto Follow will switch between three to four bars."
@@ -98,13 +98,13 @@ QWidget * jvePilot_panel() {
   // accEco
   QList<struct ConfigButton> ecoConfigs = {
     { "jvePilot.settings.accEco.speedAheadLevel1",
-      "7", 1, 200,
+      "7", 1, 100,
       "Keep ahead at ACC Eco level 1",
       "Default: 7 mph\n"
         "The higher the number the more acceleration that occurs."
     },
     { "jvePilot.settings.accEco.speedAheadLevel2",
-      "5", 1, 200,
+      "5", 1, 100,
       "Keep ahead at ACC Eco level 2",
       "Default: 5 mph\n"
         "The higher the number the more acceleration that occurs."
@@ -123,8 +123,8 @@ QWidget * jvePilot_panel() {
       "0.00", -2, 2, 
       "Device Offset",
       "Default: 0.00 meters\n"
-        "Compensate for mounting your device off center in the windshield."
-        "NOTE: This is not how far the CAMERA is off center, but how far the MOUNT is off center."
+        "Compensate for mounting your device off-center in the windshield."
+        "NOTE: This is not how far the CAMERA is off-center, but how far the MOUNT/DEVICE is off-center."
     },
     { "jvePilot.settings.speedAdjustRatio",
       "1.0", 0.9, 1.1, 
@@ -149,20 +149,20 @@ QWidget * jvePilot_panel() {
     { "jvePilot.settings.accFollow3RadarRatio",
       "1.5", 0.5, 4, 
       "Ratio at Follow Level 3",
-      "Default: 2.6\n"
+      "Default: 1.5\n"
         "At follow level 3, apply this ratio to the radar distance."
     },
     { "jvePilot.settings.accFollow4RadarRatio",
       "1.1", 0.5, 4, 
       "Ratio at Follow Level 4",
-      "Default: 2.6\n"
+      "Default: 1.1\n"
         "At follow level 4, apply this ratio to the radar distance."
     }
   };
   toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new LabelControl( "jvePilot Device Settings",
+  toggles_list->addWidget(new LabelControl( "jvePilot Control Settings",
                                             "", 
-                                            "Use these settings tune some of jvePilot's operational settings.",
+                                            "Use these settings tune some of jvePilot's control settings.",
                                             &miscConfigs,
                                             "../assets/jvepilot/settings/icon_misc.png"));
 

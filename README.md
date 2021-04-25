@@ -1,47 +1,54 @@
-Table of Contents
-=======================
 # Table of contents
-- [FCA Hybrid OpenPilot/ACC jvePilot](#fca-hybrid-openpilotacc-jvepilot)
-  - [What is this Fork?](#what-is-this-fork)
-  - [Benefits of jvePilot](#benefits-of-jvepilot)
-    - [Longitudinal control](#longitudinal-control)
-    - [Auto Resume](#auto-resume)
-    - [Auto Follow](#auto-follow)
-    - [ACC Eco](#acc-eco)
-  - [How to use it](#how-to-use-it)
-    - [Where to look when setting ACC speed](#where-to-look-when-setting-acc-speed)
+- [**Safety Notes**](#--safety-notes--)
+- [FCA Hybrid OpenPilot/ACC jvePilot](#fca-hybrid-openpilot-acc-jvepilot)
+  * [What is this Fork?](#what-is-this-fork-)
+  * [Benefits of jvePilot](#benefits-of-jvepilot)
+    + [Longitudinal control](#longitudinal-control)
+    + [Auto Resume](#auto-resume)
+    + [Auto Follow](#auto-follow)
+    + [ACC Eco](#acc-eco)
+  * [How to use it](#how-to-use-it)
+    + [Where to look when setting ACC speed](#where-to-look-when-setting-acc-speed)
 - [Install](#install)
-  - [Branches](#branches)
-  - [Panda Firmware Flashing](#panda-firmware-flashing)
+  * [Branches](#branches)
+  * [Panda Firmware Flashing](#panda-firmware-flashing)
 - [Customizing](#customizing)
-  - [Slow in Turns](#slow-in-turns)
-    - [`slow_in_turns`, Default: `True`](#slow_in_turns-default-true)
-    - [`slow_in_turns_ratio`, Default: `1.0`, Live!](#slow_in_turns_ratio-default-10-live)
-    - [`slow_in_turns_rotate`, Default: `0.0`, Live!](#slow_in_turns_rotate-default-00-live)
-  - [Auto Follow](#auto-follow)
-    - [`start_with_auto_follow_disabled`, Default: `False`](#start_with_auto_follow_disabled-default-false)
-    - [`auto_follow_2bars_speed`, Default: `15`, Live!](#auto_follow_2bars_speed-default-15-live)
-    - [`auto_follow_3bars_speed`, Default: `30`, Live!](#auto_follow_3bars_speed-default-30-live)
-    - [`auto_follow_4bars_speed`, Default: `60`, Live!](#auto_follow_4bars_speed-default-60-live)
-  - [ACC Eco](#acc-eco)
-    - [`acc_eco_max_future_speed`, Default: 7, Live!](#acc_eco_max_future_speed-default-7-live)
-  - [Lead Distance Ratio](#lead-distance-ratio)
-    - [`lead_distance_ratio_1bar`, Default: `1.1`, Live!](#lead_distance_ratio_1bar-default-11-live)
-    - [`lead_distance_ratio_2bars`, Default: `1.5`, Live!](#lead_distance_ratio_2bars-default-15-live)
-    - [`lead_distance_ratio_3bars`, Default: `2.1`, Live!](#lead_distance_ratio_3bars-default-21-live)
-    - [`lead_distance_ratio_4bars`, Default: `2.6`, Live!](#lead_distance_ratio_4bars-default-26-live)
-  - [Other tweaks](#other-tweaks)
-    - [`camera_offset`, Default: `0.06`, Live!](#camera_offset-default-006-live)
-    - [`disable_auto_resume`, Default: `False`](#disable_auto_resume-default-false)
-    - [`disable_on_gas`, Default: `False`](#disable_on_gas-default-false)
-    - [`op_speed_adjust_ratio`, Default: `1.0`](#op_speed_adjust_ratio-default-10)
-    - [`reverse_acc_button_change`, Default: `False`](#reverse_acc_button_change-false)
-  - [**Safety Notes**](#safety-notes)
+  * [Slow in Curves](#slow-in-curves)
+    + [Speed Ratio](#speed-ratio)
+  * [Reverse ACC +/- Speeds](#reverse-acc-----speeds)
+  * [Auto Resume](#auto-resume-1)
+    + [Disable on Gas](#disable-on-gas)
+  * [Auto Follow](#auto-follow-1)
+    + [1-2 Bar Change Over](#1-2-bar-change-over)
+    + [2-3 Bar Change Over](#2-3-bar-change-over)
+    + [2-3 Bar Change Over](#2-3-bar-change-over-1)
+  * [ACC Eco](#acc-eco-1)
+    + [Keep ahead at ACC Eco level 1](#keep-ahead-at-acc-eco-level-1)
+    + [Keep ahead at ACC Eco level 1](#keep-ahead-at-acc-eco-level-1-1)
+  * [jvePilot Control Settings](#jvepilot-control-settings)
+    + [Device Offset](#device-offset)
+    + [Speed Adjust Ratio](#speed-adjust-ratio)
+    + [Lead Distance Ratio](#lead-distance-ratio)
+      - [Ratio at Follow Level 1](#ratio-at-follow-level-1)
+      - [Ratio at Follow Level 2](#ratio-at-follow-level-2)
+      - [Ratio at Follow Level 3](#ratio-at-follow-level-3)
+      - [Ratio at Follow Level 4](#ratio-at-follow-level-4)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
+# **Safety Notes**
+* This is my experimental branch, so I'm not responsible for any damage this may cause.
+* jvePilot still does not have direct control of the gas and brakes!
+  Changing the ACC speed does not always result in the vehicle braking unless the difference in speed is large enough.
+  If the speed difference is small, the vehicle just lets off the gas.
+* ACC can't go slower that 20mph
+* ACC doesn't do a good job at seeing things that are already stopped
+
+---
 
 # FCA Hybrid OpenPilot/ACC jvePilot
 I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features using this vehicle.
-
-@debugged-hosting: Confirmed working on a 2017 Gas Chrysler Pacifica
+* 2017 Gas Chrysler Pacifica: Confirmed by @debugged-hosting
 
 ## What is this Fork?
 This is my personal OpenPilot fork that includes features that I feel make it a better driving experience for me and possibly others.
@@ -118,95 +125,130 @@ The easiest way to install jvePilot is to factory reset and use this Custom Soft
 
 ## Branches
 `/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for general use.
-
-## Panda Firmware Flashing
-If you get Controls Mismatch or LKAS faults, try this.  
-This is usually done automatically, but sometimes you need to run it when you first install.  
-
-Run this to force an update: `pkill -f boardd; cd /data/openpilot/panda/board; make; reboot`
+`/beta/*` - Sometimes I have people wanting to beta test jvePilot's new features.  Mostly stable, but still experimental. 
+`/feature/*` - These branches are where I'm working on new features.  These are never safe to run as they change all the time.
 
 ---
 # Customizing
-`opParms` is a handy tool to change parameters without diving into any json files or code.
-First, ssh in to your device and make sure you're in `/data/openpilot`, then start `opEdit`:
-```bash
-cd /data/openpilot
-./op_edit.py
-```
+Customizing features and parameters can be done on the UI display.  
+Click the gear icon and then select jvePilot from the sidebar.  
+Clicking on the text of feature of will show more information about it.
 
-### Slow in Turns
-#### `slow_in_turns`, Default: `True`
-Should jvePilot slow down when in a curve?
-#### `slow_in_turns_ratio`, Default: `1.0`, Live!
-Adjust how much slowing occurs in a curve.
-Example: Setting this to `1.2` will cause jvePilot to drive 20% faster in turns than if it was set to the default `1.0`.
-#### `slow_in_turns_rotate`, Default: `0.0`, Live!
-Experimental. Change speed drop-off angle. 
-This adjusts how much amount the vehicle slows as the curve increases. 
-Increase if you see too much slowing at faster speeds, while slower speeds feel correct.
-Example: Start by changing this in `1.0` +/- increments to make the vehicle go faster in more shallow curves.
-Personally, I use `2.0` on my Jeep to make it go a little faster in a particular off ramp.
+## Slow in Curves
+jvePilot will slow in curves so that you don't have to.
+* Default: On
+* Live Changes: Yes
 
-### Auto Follow
-#### `start_with_auto_follow_disabled`, Default: `False`
-Set to True if you want Auto Follow to be disabled by default
-#### `auto_follow_2bars_speed`, Default: `15`, Live!
+### Speed Ratio 
+Use this to tune the speed in curves to you liking.
+Setting this to 1.2 will cause jvePilot to drive 20% faster in turns than if it was set to the default of 1.0
+* Default: 1.0
+* Units: Ratio
+* Live Changes: Yes
+* Min/Max values (0.1, 2)
+
+## Reverse ACC +/- Speeds
+Reverse the stock ACC +/- button's 1mph on short press and 5mph on long press.  Turn off to return to stock style.
+* Default: On
+* Live Changes: Yes
+
+## Auto Resume
+This feature allows jvePilot to auto resume from an ACC stop.
+* Default: On
+* Live Changes: Yes
+
+### Disable on Gas
+When enabled, jvePilot will disengage when you press the gas
+* Default: Off
+* Live Changes: Yes
+
+## Auto Follow
+If you don't want auto follow enabled on every start, turn this off.
+### 1-2 Bar Change Over
 When your speed (in MPH) is below this setting, Auto Follow will set the follow setting to one bar.  
-When your reach this speed (in MPH), Auto Follow will set the follow setting to two bars.
-#### `auto_follow_3bars_speed`, Default: `30`, Live!
-When your reach this speed (in MPH), Auto Follow will set the follow setting to three bars.
-#### `auto_follow_4bars_speed`, Default: `60`, Live!
-When your reach this speed (in MPH), Auto Follow will set the follow setting to four bars.
+When you reach this speed (in MPH), Auto Follow will set the follow setting to two bars.
+* Default: 15
+* Units: MPH
+* Live Changes: Yes
+* Min/Max values (-1, 300)
+### 2-3 Bar Change Over
+When your speed (in MPH) is below this setting, Auto Follow will set the follow setting to two bars.
+When you reach this speed (in MPH), Auto Follow will set the follow setting to three bars.
+* Default: 30
+* Units: MPH
+* Live Changes: Yes
+* Min/Max values (-1, 300)
+### 2-3 Bar Change Over
+When your speed (in MPH) is below this setting, Auto Follow will set the follow setting to three bars.
+When you reach this speed (in MPH), Auto Follow will set the follow setting to four bars.
+* Default: 65
+* Units: MPH
+* Live Changes: Yes
+* Min/Max values (-1, 300)
 
-### ACC Eco
+## ACC Eco
+ACC Eco limits acceleration by keep the ACC cruise speed closer to your current speed.
 These setting are how far ahead, in MPH, of your current speed ACC will be set.  
 The higher the number, the more aggressive ACC will be when accelerating.
-#### `acc_eco_1_future_speed`, Default: 7, Live!
+### Keep ahead at ACC Eco level 1
 Use this setting to adjust ACC Eco level 1 (one green leaf) for a balance of speed and eco-ness  
-#### `acc_eco_2_future_speed`, Default: 5, Live!
+* Default: 7
+* Units: MPH
+* Live Changes: Yes
+* Min/Max values 1, 100
+### Keep ahead at ACC Eco level 1
 Use this setting to adjust ACC Eco level 2 (two green leaves) for maximum eco-ness
+* Default: 5
+* Units: MPH
+* Live Changes: Yes
+* Min/Max values 1, 100
 
+## jvePilot Control Settings
+### Device Offset
+Compensate for mounting your device off center in the windshield.
+If you mounted your device off center, use this setting to compensate.
+* Default: 0
+* Units: Meters
+* Live Changes: Yes
+* Min/Max values -1, 1
+### Speed Adjust Ratio
+Adjust speed displayed by jvePilot to match the real world.
+I have to set this to `1.052` to increase the reported speed by 5.2% to match my Jeeps speedometer, which is pretty accurate.
+* Default: 0
+* Units: Ratio
+* Live Changes: Yes
+* Min/Max values 0.9, 1.1
 ### Lead Distance Ratio
 The lead distance ratios are the ratio to adjust the distance jvePilot follows based on the follow distance selected.
 This is done by adjusting the reported radar distance to the lead car.
-Having a ratio set to 2.6 causes this fork to report the lead car as being 2.6 times further away that it actually is.
-Causing jvePilot to move closer to that car.  NOTE: It's impossible to get closer than what ACC will allow.
+Having a ratio set to 2.6 causes jvePilot to report to the modal that the lead car as being 2.6 times further away that it actually is.
+Causing jvePilot to move closer to that car.  
+NOTE: It's impossible to get closer than what ACC will allow.
 The default values are what worked for me to get jvePilot to be close to the ACC distance while still allowing ACC be the limiting factor to the distance.
-#### `lead_distance_ratio_1bar`, Default: `1.1`, Live!
+#### Ratio at Follow Level 1
 Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 1 bar
-#### `lead_distance_ratio_2bars`, Default: `1.5`, Live!
-Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 2 bars
-#### `lead_distance_ratio_3bars`, Default: `2.1`, Live!
-Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 3 bars
-#### `lead_distance_ratio_4bars`, Default: `2.6`, Live!
-Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 4 bars
-
-### Other tweaks
-#### `camera_offset`, Default: `0.06`, Live!
-Your camera offset to use in lane_planner.py.
-Helps fix lane hugging
-
-#### `disable_auto_resume`, Default: `False`
-Disable the feature that allows jvePilot to auto resume from an ACC stop.
-
-#### `disable_on_gas`, Default: `False`
-Disable the feature that allows jvePilot to stay engaged when pressing the gas.
-
-#### `op_speed_adjust_ratio`, Default: `1.0`
-Adjust speed displayed by jvePilot to match the real world.
-I have to set this to `1.052` to increase the reported speed by 5.2% to match my Jeeps speedometer, which is pretty accurate.
-
-#### `reverse_acc_button_change`, Default: `True`
-Reverse the stock ACC +/- button's 1mph on short press and 5mph on long press.  Set to `False` to return to stock
----
-
-### **Safety Notes** 
-* This is my experimental branch, so I'm not responsible for any damage this may cause.
-* jvePilot still does not have direct control of the gas and brakes!
-Changing the ACC speed does not always result in the vehicle braking unless the difference in speed is large enough.
-If the speed difference is small, the vehicle just lets off the gas.
-* ACC can't go slower that 20mph
-* ACC doesn't do a good job at seeing things that are already stopped
+* Default: 2.6
+* Units: Ratio
+* Live Changes: Yes
+* Min/Max values 0.5, 4
+#### Ratio at Follow Level 2
+Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 2 bar
+* Default: 2.1
+* Units: Ratio
+* Live Changes: Yes
+* Min/Max values 0.5, 4
+#### Ratio at Follow Level 3
+Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 3 bar
+* Default: 1.5
+* Units: Ratio
+* Live Changes: Yes
+* Min/Max values 0.5, 4
+#### Ratio at Follow Level 4
+Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 4 bar
+* Default: 1.1
+* Units: Ratio
+* Live Changes: Yes
+* Min/Max values 0.5, 4
 
 ---
 

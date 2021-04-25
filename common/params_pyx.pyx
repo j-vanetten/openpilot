@@ -31,7 +31,7 @@ keys = {
   b"jvePilot.settings.reverseAccSpeedChange": [TxType.PERSISTENT],
   b"jvePilot.settings.slowInTurns": [TxType.PERSISTENT],
   b"jvePilot.settings.slowInTurns.speedRatio": [TxType.PERSISTENT],
-  b"jvePilot.settings.slowInTurns.speedDropoffAngle": [TxType.PERSISTENT],
+  b"jvePilot.settings.slowInTurns.speedDropOffAngle": [TxType.PERSISTENT],
   b"jvePilot.settings.speedAdjustRatio": [TxType.PERSISTENT],
   b"AccessToken": [TxType.CLEAR_ON_MANAGER_START],
   b"ApiCache_DriveStats": [TxType.PERSISTENT],
