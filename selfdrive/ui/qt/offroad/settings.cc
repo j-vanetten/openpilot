@@ -95,30 +95,6 @@ QWidget * jvePilot_panel() {
                                             "../assets/jvepilot/settings/icon_gas_pedal.png"
                                           ));
 
-  // misc
-  QList<struct ConfigButton> miscConfigs = { 
-    { "jvePilot.settings.deviceOffset",
-      "0.00", -2, 2, 
-      "Device Offset",
-      "Default: 0.00 meters\n"
-        "Compensate for mounting your device off center in the windshield."
-        "NOTE: This is not how far the CAMERA is off center, but how far the MOUNT is off center."
-    },
-    { "jvePilot.settings.speedAdjustRatio",
-      "1.0", 0.9, 1.1, 
-      "Speed Adjust Ratio",
-      "Default: 1.0\n"
-        "jvePilot can report an incorrect speed compared to your vehicle or the real world."
-        " Apps like Waze report you current speed using GPS which is more accurate than jvePilot or your speedometer may report."
-        " Use this setting to get the speed reported by jvePilot just right."
-    }
-  };
-  toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new LabelControl( "jvePilot Device Settings",
-                                            "", 
-                                            "Use these settings tune some of jvePilot's operational settings.",
-                                            &miscConfigs));
-
   // accEco
   QList<struct ConfigButton> ecoConfigs = {
     { "jvePilot.settings.accEco.speedAheadLevel1",
@@ -138,10 +114,26 @@ QWidget * jvePilot_panel() {
   toggles_list->addWidget(new LabelControl( "ACC Eco",
                                             "",
                                             "Use these settings to tune how much acceleration occurs by limiting how much ACC is set above your current speed.",
-                                            &ecoConfigs));
+                                            &ecoConfigs,
+                                            "../assets/jvepilot/settings/icon_acc_eco.png"));
 
-  // acc follow distance
-  QList<struct ConfigButton> accFollowDistanceConfigs = { 
+  // misc
+  QList<struct ConfigButton> miscConfigs = { 
+    { "jvePilot.settings.deviceOffset",
+      "0.00", -2, 2, 
+      "Device Offset",
+      "Default: 0.00 meters\n"
+        "Compensate for mounting your device off center in the windshield."
+        "NOTE: This is not how far the CAMERA is off center, but how far the MOUNT is off center."
+    },
+    { "jvePilot.settings.speedAdjustRatio",
+      "1.0", 0.9, 1.1, 
+      "Speed Adjust Ratio",
+      "Default: 1.0\n"
+        "jvePilot can report an incorrect speed compared to your vehicle or the real world."
+        " Apps like Waze report you current speed using GPS which is more accurate than jvePilot or your speedometer may report."
+        " Use this setting to get the speed reported by jvePilot just right."
+    },
     { "jvePilot.settings.accFollow1RadarRatio",
       "2.6", 0.5, 4, 
       "Ratio at Follow Level 1",
@@ -168,13 +160,11 @@ QWidget * jvePilot_panel() {
     }
   };
   toggles_list->addWidget(horizontal_line());
-  toggles_list->addWidget(new LabelControl( "ACC Follow Distance", 
+  toggles_list->addWidget(new LabelControl( "jvePilot Device Settings",
                                             "", 
-                                            "jvePilot and ACC's follow distance setting are at odds with one another."
-                                            " To solve this, we adjust what jvePilot thinks the distance to vehicle in front of you is."
-                                            " A higher number means jvePilot thinks the distance to a leading vehicle it actually further away."
-                                            " This causes jvePilot to move up closer than it normally would.", 
-                                            &accFollowDistanceConfigs));
+                                            "Use these settings tune some of jvePilot's operational settings.",
+                                            &miscConfigs,
+                                            "../assets/jvepilot/settings/icon_misc.png"));
 
   QWidget *widget = new QWidget;
   widget->setLayout(toggles_list);
