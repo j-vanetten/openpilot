@@ -138,7 +138,6 @@ Clicking on the text of feature of will show more information about it.
 jvePilot will slow in curves so that you don't have to.
 * Default: On
 * Live Changes: Yes
-
 ### Speed Ratio 
 Use this to tune the speed in curves to you liking.
 Setting this to 1.2 will cause jvePilot to drive 20% faster in turns than if it was set to the default of 1.0
@@ -157,7 +156,7 @@ This feature allows jvePilot to auto resume from an ACC stop.
 * Default: On
 * Live Changes: Yes
 
-### Disable on Gas
+## Disable on Gas
 When enabled, jvePilot will disengage when you press the gas
 * Default: Off
 * Live Changes: Yes
