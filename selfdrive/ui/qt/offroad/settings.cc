@@ -25,19 +25,13 @@ QWidget * jvePilot_panel() {
       "1.0", 0.1, 2, 
       "Speed Ratio",
       "Default: 1.0\n"
-        "Use this to tune the speed in curves to you liking.\n"
-        "Examples:\n"
-        "  1.2 to go 20% faster in curves.\n"
-        "  0.9 to go 10% slower in curves."
+        "Use this to tune the speed in curves to you liking."
     },
     { "jvePilot.settings.slowInCurves.speedDropoffAngle",
       "0.0", -360, 360, 
       "Speed Dropoff",
       "Default: 0\n"
-        "Use this to tune the speed as the curve gets tighter.\n"
-        "Example:\n"
-        "  2 to go faster as the curve gets tighter.\n"
-        "  -2 to go slower as the curve gets tighter."
+        "Use this to tune the speed as the curve gets tighter."
     }
   };
   toggles_list->addWidget(new ParamControl("jvePilot.settings.slowInCurves",
@@ -107,8 +101,8 @@ QWidget * jvePilot_panel() {
       "0.00", -2, 2, 
       "Device Offset",
       "Default: 0.00 meters\n"
-        "Compensate for mounting you device off center in the windshield.\n"
-        "  Example: 0.04 if your device is 4cm to the left of center."
+        "Compensate for mounting your device off center in the windshield."
+        "NOTE: This is not how far the CAMERA is off center, but how far the MOUNT is off center."
     },
     { "jvePilot.settings.speedAdjustRatio",
       "1.0", 0.9, 1.1, 
@@ -116,14 +110,13 @@ QWidget * jvePilot_panel() {
       "Default: 1.0\n"
         "jvePilot can report an incorrect speed compared to your vehicle or the real world."
         " Apps like Waze report you current speed using GPS which is more accurate than jvePilot or your speedometer may report."
-        " Use this setting to get the speed reported by jvePilot just right.\n"
-        "  Example: 1.052 to increase the reported speed by 5.2%"
+        " Use this setting to get the speed reported by jvePilot just right."
     }
   };
   toggles_list->addWidget(horizontal_line());
   toggles_list->addWidget(new LabelControl( "jvePilot Device Settings",
                                             "", 
-                                            "Use these settings to tune how much acceleration occurs by limiting how much ACC is set above your current speed.",
+                                            "Use these settings tune some of jvePilot's operational settings.",
                                             &miscConfigs));
 
   // accEco

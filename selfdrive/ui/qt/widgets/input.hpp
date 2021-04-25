@@ -19,7 +19,6 @@ public:
   QString text();
   void setMessage(const QString &message, bool clearInputField = true);
   void setMinLength(int length);
-  void setValidator(const QValidator &validator);
   void setText(const QString &test);
   void show();
 

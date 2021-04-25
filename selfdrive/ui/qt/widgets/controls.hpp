@@ -44,7 +44,7 @@ class LabelControl : public AbstractControl {
   Q_OBJECT
 
 public:
-  LabelControl(const QString &title, const QString &text, const QString &desc = "", QList<struct ConfigButton> *btns = {}, QWidget *parent = nullptr) : AbstractControl(title, desc, "", btns, parent) {
+  LabelControl(const QString &title, const QString &text, const QString &desc = "", QList<struct ConfigButton> *btns = {}, const QString &icon = "", QWidget *parent = nullptr) : AbstractControl(title, desc, icon, btns, parent) {
     label.setText(text);
     label.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     hlayout->addWidget(&label);

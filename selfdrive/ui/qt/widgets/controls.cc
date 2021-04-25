@@ -66,11 +66,11 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
       }
       
       const auto existng_value = value;
-      const auto title = QString::fromStdString(btn.title.toStdString() + ": " + existng_value);
-      const auto b = new ButtonControl(title, "CHANGE", btn.text, [=]() {});
+      const auto control_title = QString::fromStdString(btn.title.toStdString() + ": " + existng_value);
+      const auto b = new ButtonControl(control_title, "CHANGE", btn.text, [=]() {});
       b->released([=]() { 
           auto set_value = Params().get(btn.param);
-          auto new_value = InputDialog::getConfigDecimal(title, set_value, btn.min, btn.max);
+          auto new_value = InputDialog::getConfigDecimal(btn.title, set_value, btn.min, btn.max);
           if (new_value.length() > 0) {
             Params().write_db_value(btn.param, new_value.toStdString());
             b->setLabel(QString::fromStdString(btn.title.toStdString() + ": " + new_value.toStdString()));

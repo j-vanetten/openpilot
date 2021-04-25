@@ -20,6 +20,7 @@ class Keyboard : public QFrame {
 
 public:
   explicit Keyboard(QWidget *parent = 0);
+  void setKeyboardLayout(int index);
 
 private:
   QStackedLayout* main_layout;

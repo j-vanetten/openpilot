@@ -70,7 +70,8 @@ QString InputDialog::getConfigDecimal(const QString &prompt, std::string existin
   d.setText(existing);
   d.setMinLength(1);
   const auto validator = new QDoubleValidator(min, max, 4);
-  d.setValidator(*validator);
+  d.line->setValidator(validator);
+  d.k->setKeyboardLayout(2); // numbers
   const int ret = d.exec();
   if (ret) {
     auto input = d.text();
@@ -128,10 +129,6 @@ void InputDialog::setMessage(const QString &message, bool clearInputField){
 
 void InputDialog::setMinLength(int length){
   minLength = length;
-}
-
-void InputDialog::setValidator(const QValidator &validator) {
-  line->setValidator(&validator);
 }
 
 void InputDialog::setText(const QString &text) {
