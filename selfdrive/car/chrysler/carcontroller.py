@@ -131,7 +131,7 @@ class CarController():
       target = min(target, int(current_speed + self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)))
     elif jvepilot_state.carControl.accEco == 2:  # if eco mode
       current_speed = round(CS.out.vEgo * CV.MS_TO_MPH)
-      target = min(target, current_speed + int(current_speed + self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)))
+      target = min(target, int(current_speed + self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)))
 
     if target < current and current > MIN_ACC_SPEED_MPH:
       return 'ACC_SPEED_DEC'
