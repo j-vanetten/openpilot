@@ -169,21 +169,21 @@ When you reach this speed (in MPH), Auto Follow will set the follow setting to t
 * Default: 15
 * Units: MPH
 * Vehicle Restart Required: No
-* Min/Max values (-1, 300)
+* Min/Max values (0, 300)
 ### 2-3 Bar Change Over
 When your speed (in MPH) is below this setting, Auto Follow will set the follow setting to two bars.
 When you reach this speed (in MPH), Auto Follow will set the follow setting to three bars.
 * Default: 30
 * Units: MPH
 * Vehicle Restart Required: No
-* Min/Max values (-1, 300)
+* Min/Max values (0, 300)
 ### 2-3 Bar Change Over
 When your speed (in MPH) is below this setting, Auto Follow will set the follow setting to three bars.
 When you reach this speed (in MPH), Auto Follow will set the follow setting to four bars.
 * Default: 65
 * Units: MPH
 * Vehicle Restart Required: No
-* Min/Max values (-1, 300)
+* Min/Max values (0, 300)
 
 ## ACC Eco
 ACC Eco limits acceleration by keep the ACC cruise speed closer to your current speed.

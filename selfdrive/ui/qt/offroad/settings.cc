@@ -24,8 +24,9 @@ QWidget * jvePilot_panel() {
     { "jvePilot.settings.slowInCurves.speedRatio", 
       "1.0", 0.1, 2, 
       "Speed Ratio",
-      "Default: 1.0\n"
-        "Use this to tune the speed in curves to you liking."
+      "Default: 1.0, Min: 0.1, Max: 2.0\n"
+        "Use this to tune the speed in curves to your liking."
+        "\nFor example, 1.2 to go 20% faster and .8 to go 20% slower."
     }
 //    ,{ "jvePilot.settings.slowInCurves.speedDropOffAngle",
 //      "0.0", -10, 10,
@@ -43,21 +44,21 @@ QWidget * jvePilot_panel() {
   // autoFollow
   QList<struct ConfigButton> autoFollowConfigs = { 
     { "jvePilot.settings.autoFollow.speed1-2Bars",
-      "15", -1, 300,
+      "15", 0, 300,
       "1-2 Bar Change Over",
-      "Default: 15 mph\n"
+      "Default: 15 mph, Min: 0, Max: 300\n"
         "Use this to change the speed at which Auto Follow will switch between one to two bars."
     },
     { "jvePilot.settings.autoFollow.speed2-3Bars",
-      "30", -1, 300,
+      "30", 0, 300,
       "2-3 Bar Change Over",
-      "Default: 30 mph\n"
+      "Default: 30 mph, Min: 0, Max: 300\n"
         "Use this to change the speed at which Auto Follow will switch between two to three bars."
     },
     { "jvePilot.settings.autoFollow.speed3-4Bars",
-      "65", -1, 300,
+      "65", 0, 300,
       "3-4 Bar Change Over",
-      "Default: 65 mph\n"
+      "Default: 65 mph, Min: 0, Max: 300\n"
         "Use this to change the speed at which Auto Follow will switch between three to four bars."
     }
   };
@@ -100,13 +101,13 @@ QWidget * jvePilot_panel() {
     { "jvePilot.settings.accEco.speedAheadLevel1",
       "7", 1, 100,
       "Keep ahead at ACC Eco level 1",
-      "Default: 7 mph\n"
+      "Default: 7 mph, Min: 1, Max: 100\n"
         "The higher the number the more acceleration that occurs."
     },
     { "jvePilot.settings.accEco.speedAheadLevel2",
       "5", 1, 100,
       "Keep ahead at ACC Eco level 2",
-      "Default: 5 mph\n"
+      "Default: 5 mph, Min: 1, Max: 100\n"
         "The higher the number the more acceleration that occurs."
     }
   };
@@ -122,40 +123,42 @@ QWidget * jvePilot_panel() {
     { "jvePilot.settings.deviceOffset",
       "0.00", -2, 2, 
       "Device Offset",
-      "Default: 0.00 meters\n"
+      "Default: 0.00 meters, Min: -2.00, Max: 2.00\n"
         "Compensate for mounting your device off-center in the windshield."
-        "NOTE: This is not how far the CAMERA is off-center, but how far the MOUNT/DEVICE is off-center."
+        "\nFor example, 0.04 if your device is 4cm left of center."
+        "\nNOTE: This is not how far the CAMERA is off-center, but how far the MOUNT/DEVICE is off-center."
     },
     { "jvePilot.settings.speedAdjustRatio",
       "1.0", 0.9, 1.1, 
       "Speed Adjust Ratio",
-      "Default: 1.0\n"
+      "Default: 1.0, Min: 0.9, Max: 1.1\n"
         "jvePilot can report an incorrect speed compared to your vehicle or the real world."
         " Apps like Waze report you current speed using GPS which is more accurate than jvePilot or your speedometer may report."
         " Use this setting to get the speed reported by jvePilot just right."
+        "\nFor example, set to 1.052 if you see 76 mph on the jvePilot display, but it should be 80 mph."
     },
     { "jvePilot.settings.accFollow1RadarRatio",
       "2.6", 0.5, 4, 
       "Ratio at Follow Level 1",
-      "Default: 2.6\n"
+      "Default: 2.6, Min: 0.5, Max: 4.0\n"
         "At follow level 1, apply this ratio to the radar distance."
     },
     { "jvePilot.settings.accFollow2RadarRatio",
       "2.1", 0.5, 4,
       "Ratio at Follow Level 2",
-      "Default: 2.1\n"
+      "Default: 2.1, Min: 0.5, Max: 4.0\n"
         "At follow level 2, apply this ratio to the radar distance."
     },
     { "jvePilot.settings.accFollow3RadarRatio",
       "1.5", 0.5, 4, 
       "Ratio at Follow Level 3",
-      "Default: 1.5\n"
+      "Default: 1.5, Min: 0.5, Max: 4.0\n"
         "At follow level 3, apply this ratio to the radar distance."
     },
     { "jvePilot.settings.accFollow4RadarRatio",
       "1.1", 0.5, 4, 
       "Ratio at Follow Level 4",
-      "Default: 1.1\n"
+      "Default: 1.1, Min: 0.5, Max: 4.0\n"
         "At follow level 4, apply this ratio to the radar distance."
     }
   };
