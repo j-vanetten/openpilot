@@ -190,7 +190,7 @@ class Planner():
     self.v_acc_next = v_acc_sol
     self.a_acc_next = a_acc_sol
 
-    if self.cachedParams.get('jvePilot.settings.slowInTurns', 5000) == "1":
+    if self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
       curvs = list(lateral_planner.mpc_solution.curvature)
       if len(curvs):
         # find the largest curvature in the solution and use that.
@@ -231,7 +231,7 @@ class Planner():
     a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
 
     # # rotate the line
-    # angle = self.cachedParams.get_float('jvePilot.settings.slowInTurns.speedDropOffAngle', 5000)
+    # angle = self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedDropOffAngle', 5000)
     # if angle != 0:
     #   _, a_y_max = self.rotate((0, 2.975), (v_ego, a_y_max), angle * 0.0174533)
 
