@@ -230,10 +230,15 @@ class Planner():
     v_ego = sm['carState'].vEgo
     a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
 
-    # rotate the line
-    angle = 0  # self.cachedParams.get_float('jvePilot.settings.slowInTurns.speedDropOffAngle', 5000)
-    if angle != 0:
-      _, a_y_max = self.rotate((0, 2.975), (v_ego, a_y_max), angle * 0.0174533)
+    # # rotate the line
+    # angle = self.cachedParams.get_float('jvePilot.settings.slowInTurns.speedDropOffAngle', 5000)
+    # if angle != 0:
+    #   _, a_y_max = self.rotate((0, 2.975), (v_ego, a_y_max), angle * 0.0174533)
+
+    # drop off
+    drop_off = self.cachedParams.get_float('jvePilot.settings.slowInTurns.speedDropOff', 5000)
+    if drop_off != 2 and a_y_max > 0:
+      a_y_max = np.sqrt(a_y_max) ** a_y_max
 
     v_curvature = np.sqrt(a_y_max / np.clip(curv, 1e-4, None))
     model_speed = np.min(v_curvature)

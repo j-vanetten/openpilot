@@ -26,13 +26,23 @@ QWidget * jvePilot_panel() {
       "Speed Ratio",
       "Default: 1.0, Min: 0.1, Max: 2.0\n"
         "Use this to tune the speed in curves to your liking."
-        "\nFor example, 1.2 to go 20% faster and .8 to go 20% slower."
+        "\nFor example, 1.2 to go 20% faster and .8 to go 20% slower across all curvatures."
+    }
+    ,{ "jvePilot.settings.slowInCurves.speedDropOff",
+      "2.0", 1, 3,
+      "Speed Drop Off",
+      "Default: 2.0\n"
+        "Experimental. Lower this value to decrease how quickly speed drops as the curve increases."
+        "\nTo go faster in turns at higher speeds, decrease this value.  To compensate for this change, you may need to increase the Speed Ratio."
     }
 //    ,{ "jvePilot.settings.slowInCurves.speedDropOffAngle",
-//      "0.0", -10, 10,
-//      "Speed Drop Off",
-//      "Default: 0\n"
-//        "Experimental. Use this to tune the speed as the curve gets tighter."
+//        "1.0", -.5, 1.5,
+//        "Speed Drop Off Ratio",
+//        "Default: 1.0\n"
+//          "Experimental. Another way to tune speeds in a curvature."
+//          " Adjust how quickly the speed drops as the curvature increases."
+//          "\nFor example if you are slowing too much at faster speeds, lower this value."
+//          " Since this speeds everything up along the entire curve, you may need to then lower the Speed Ratio to compensate."
 //    }
   };
   toggles_list->addWidget(new ParamControl("jvePilot.settings.slowInCurves",
