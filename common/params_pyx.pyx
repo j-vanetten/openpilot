@@ -31,6 +31,7 @@ keys = {
   b"jvePilot.settings.reverseAccSpeedChange": [TxType.PERSISTENT],
   b"jvePilot.settings.slowInCurves": [TxType.PERSISTENT],
   b"jvePilot.settings.slowInCurves.speedRatio": [TxType.PERSISTENT],
+  b"jvePilot.settings.slowInCurves.speedDropOff": [TxType.PERSISTENT],
   b"jvePilot.settings.slowInCurves.speedDropOffAngle": [TxType.PERSISTENT],
   b"jvePilot.settings.speedAdjustRatio": [TxType.PERSISTENT],
   b"AccessToken": [TxType.CLEAR_ON_MANAGER_START],
