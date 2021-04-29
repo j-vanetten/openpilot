@@ -1,6 +1,6 @@
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
-                                               create_wheel_buttons_command
+  create_wheel_buttons_command
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -33,86 +33,79 @@ class CarController():
     self.autoFollowDistanceLock = None
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, jvepilot_state):
-    # this seems needed to avoid steering faults and to force the sync with the EPS counter
-    frame = CS.lkas_counter
-    if self.prev_frame == frame:
-      return []
-
-    # *** compute control surfaces ***
-    # steer torque
-    new_steer = int(round(actuators.steer * CarControllerParams.STEER_MAX))
-    apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last,
-                                                   CS.out.steeringTorqueEps, CarControllerParams)
-    self.steer_rate_limited = new_steer != apply_steer
-
-    moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed  # for status message
-    if CS.out.vEgo > (CS.CP.minSteerSpeed - 0.5):  # for command high bit
-      self.gone_fast_yet = True
-    elif self.car_fingerprint in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
-      if CS.out.vEgo < (CS.CP.minSteerSpeed - 3.0):
-        self.gone_fast_yet = False  # < 14.5m/s stock turns off this bit, but fine down to 13.5
-    lkas_active = moving_fast and enabled
-
-    if not lkas_active:
-      apply_steer = 0
-
-    self.apply_steer_last = apply_steer
-
-
     can_sends = []
 
     #*** control msgs ***
-    follow_inc_button = CS.button_pressed(ButtonType.followInc)
-    follow_dec_button = CS.button_pressed(ButtonType.followDec)
-    if CS.button_pressed(ButtonType.cancel) or follow_inc_button or follow_dec_button:
-      self.pause_control_until_frame = self.ccframe + 25  # Avoid pushing multiple buttons at the same time
-
-    if jvepilot_state.carControl.autoFollow:
-      follow_inc_button = CS.button_pressed(ButtonType.followInc, False)
-      follow_dec_button = CS.button_pressed(ButtonType.followDec, False)
-      if (follow_inc_button and follow_inc_button.pressedFrames < 50) or (follow_dec_button and follow_dec_button.pressedFrames < 50):
-        jvepilot_state.carControl.autoFollow = False
-        jvepilot_state.notifyUi = True
-    elif (follow_inc_button and follow_inc_button.pressedFrames >= 50) or (follow_dec_button and follow_dec_button.pressedFrames >= 50):
-      jvepilot_state.carControl.autoFollow = True
-      jvepilot_state.notifyUi = True
-
     button_counter = jvepilot_state.carState.buttonCounter
-    button_counter_change = button_counter != self.last_button_counter
-    if button_counter_change:
+    if button_counter != self.last_button_counter:
       self.last_button_counter = button_counter
 
-    if pcm_cancel_cmd:
-      new_msg = create_wheel_buttons_command(self, self.packer, button_counter + 1, 'ACC_CANCEL', True)
-      can_sends.append(new_msg)
+      follow_inc_button = CS.button_pressed(ButtonType.followInc)
+      follow_dec_button = CS.button_pressed(ButtonType.followDec)
+      if CS.button_pressed(ButtonType.cancel) or follow_inc_button or follow_dec_button:
+        self.pause_control_until_frame = self.ccframe + 25  # Avoid pushing multiple buttons at the same time
 
-    elif enabled and button_counter_change and not CS.out.brakePressed:
-      if self.ccframe >= self.pause_control_until_frame and self.ccframe % 10 <= 4:  # press for 50ms
-        button_to_press = None
-        if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
-          button_to_press = self.auto_resume_button(CS, gas_resume_speed)
-        elif CS.out.cruiseState.enabled:  # Control ACC
-          button_to_press = self.auto_follow_button(CS, jvepilot_state) or self.hybrid_acc_button(CS, jvepilot_state)
+      if jvepilot_state.carControl.autoFollow:
+        follow_inc_button = CS.button_pressed(ButtonType.followInc, False)
+        follow_dec_button = CS.button_pressed(ButtonType.followDec, False)
+        if (follow_inc_button and follow_inc_button.pressedFrames < 50) or (follow_dec_button and follow_dec_button.pressedFrames < 50):
+          jvepilot_state.carControl.autoFollow = False
+          jvepilot_state.notifyUi = True
+      elif (follow_inc_button and follow_inc_button.pressedFrames >= 50) or (follow_dec_button and follow_dec_button.pressedFrames >= 50):
+        jvepilot_state.carControl.autoFollow = True
+        jvepilot_state.notifyUi = True
 
-        if button_to_press:
-          new_msg = create_wheel_buttons_command(self, self.packer, button_counter + 1, button_to_press, True)
-          can_sends.append(new_msg)
+      button_to_press = None
+      if pcm_cancel_cmd:
+        button_to_press = 'ACC_CANCEL'
+      elif enabled and not CS.out.brakePressed:
+        if self.ccframe >= self.pause_control_until_frame and self.ccframe % 10 <= 4:  # press for 50ms
+          if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
+            button_to_press = self.auto_resume_button(CS, gas_resume_speed)
+          elif CS.out.cruiseState.enabled:  # Control ACC
+            button_to_press = self.auto_follow_button(CS, jvepilot_state) or self.hybrid_acc_button(CS, jvepilot_state)
 
-    # LKAS_HEARTBIT is forwarded by Panda so no need to send it here.
-    # frame is 100Hz (0.01s period)
-    if (self.ccframe % 25 == 0):  # 0.25s period
-      if (CS.lkas_car_model != -1):
-        new_msg = create_lkas_hud(
+      if button_to_press:
+        new_msg = create_wheel_buttons_command(self, self.packer, button_counter + 1, button_to_press, True)
+        can_sends.append(new_msg)
+
+    frame = CS.lkas_counter
+    if self.prev_frame != frame: # this seems needed to avoid steering faults and to force the sync with the EPS counter
+      # *** compute control surfaces ***
+      # steer torque
+      new_steer = int(round(actuators.steer * CarControllerParams.STEER_MAX))
+      apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last,
+                                                     CS.out.steeringTorqueEps, CarControllerParams)
+      self.steer_rate_limited = new_steer != apply_steer
+
+      moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed  # for status message
+      if CS.out.vEgo > (CS.CP.minSteerSpeed - 0.5):  # for command high bit
+        self.gone_fast_yet = True
+      elif self.car_fingerprint in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
+        if CS.out.vEgo < (CS.CP.minSteerSpeed - 3.0):
+          self.gone_fast_yet = False  # < 14.5m/s stock turns off this bit, but fine down to 13.5
+      lkas_active = moving_fast and enabled
+
+      if not lkas_active:
+        apply_steer = 0
+
+      self.apply_steer_last = apply_steer
+
+      # LKAS_HEARTBIT is forwarded by Panda so no need to send it here.
+      # frame is 100Hz (0.01s period)
+      if (self.ccframe % 25 == 0):  # 0.25s period
+        if (CS.lkas_car_model != -1):
+          new_msg = create_lkas_hud(
             self.packer, CS.out.gearShifter, lkas_active, hud_alert,
             self.hud_count, CS.lkas_car_model)
-        can_sends.append(new_msg)
-        self.hud_count += 1
+          can_sends.append(new_msg)
+          self.hud_count += 1
 
-    new_msg = create_lkas_command(self.packer, int(apply_steer), self.gone_fast_yet, frame)
-    can_sends.append(new_msg)
+      new_msg = create_lkas_command(self.packer, int(apply_steer), self.gone_fast_yet, frame)
+      can_sends.append(new_msg)
 
-    self.ccframe += 1
-    self.prev_frame = frame
+      self.ccframe += 1
+      self.prev_frame = frame
 
     return can_sends
 
