@@ -1,4 +1,4 @@
-Version jvePilot-0.8.3(v3.1) (2021-XX-XX)
+Version jvePilot-0.8.3(v3.1) (2021-05-04)
 ========================
 * Move everything to the UI. No more opEdit.
 * Curvature drop off setting 
