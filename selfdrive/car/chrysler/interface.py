@@ -4,12 +4,12 @@ from selfdrive.car.chrysler.values import CAR
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
 from selfdrive.config import Conversions as CV
-from common.op_params import opParams
+from common.cached_params import CachedParams
 
 ButtonType = car.CarState.ButtonEvent.Type
 
 GAS_RESUME_SPEED = 2.
-op_params = opParams()
+cachedParams = CachedParams()
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
@@ -18,7 +18,7 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
-    speed_adjust_ratio = op_params.get('op_speed_adjust_ratio')
+    speed_adjust_ratio = cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
     inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
 
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)

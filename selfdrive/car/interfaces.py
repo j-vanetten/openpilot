@@ -10,7 +10,7 @@ from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX
 from selfdrive.controls.lib.events import Events
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from common.op_params import opParams
+from common.params import Params
 
 GearShifter = car.CarState.GearShifter
 EventName = car.CarEvent.EventName
@@ -37,9 +37,9 @@ class CarInterfaceBase():
     if CarController is not None:
       self.CC = CarController(self.cp.dbc_name, CP, self.VM)
 
-    op_params = opParams()
-    self.disable_auto_resume = op_params.get('disable_auto_resume')
-    self.disable_on_gas = op_params.get('disable_on_gas')
+    params = Params()
+    self.disable_auto_resume = params.get('jvePilot.settings.autoResume', encoding='utf8') == "0"
+    self.disable_on_gas = params.get('jvePilot.settings.disableOnGas', encoding='utf8') == "1"
 
   @staticmethod
   def calc_accel_override(a_ego, a_target, v_ego, v_target):

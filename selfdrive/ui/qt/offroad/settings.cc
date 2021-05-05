@@ -16,6 +16,173 @@
 #include "common/util.h"
 #include "selfdrive/hardware/hw.h"
 
+QWidget * jvePilot_panel() {
+  QVBoxLayout *toggles_list = new QVBoxLayout();
+
+  // slowInCurves
+  QList<struct ConfigButton> slowInCurvesConfigs = { 
+    { "jvePilot.settings.slowInCurves.speedRatio", 
+      "1.0", 0.1, 2, 
+      "Speed Ratio",
+      "Default: 1.0, Min: 0.1, Max: 2.0\n"
+        "Use this to tune the speed in curves to your liking."
+        "\nFor example, 1.2 to go 20% faster and .8 to go 20% slower across all curvatures."
+    }
+    ,{ "jvePilot.settings.slowInCurves.speedDropOff",
+      "2.0", 1, 3,
+      "Speed Drop Off",
+      "Default: 2.0\n"
+        "Experimental. Lower this value to decrease how quickly speed drops as the curve increases."
+        "\nTo go faster in turns at higher speeds, decrease this value.  To compensate for this change, you may need to increase the Speed Ratio."
+    }
+//    ,{ "jvePilot.settings.slowInCurves.speedDropOffAngle",
+//        "1.0", -.5, 1.5,
+//        "Speed Drop Off Ratio",
+//        "Default: 1.0\n"
+//          "Experimental. Another way to tune speeds in a curvature."
+//          " Adjust how quickly the speed drops as the curvature increases."
+//          "\nFor example if you are slowing too much at faster speeds, lower this value."
+//          " Since this speeds everything up along the entire curve, you may need to then lower the Speed Ratio to compensate."
+//    }
+  };
+  toggles_list->addWidget(new ParamControl("jvePilot.settings.slowInCurves",
+                                            "Slow in Curves",
+                                            "jvePilot will slow in curves so that you don't have to.",
+                                            "../assets/jvepilot/settings/icon_slow_in_curves.png",
+                                            &slowInCurvesConfigs
+                                          ));
+  // autoFollow
+  QList<struct ConfigButton> autoFollowConfigs = { 
+    { "jvePilot.settings.autoFollow.speed1-2Bars",
+      "15", 0, 300,
+      "1-2 Bar Change Over",
+      "Default: 15 mph, Min: 0, Max: 300\n"
+        "Use this to change the speed at which Auto Follow will switch between one to two bars."
+    },
+    { "jvePilot.settings.autoFollow.speed2-3Bars",
+      "30", 0, 300,
+      "2-3 Bar Change Over",
+      "Default: 30 mph, Min: 0, Max: 300\n"
+        "Use this to change the speed at which Auto Follow will switch between two to three bars."
+    },
+    { "jvePilot.settings.autoFollow.speed3-4Bars",
+      "65", 0, 300,
+      "3-4 Bar Change Over",
+      "Default: 65 mph, Min: 0, Max: 300\n"
+        "Use this to change the speed at which Auto Follow will switch between three to four bars."
+    }
+  };
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamControl("jvePilot.settings.autoFollow",
+                                            "Start with Auto Follow Enabled",
+                                            "When enabled, jvePilot will enable Auto Follow on the start of every drive.",
+                                            "../assets/jvepilot/settings/icon_auto_follow.png",
+                                            &autoFollowConfigs
+                                          ));
+
+  // reverseAccSpeedChange
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamControl("jvePilot.settings.reverseAccSpeedChange",
+                                            "Reverse ACC +/- Speeds",
+                                            "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 mph increments."
+                                            " Hold a little longer to change by 1 mph."
+                                            " Disable to keep stock setting.",
+                                            "../assets/jvepilot/settings/icon_acc_speed_change.png"
+                                          ));
+
+  // autoResume
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamControl("jvePilot.settings.autoResume",
+                                            "Auto Resume",
+                                            "When enabled, jvePilot will resume after ACC comes to a stop behind another vehicle.",
+                                            "../assets/jvepilot/settings/icon_auto_resume.png"
+                                          ));
+
+  // disableOnGas
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new ParamControl("jvePilot.settings.disableOnGas",
+                                            "Disable on Gas",
+                                            "When enabled, jvePilot will disengage jvePilot when the gas pedal is pressed.",
+                                            "../assets/jvepilot/settings/icon_gas_pedal.png"
+                                          ));
+
+  // accEco
+  QList<struct ConfigButton> ecoConfigs = {
+    { "jvePilot.settings.accEco.speedAheadLevel1",
+      "7", 1, 100,
+      "Keep ahead at ACC Eco level 1",
+      "Default: 7 mph, Min: 1, Max: 100\n"
+        "The higher the number the more acceleration that occurs."
+    },
+    { "jvePilot.settings.accEco.speedAheadLevel2",
+      "5", 1, 100,
+      "Keep ahead at ACC Eco level 2",
+      "Default: 5 mph, Min: 1, Max: 100\n"
+        "The higher the number the more acceleration that occurs."
+    }
+  };
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new LabelControl( "ACC Eco",
+                                            "",
+                                            "Use these settings to tune how much acceleration occurs by limiting how much ACC is set above your current speed.",
+                                            &ecoConfigs,
+                                            "../assets/jvepilot/settings/icon_acc_eco.png"));
+
+  // misc
+  QList<struct ConfigButton> miscConfigs = { 
+    { "jvePilot.settings.deviceOffset",
+      "0.00", -2, 2, 
+      "Device Offset",
+      "Default: 0.00 meters, Min: -2.00, Max: 2.00\n"
+        "Compensate for mounting your device off-center in the windshield."
+        "\nFor example, 0.04 if your device is 4cm left of center."
+        "\nNOTE: This is not how far the CAMERA is off-center, but how far the MOUNT/DEVICE is off-center."
+    },
+    { "jvePilot.settings.speedAdjustRatio",
+      "1.0", 0.9, 1.1, 
+      "Speed Adjust Ratio",
+      "Default: 1.0, Min: 0.9, Max: 1.1\n"
+        "jvePilot can report an incorrect speed compared to your vehicle or the real world."
+        " Apps like Waze report you current speed using GPS which is more accurate than jvePilot or your speedometer may report."
+        " Use this setting to get the speed reported by jvePilot just right."
+        "\nFor example, set to 1.052 if you see 76 mph on the jvePilot display, but it should be 80 mph."
+    },
+    { "jvePilot.settings.accFollow1RadarRatio",
+      "2.6", 0.5, 4, 
+      "Ratio at Follow Level 1",
+      "Default: 2.6, Min: 0.5, Max: 4.0\n"
+        "At follow level 1, apply this ratio to the radar distance."
+    },
+    { "jvePilot.settings.accFollow2RadarRatio",
+      "2.1", 0.5, 4,
+      "Ratio at Follow Level 2",
+      "Default: 2.1, Min: 0.5, Max: 4.0\n"
+        "At follow level 2, apply this ratio to the radar distance."
+    },
+    { "jvePilot.settings.accFollow3RadarRatio",
+      "1.5", 0.5, 4, 
+      "Ratio at Follow Level 3",
+      "Default: 1.5, Min: 0.5, Max: 4.0\n"
+        "At follow level 3, apply this ratio to the radar distance."
+    },
+    { "jvePilot.settings.accFollow4RadarRatio",
+      "1.1", 0.5, 4, 
+      "Ratio at Follow Level 4",
+      "Default: 1.1, Min: 0.5, Max: 4.0\n"
+        "At follow level 4, apply this ratio to the radar distance."
+    }
+  };
+  toggles_list->addWidget(horizontal_line());
+  toggles_list->addWidget(new LabelControl( "jvePilot Control Settings",
+                                            "", 
+                                            "Use these settings tune some of jvePilot's control settings.",
+                                            &miscConfigs,
+                                            "../assets/jvepilot/settings/icon_misc.png"));
+
+  QWidget *widget = new QWidget;
+  widget->setLayout(toggles_list);
+  return widget;
+}
 
 QWidget * toggles_panel() {
   QVBoxLayout *toggles_list = new QVBoxLayout();
@@ -227,10 +394,10 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     font-size: 90px;
     font-weight: bold;
     border 1px grey solid;
-    border-radius: 100px;
+    border-radius: 85px;
     background-color: #292929;
   )");
-  close_btn->setFixedSize(200, 200);
+  close_btn->setFixedSize(170, 170);
   sidebar_layout->addSpacing(45);
   sidebar_layout->addWidget(close_btn, 0, Qt::AlignCenter);
   QObject::connect(close_btn, SIGNAL(released()), this, SIGNAL(closeSettings()));
@@ -243,6 +410,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     {"Device", device},
     {"Network", network_panel(this)},
     {"Toggles", toggles_panel()},
+    {"jvePilot", jvePilot_panel()},
     {"Developer", new DeveloperPanel()},
   };
 
@@ -256,10 +424,10 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
         color: grey;
         border: none;
         background: none;
-        font-size: 65px;
+        font-size: 60px;
         font-weight: 500;
-        padding-top: 35px;
-        padding-bottom: 35px;
+        padding-top: 25px;
+        padding-bottom: 25px;
       }
       QPushButton:checked {
         color: white;
