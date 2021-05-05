@@ -134,7 +134,10 @@ The easiest way to install jvePilot is to factory reset and use this Custom Soft
 # Customizing
 Customizing features and parameters can be done on the UI display.  
 Click the gear icon and then select jvePilot from the sidebar.  
-Clicking on the text of feature of will show more information about it.
+Clicking on the text of feature of will show more information about it and allow customization of the feature.
+Note that some settings do require a vehicle restart, and some don't 
+The settings that don't require a restart may take upward of 5 seconds to take effect after changing them. 
+
 
 ## Slow in Curves
 jvePilot will slow in curves so that you don't have to.
