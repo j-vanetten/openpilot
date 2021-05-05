@@ -1,3 +1,6 @@
+# FCA Hybrid OpenPilot/ACC jvePilot
+This fork is only for Chrysler/Jeep vehicles!
+
 # Table of contents
 - [**Safety Notes**](#--safety-notes--)
 - [FCA Hybrid OpenPilot/ACC jvePilot](#fca-hybrid-openpilot-acc-jvepilot)
@@ -15,6 +18,7 @@
 - [Customizing](#customizing)
   * [Slow in Curves](#slow-in-curves)
     + [Speed Ratio](#speed-ratio)
+    + [Drop off](#drop-off)
   * [Reverse ACC +/- Speeds](#reverse-acc-----speeds)
   * [Auto Resume](#auto-resume-1)
     + [Disable on Gas](#disable-on-gas)
@@ -34,8 +38,6 @@
       - [Ratio at Follow Level 3](#ratio-at-follow-level-3)
       - [Ratio at Follow Level 4](#ratio-at-follow-level-4)
 
-<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
-
 # **Safety Notes**
 * This is my experimental branch, so I'm not responsible for any damage this may cause.
 * jvePilot still does not have direct control of the gas and brakes!
@@ -46,7 +48,7 @@
 
 ---
 
-# FCA Hybrid OpenPilot/ACC jvePilot
+# Vehicle 
 I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features using this vehicle.
 * 2017 Gas Chrysler Pacifica: Confirmed by @debugged-hosting
 
@@ -124,7 +126,7 @@ It will be adjusting it as needed, never raising it above the one set on the jve
 The easiest way to install jvePilot is to factory reset and use this Custom Software URL: `https://bit.ly/jvepilot`
 
 ## Branches
-`/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for general use.
+`/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for daily use.
 `/beta/*` - Sometimes I have people wanting to beta test jvePilot's new features.  Mostly stable, but still experimental. 
 `/feature/*` - These branches are where I'm working on new features.  These are never safe to run as they change all the time.
 
@@ -145,6 +147,13 @@ Setting this to 1.2 will cause jvePilot to drive 20% faster in turns than if it 
 * Units: Ratio
 * Vehicle Restart Required: No
 * Min/Max values (0.1, 2)
+### Drop off
+Adjusts how much the speed drops as the curve increases.
+Decrease this value to lessen the amount of drop off as the curve increases.
+Changing this value will likely require adjusting the Speed Ratio to compensate.
+* Default: 2.0
+* Vehicle Restart Required: No
+* Min/Max values (1.0, 3.0)
 
 ## Reverse ACC +/- Speeds
 Reverse the stock ACC +/- button's 1mph on short press and 5mph on long press.  Turn off to return to stock style.
