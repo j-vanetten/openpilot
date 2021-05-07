@@ -12,6 +12,7 @@ import cereal.messaging as messaging
 ButtonType = car.CarState.ButtonEvent.Type
 
 MIN_ACC_SPEED_MPH = 20
+AUTO_FOLLOW_LOCK_MPH = 4 * CV.MPH_TO_MS
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -147,7 +148,7 @@ class CarController():
       else:
         target_follow = 3
 
-      if self.autoFollowDistanceLock is not None and abs(crossover[self.autoFollowDistanceLock] - CS.out.vEgo) > 4 * CV.MPH_TO_MS:
+      if self.autoFollowDistanceLock is not None and abs(crossover[self.autoFollowDistanceLock] - CS.out.vEgo) > AUTO_FOLLOW_LOCK_MPH:
         self.autoFollowDistanceLock = None  # unlock
 
       if jvepilot_state.carState.accFollowDistance != target_follow and (self.autoFollowDistanceLock or target_follow) == target_follow:
