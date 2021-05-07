@@ -195,7 +195,8 @@ class Planner():
       if len(curvs):
         # find the largest curvature in the solution and use that.
         curv = max(abs(min(curvs)), abs(max(curvs)))
-        self.v_acc_future = float(min(self.v_acc_future, self.limit_speed_in_curv(sm, curv)))
+        if curv != 0:
+          self.v_acc_future = float(min(self.v_acc_future, self.limit_speed_in_curv(sm, curv)))
 
     self.first_loop = False
 
@@ -230,11 +231,6 @@ class Planner():
     v_ego = sm['carState'].vEgo
     a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
 
-    # # rotate the line
-    # angle = self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedDropOffAngle', 5000)
-    # if angle != 0:
-    #   _, a_y_max = self.rotate((0, 2.975), (v_ego, a_y_max), angle * 0.0174533)
-
     # drop off
     drop_off = self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedDropOff', 5000)
     if drop_off != 2 and a_y_max > 0:
@@ -243,11 +239,3 @@ class Planner():
     v_curvature = np.sqrt(a_y_max / np.clip(curv, 1e-4, None))
     model_speed = np.min(v_curvature)
     return model_speed * self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedRatio', 5000)
-
-  def rotate(self, origin, point, angle):
-    ox, oy = origin
-    px, py = point
-
-    qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
-    qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
-    return qx, qy

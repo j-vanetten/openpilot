@@ -64,21 +64,21 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
         Params().write_db_value(btn.param, btn.default_value);
         value = btn.default_value;
       }
-      
+
       const auto existng_value = value;
       const auto control_title = QString::fromStdString(btn.title.toStdString() + ": " + existng_value);
       const auto b = new ButtonControl(control_title, "CHANGE", btn.text, [=]() {});
-      b->released([=]() { 
+      b->released([=]() {
           auto set_value = Params().get(btn.param);
           auto new_value = InputDialog::getConfigDecimal(btn.title, set_value, btn.min, btn.max);
           if (new_value.length() > 0) {
             Params().write_db_value(btn.param, new_value.toStdString());
             b->setLabel(QString::fromStdString(btn.title.toStdString() + ": " + new_value.toStdString()));
-          } 
+          }
         });
       b->setContentsMargins(40, 20, 0, 0);
 
-      config_layout->addWidget(b);      
+      config_layout->addWidget(b);
     }
   }
 

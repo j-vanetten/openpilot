@@ -1,3 +1,8 @@
+Version jvePilot-0.8.3(v3.1.1) (2021-05-07)
+========================
+* Enable some toggles by default
+* Divide by zero protection in slow in curvature code 
+
 Version jvePilot-0.8.3(v3.1) (2021-05-04)
 ========================
 * Move everything to the UI. No more opEdit. All settings will need to be reset in the UI.
