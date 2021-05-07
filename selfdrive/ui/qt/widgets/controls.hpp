@@ -122,12 +122,13 @@ class ParamControl : public ToggleControl {
 
 public:
   ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, const bool default_value = false, QList<struct ConfigButton> *btns = {}, QWidget *parent = nullptr) : ToggleControl(title, desc, icon, false, btns, parent) {
-    //if (default_value) {
-    //  auto value = Params().get(param.toStdString().c_str());
-    //  if (QString::fromStdString(value).isNull() || QString::fromStdString(value).isEmpty()) {
-    //     Params().write_db_value(param.toStdString().c_str(), '1');
-    //  }
-    //}
+    if (default_value) {
+      auto value = Params().get(param.toStdString().c_str());
+      if (QString::fromStdString(value).isNull() || QString::fromStdString(value).isEmpty()) {
+        char value = '1';
+        Params().write_db_value(param.toStdString().c_str(), &value, 1);
+      }
+    }
 
     // set initial state from param
     if (Params().read_db_bool(param.toStdString().c_str())) {
