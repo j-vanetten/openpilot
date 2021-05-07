@@ -90,7 +90,7 @@ QWidget * jvePilot_panel() {
                                             " Hold a little longer to change by 1 mph."
                                             " Disable to keep stock setting.",
                                             "../assets/jvepilot/settings/icon_acc_speed_change.png",
-                                            true,
+                                            true
                                           ));
 
   // autoResume
@@ -99,7 +99,7 @@ QWidget * jvePilot_panel() {
                                             "Auto Resume",
                                             "When enabled, jvePilot will resume after ACC comes to a stop behind another vehicle.",
                                             "../assets/jvepilot/settings/icon_auto_resume.png",
-                                            true,
+                                            true
                                           ));
 
   // disableOnGas
