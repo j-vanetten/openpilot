@@ -49,6 +49,7 @@ QWidget * jvePilot_panel() {
                                             "Slow in Curves",
                                             "jvePilot will slow in curves so that you don't have to.",
                                             "../assets/jvepilot/settings/icon_slow_in_curves.png",
+                                            true,
                                             &slowInCurvesConfigs
                                           ));
   // autoFollow
@@ -77,6 +78,7 @@ QWidget * jvePilot_panel() {
                                             "Start with Auto Follow Enabled",
                                             "When enabled, jvePilot will enable Auto Follow on the start of every drive.",
                                             "../assets/jvepilot/settings/icon_auto_follow.png",
+                                            true,
                                             &autoFollowConfigs
                                           ));
 
@@ -87,7 +89,8 @@ QWidget * jvePilot_panel() {
                                             "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 mph increments."
                                             " Hold a little longer to change by 1 mph."
                                             " Disable to keep stock setting.",
-                                            "../assets/jvepilot/settings/icon_acc_speed_change.png"
+                                            "../assets/jvepilot/settings/icon_acc_speed_change.png",
+                                            true,
                                           ));
 
   // autoResume
@@ -95,7 +98,8 @@ QWidget * jvePilot_panel() {
   toggles_list->addWidget(new ParamControl("jvePilot.settings.autoResume",
                                             "Auto Resume",
                                             "When enabled, jvePilot will resume after ACC comes to a stop behind another vehicle.",
-                                            "../assets/jvepilot/settings/icon_auto_resume.png"
+                                            "../assets/jvepilot/settings/icon_auto_resume.png",
+                                            true,
                                           ));
 
   // disableOnGas

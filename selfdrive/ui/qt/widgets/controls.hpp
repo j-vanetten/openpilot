@@ -121,9 +121,16 @@ class ParamControl : public ToggleControl {
   Q_OBJECT
 
 public:
-  ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, QList<struct ConfigButton> *btns = {}, QWidget *parent = nullptr) : ToggleControl(title, desc, icon, false, btns, parent) {
+  ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, const bool default_value = false, QList<struct ConfigButton> *btns = {}, QWidget *parent = nullptr) : ToggleControl(title, desc, icon, false, btns, parent) {
+    const auto params = Params();
+    auto value = params.get(param);
+    if (QString::fromStdString(value).isNull() || QString::fromStdString(value).isEmpty()) {
+      value = default_value ? "1", "0";
+      params.write_db_value(param, value);
+    }
+    
     // set initial state from param
-    if (Params().read_db_bool(param.toStdString().c_str())) {
+    if (value == "1") {
       toggle.togglePosition();
     }
     QObject::connect(this, &ToggleControl::toggleFlipped, [=](int state) {
