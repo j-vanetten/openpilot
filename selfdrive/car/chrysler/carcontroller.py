@@ -45,7 +45,7 @@ class CarController():
       follow_inc_button = CS.button_pressed(ButtonType.followInc)
       follow_dec_button = CS.button_pressed(ButtonType.followDec)
       if CS.button_pressed(ButtonType.cancel) or follow_inc_button or follow_dec_button:
-        self.pause_control_until_frame = self.ccframe + 25  # Avoid pushing multiple buttons at the same time
+        self.pause_control_until_frame = self.ccframe + 4  # Avoid pushing multiple buttons at the same time
 
       if jvepilot_state.carControl.autoFollow:
         follow_inc_button = CS.button_pressed(ButtonType.followInc, False)
