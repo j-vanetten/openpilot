@@ -77,7 +77,7 @@ class CarController():
       self.prev_frame = frame
       self.last_frame_change = self.ccframe
     else:
-      frame = (CS.lkas_counter + (self.ccframe - self.last_frame_change)) % 16  # guess the next frame
+      frame = (CS.lkas_counter + (self.ccframe - self.last_frame_change)) % 16  # Predict the next frame
 
     # *** compute control surfaces ***
     # steer torque
