@@ -38,7 +38,7 @@ class CarInterfaceBase():
       self.CC = CarController(self.cp.dbc_name, CP, self.VM)
 
     params = Params()
-    self.disable_auto_resume = params.get('jvePilot.settings.autoResume', encoding='utf8') == "0"
+    self.disable_auto_resume = params.get('jvePilot.settings.autoResume', encoding='utf8') != "1"
     self.disable_on_gas = params.get('jvePilot.settings.disableOnGas', encoding='utf8') == "1"
 
   @staticmethod

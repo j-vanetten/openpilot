@@ -31,7 +31,7 @@ class CarController():
 
     self.params = Params()
     self.cachedParams = CachedParams()
-    self.disable_auto_resume = self.params.get('jvePilot.settings.autoResume', encoding='utf8') == "0"
+    self.disable_auto_resume = self.params.get('jvePilot.settings.autoResume', encoding='utf8') != "1"
     self.autoFollowDistanceLock = None
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, jvepilot_state):
