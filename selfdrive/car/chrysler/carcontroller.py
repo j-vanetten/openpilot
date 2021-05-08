@@ -25,6 +25,7 @@ class CarController():
     self.steer_rate_limited = False
     self.last_button_counter = -1
     self.pause_control_until_frame = 0
+    self.last_frame_change = -1
 
     self.packer = CANPacker(dbc_name)
 
