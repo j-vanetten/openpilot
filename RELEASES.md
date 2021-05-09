@@ -1,4 +1,4 @@
-Version jvePilot-0.8.3(v3.2.0) (2021-05-08)
+Version jvePilot-0.8.3(v3.2) (2021-05-08)
 ========================
 * Predict LKAS control frame
 * Fix math used for device offset
