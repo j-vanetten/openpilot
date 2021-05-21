@@ -38,7 +38,7 @@ fi
 VERSION=$(cat selfdrive/common/version.h | awk -F[\"-]  '{print $2}')
 echo "#define COMMA_VERSION \"$VERSION-release\"" > selfdrive/common/version.h
 
-git commit -m "openpilot v$VERSION"
+git commit -m "jvePilot-$VERSION"
 
 # Build signed panda firmware
 pushd panda/

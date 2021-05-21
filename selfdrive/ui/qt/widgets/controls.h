@@ -11,6 +11,16 @@
 
 QFrame *horizontal_line(QWidget *parent = nullptr);
 
+// config for a widget
+struct ConfigButton {
+  public:
+  std::string param;
+  float min;
+  float max;
+  QString title;
+  QString text;
+};
+
 class AbstractControl : public QFrame {
   Q_OBJECT
 
@@ -23,7 +33,7 @@ signals:
   void showDescription();
 
 protected:
-  AbstractControl(const QString &title, const QString &desc = "", const QString &icon = "", QWidget *parent = nullptr);
+  AbstractControl(const QString &title, const QString &desc = "", const QString &icon = "", QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {});
   void hideEvent(QHideEvent *e);
 
   QSize minimumSizeHint() const override {
@@ -42,7 +52,7 @@ class LabelControl : public AbstractControl {
   Q_OBJECT
 
 public:
-  LabelControl(const QString &title, const QString &text, const QString &desc = "", QWidget *parent = nullptr) : AbstractControl(title, desc, "", parent) {
+  LabelControl(const QString &title, const QString &text, const QString &desc = "", QWidget *parent = nullptr, const QString &icon = "", QList<struct ConfigButton> *btns = {}) : AbstractControl(title, desc, icon, parent, btns) {
     label.setText(text);
     label.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     hlayout->addWidget(&label);
@@ -59,7 +69,7 @@ class ButtonControl : public AbstractControl {
 
 public:
   template <typename Functor>
-  ButtonControl(const QString &title, const QString &text, const QString &desc, Functor functor, const QString &icon = "", QWidget *parent = nullptr) : AbstractControl(title, desc, icon, parent) {
+  ButtonControl(const QString &title, const QString &text, const QString &desc, Functor functor, const QString &icon = "", QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {}) : AbstractControl(title, desc, icon, parent, btns) {
     btn.setText(text);
     btn.setStyleSheet(R"(
       QPushButton {
@@ -78,7 +88,10 @@ public:
     QObject::connect(&btn, &QPushButton::released, functor);
     hlayout->addWidget(&btn);
   }
+  void setLabel(const QString &text) { title_label->setText(text); }
   void setText(const QString &text) { btn.setText(text); }
+  template <typename Functor>
+  void released(Functor functor) { QObject::connect(&btn, &QPushButton::released, functor); }
 
 public slots:
   void setEnabled(bool enabled) {
@@ -93,7 +106,7 @@ class ToggleControl : public AbstractControl {
   Q_OBJECT
 
 public:
-  ToggleControl(const QString &title, const QString &desc = "", const QString &icon = "", const bool state = false, QWidget *parent = nullptr) : AbstractControl(title, desc, icon, parent) {
+  ToggleControl(const QString &title, const QString &desc = "", const QString &icon = "", const bool state = false, QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {}) : AbstractControl(title, desc, icon, parent, btns) {
     toggle.setFixedSize(150, 100);
     if (state) {
       toggle.togglePosition();
@@ -116,7 +129,8 @@ class ParamControl : public ToggleControl {
   Q_OBJECT
 
 public:
-  ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, QWidget *parent = nullptr) : ToggleControl(title, desc, icon, false, parent) {
+  ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {}) : ToggleControl(title, desc, icon, false, parent, btns) {
+    // set initial state from param
     if (params.getBool(param.toStdString().c_str())) {
       toggle.togglePosition();
     }

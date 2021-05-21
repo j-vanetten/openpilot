@@ -1263,6 +1263,11 @@ struct ManagerState {
   }
 }
 
+struct JvePilotUIState {
+  autoFollow @0 :Bool;
+  accEco @1 :UInt8;
+}
+
 struct Event {
   logMonoTime @0 :UInt64;  # nanoseconds
   valid @67 :Bool = true;
@@ -1359,5 +1364,7 @@ struct Event {
     kalmanOdometryDEPRECATED @65 :Legacy.KalmanOdometry;
     gpsLocationDEPRECATED @21 :GpsLocationData;
     uiLayoutStateDEPRECATED @57 :Legacy.UiLayoutState;
+
+    jvePilotUIState @79 :JvePilotUIState;
   }
 }

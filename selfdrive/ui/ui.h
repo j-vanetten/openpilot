@@ -81,16 +81,8 @@ typedef struct UIScene {
 
   cereal::PandaState::PandaType pandaType;
 
-  cereal::DeviceState::Reader deviceState;
-  cereal::RadarState::LeadData::Reader lead_data[2];
-  cereal::CarState::Reader car_state;
-  cereal::ControlsState::Reader controls_state;
-  cereal::DriverState::Reader driver_state;
-  cereal::DriverMonitoringState::Reader dmonitoring_state;
-
   // gps
   int satelliteCount;
-  bool gpsOK;
 
   // modelV2
   float lane_line_probs[4];
@@ -105,6 +97,12 @@ typedef struct UIScene {
   float light_sensor, accel_sensor, gyro_sensor;
   bool started, ignition, is_metric, longitudinal_control, end_to_end;
   uint64_t started_frame;
+
+  // jvePilot  
+  int autoFollowButtonEnabled;
+  int accEcoButtonEnabled;
+  int autoFollowEnabled;
+  int accEco;
 } UIScene;
 
 typedef struct UIState {
@@ -123,6 +121,7 @@ typedef struct UIState {
   std::map<std::string, int> images;
 
   std::unique_ptr<SubMaster> sm;
+  std::unique_ptr<PubMaster> pm;
 
   UIStatus status;
   UIScene scene;

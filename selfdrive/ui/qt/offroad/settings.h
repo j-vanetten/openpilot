@@ -21,6 +21,12 @@ signals:
   void reviewTrainingGuide();
 };
 
+class JvePilotTogglesPanel : public QWidget {
+  Q_OBJECT
+public:
+  explicit JvePilotTogglesPanel(QWidget *parent = nullptr);
+};
+
 class TogglesPanel : public QWidget {
   Q_OBJECT
 public:

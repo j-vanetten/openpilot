@@ -1,4 +1,5 @@
 #include "selfdrive/ui/qt/home.h"
+#include "selfdrive/ui/paint.h"
 
 #include <QDateTime>
 #include <QHBoxLayout>
@@ -39,6 +40,14 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
   setLayout(layout);
 }
 
+void HomeWindow::notify_state() {
+  MessageBuilder msg;
+  auto state = msg.initEvent().initJvePilotUIState();
+  state.setAutoFollow(QUIState::ui_state.scene.autoFollowEnabled);
+  state.setAccEco(QUIState::ui_state.scene.accEco);
+  QUIState::ui_state.pm->send("jvePilotUIState", msg);
+}
+
 void HomeWindow::offroadTransition(bool offroad) {
   if (offroad) {
     slayout->setCurrentWidget(home);
@@ -58,8 +67,17 @@ void HomeWindow::mousePressEvent(QMouseEvent* e) {
   }
 
   // Handle sidebar collapsing
-  if (onroad->isVisible() && (!sidebar->isVisible() || e->x() > sidebar->width())) {
-    sidebar->setVisible(!sidebar->isVisible());
+  // Handle button touch events
+  if (onroad->isVisible()) {
+    if (authFollow_btn.ptInRect(e->x(), e->y())) {
+      QUIState::ui_state.scene.autoFollowEnabled = !QUIState::ui_state.scene.autoFollowEnabled;
+      notify_state();
+    } else if (accEco_img.ptInRect(e->x(), e->y())) {
+      QUIState::ui_state.scene.accEco = QUIState::ui_state.scene.accEco == 2 ? 0 : QUIState::ui_state.scene.accEco + 1;
+      notify_state();
+    } else if(!sidebar->isVisible() || e->x() > sidebar->width()) {
+      sidebar->setVisible(!sidebar->isVisible());
+    }
   }
 }
 
@@ -81,7 +99,7 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
   QObject::connect(alert_notification, &QPushButton::released, this, &OffroadHome::openAlerts);
   header_layout->addWidget(alert_notification, 0, Qt::AlignHCenter | Qt::AlignRight);
 
-  std::string brand = Params().getBool("Passive") ? "dashcam" : "openpilot";
+  std::string brand = Params().getBool("Passive") ? "dashcam" : "jvePilot";
   QLabel* version = new QLabel(QString::fromStdString(brand + " v" + Params().get("Version")));
   version->setStyleSheet(R"(font-size: 55px;)");
   header_layout->addWidget(version, 0, Qt::AlignHCenter | Qt::AlignRight);

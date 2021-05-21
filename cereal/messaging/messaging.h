@@ -82,7 +82,7 @@ public:
   bool valid(const char *name) const;
   uint64_t rcv_frame(const char *name) const;
   uint64_t rcv_time(const char *name) const;
-  cereal::Event::Reader &operator[](const char *name);
+  cereal::Event::Reader &operator[](const char *name) const;
 
 private:
   bool all_(const std::initializer_list<const char *> &service_list, bool valid, bool alive);
@@ -117,7 +117,7 @@ private:
 
 class PubMaster {
 public:
-  PubMaster(const std::initializer_list<const char *> &service_list);
+  PubMaster(const std::vector<const char *> &service_list);
   inline int send(const char *name, capnp::byte *data, size_t size) { return sockets_.at(name)->send((char *)data, size); }
   int send(const char *name, MessageBuilder &msg);
   ~PubMaster();

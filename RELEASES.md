@@ -1,3 +1,7 @@
+Version jvePilot-0.8.4(v3.2.1) (2021-XX-XX)
+========================
+* Update to version 0.8.4 (2021-05-07)
+
 Version 0.8.4 (2021-05-17)
 ========================
  * Delay controls start until system is ready
@@ -7,6 +11,46 @@ Version 0.8.4 (2021-05-17)
  * Toyota Mirai 2021 support
  * Lexus NX 300 2020 support thanks to goesreallyfast!
  * Volkswagen Atlas 2018-19 support thanks to jyoung8607!
+
+Version jvePilot-0.8.3(v3.2) (2021-05-08)
+========================
+* Predict LKAS control frame
+* Fix math used for device offset
+* More UI fixes
+
+Version jvePilot-0.8.3(v3.1.1) (2021-05-07)
+========================
+* Enable some toggles by default
+* Divide by zero protection in slow in curvature code
+
+Version jvePilot-0.8.3(v3.1) (2021-05-04)
+========================
+* Move everything to the UI. No more opEdit. All settings will need to be reset in the UI.
+* Curvature drop off setting
+
+Version jvePilot-0.8.3(v3.0) (2021-04-22)
+========================
+* ACC Eco
+* Fix Auto Follow ping/pong
+* Code changes to better consolidate state/control messaging
+* Option to reverse 1mph or 5mph on short ACC +/- presses
+
+Version jvePilot-0.8.3(v2.2) (2021-04-11)
+========================
+* Change follow distance based on speed
+* Add another option to control amount of slowing in curves
+* Add option to adjust the displayed speed
+* jvePilot branding
+* jvePilot-release as a tested branch
+
+Version jvePilot-0.8.3(v2.1) (2021-04-01)
+========================
+* Report blind spot indicators to openpilot so auto lane change can abort if something is detected
+* Enable Longitudinal Control flag.  Enabled lead car tracking
+
+Version jvePilot-0.8.3(v2.0) (2021-04-01)
+========================
+* Update to openpilot v0.8.3
 
 Version 0.8.3 (2021-04-01)
 ========================
@@ -21,6 +65,21 @@ Version 0.8.3 (2021-04-01)
  * Kia Ceed 2019 support thanks to ZanZaD13!
  * Kia Seltos 2021 support thanks to speedking456!
  * Added support for many Volkswagen and Škoda models thanks to jyoung8607!
+
+Version jvePilot-0.8.2(v2.0) (2021-03-28)
+========================
+* Auto resume feature added (set `disable_auto_resume`to `True` to disable)
+* Added back feature that keep jvePilot engaged while pressing gas (set `disengage_on_gas` to `True` to disable)
+
+Version jvePilot-0.8.2(v1.1) (2021-03-12)
+========================
+* Protect from missing curvature data
+* Remove disengage_on_gas option until it's working again
+
+Version jvePilot-0.8.2(v1) (2021-02-28)
+========================
+* OpenPilot v0.8.2
+* Read curvature values directly from modal and use the largest curvature to calculate max speed.
 
 Version 0.8.2 (2021-02-26)
 ========================

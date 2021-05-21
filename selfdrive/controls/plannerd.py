@@ -20,8 +20,6 @@ def plannerd_thread(sm=None, pm=None):
   use_lanelines = not params.get_bool('EndToEndToggle')
   wide_camera = params.get_bool('EnableWideCamera') if TICI else False
 
-  cloudlog.event("e2e mode", on=use_lanelines)
-
   longitudinal_planner = Planner(CP)
   lateral_planner = LateralPlanner(CP, use_lanelines=use_lanelines, wide_camera=wide_camera)
 
@@ -39,7 +37,7 @@ def plannerd_thread(sm=None, pm=None):
       lateral_planner.update(sm, CP)
       lateral_planner.publish(sm, pm)
     if sm.updated['radarState']:
-      longitudinal_planner.update(sm, CP)
+      longitudinal_planner.update(sm, CP, lateral_planner)
       longitudinal_planner.publish(sm, pm)
 
 

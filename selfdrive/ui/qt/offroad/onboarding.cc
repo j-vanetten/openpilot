@@ -107,7 +107,8 @@ void TermsPage::enableAccept(){
 }
 
 void OnboardingWindow::updateActiveScreen() {
-  updateOnboardingStatus();
+  bool accepted_terms = params.get("HasAcceptedTerms", false).compare(current_terms_version) == 0;
+  bool training_done = params.get("CompletedTrainingVersion", false).compare(current_training_version) == 0;
 
   if (!accepted_terms) {
     setCurrentIndex(0);
@@ -155,14 +156,4 @@ OnboardingWindow::OnboardingWindow(QWidget *parent) : QStackedWidget(parent) {
   )");
 
   updateActiveScreen();
-}
-
-void OnboardingWindow::updateOnboardingStatus() {
-  accepted_terms = params.get("HasAcceptedTerms", false).compare(current_terms_version) == 0;
-  training_done = params.get("CompletedTrainingVersion", false).compare(current_training_version) == 0;
-}
-
-bool OnboardingWindow::isOnboardingDone() {
-  updateOnboardingStatus();
-  return accepted_terms && training_done;
 }

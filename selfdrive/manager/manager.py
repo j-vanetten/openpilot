@@ -19,8 +19,8 @@ from selfdrive.manager.process_config import managed_processes
 from selfdrive.athena.registration import register, UNREGISTERED_DONGLE_ID
 from selfdrive.swaglog import cloudlog, add_file_handler
 from selfdrive.version import dirty, get_git_commit, version, origin, branch, commit, \
-                              terms_version, training_version, comma_remote, \
-                              get_git_branch, get_git_remote
+  terms_version, training_version, comma_remote, \
+  get_git_branch, get_git_remote
 
 def manager_init():
 
@@ -31,6 +31,28 @@ def manager_init():
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
 
   default_params = [
+    ("CommunityFeaturesToggle", "1"),
+    ("jvePilot.carState.accEco", "1"),
+    ("jvePilot.settings.accEco.speedAheadLevel1", "7"),
+    ("jvePilot.settings.accEco.speedAheadLevel2", "5"),
+    ("jvePilot.settings.accFollow1RadarRatio", "2.6"),
+    ("jvePilot.settings.accFollow2RadarRatio", "2.1"),
+    ("jvePilot.settings.accFollow3RadarRatio", "1.5"),
+    ("jvePilot.settings.accFollow4RadarRatio", "1.1"),
+    ("jvePilot.settings.autoFollow", "1"),
+    ("jvePilot.settings.autoFollow.speed1-2Bars", "15"),
+    ("jvePilot.settings.autoFollow.speed2-3Bars", "30"),
+    ("jvePilot.settings.autoFollow.speed3-4Bars", "65"),
+    ("jvePilot.settings.autoResume", "1"),
+    ("jvePilot.settings.disableOnGas", "0"),
+    ("jvePilot.settings.deviceOffset", "0.00"),
+    ("jvePilot.settings.reverseAccSpeedChange", "1"),
+    ("jvePilot.settings.slowInCurves", "1"),
+    ("jvePilot.settings.slowInCurves.speedRatio", "1.0"),
+    ("jvePilot.settings.slowInCurves.speedDropOff", "2.0"),
+    ("jvePilot.settings.slowInCurves.speedDropOffAngle", "0.0"),
+    ("jvePilot.settings.speedAdjustRatio", "1.00"),
+
     ("CompletedTrainingVersion", "0"),
     ("HasAcceptedTerms", "0"),
     ("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')),

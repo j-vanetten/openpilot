@@ -22,14 +22,10 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
   QObject::connect(settingsWindow, &SettingsWindow::reviewTrainingGuide, this, &MainWindow::reviewTrainingGuide);
 
   onboardingWindow = new OnboardingWindow(this);
-  onboardingDone = onboardingWindow->isOnboardingDone();
   main_layout->addWidget(onboardingWindow);
 
   main_layout->setCurrentWidget(onboardingWindow);
-  QObject::connect(onboardingWindow, &OnboardingWindow::onboardingDone, [=](){
-    onboardingDone = true;
-    closeSettings();
-  });
+  QObject::connect(onboardingWindow, &OnboardingWindow::onboardingDone, this, &MainWindow::closeSettings);
   onboardingWindow->updateActiveScreen();
 
   device.setAwake(true, true);
@@ -63,13 +59,10 @@ void MainWindow::openSettings() {
 }
 
 void MainWindow::closeSettings() {
-  if(onboardingDone) {
-    main_layout->setCurrentWidget(homeWindow);
-  }
+  main_layout->setCurrentWidget(homeWindow);
 }
 
 void MainWindow::reviewTrainingGuide() {
-  onboardingDone = false;
   main_layout->setCurrentWidget(onboardingWindow);
   onboardingWindow->updateActiveScreen();
 }
