@@ -43,7 +43,7 @@ def create_lkas_command(packer, apply_steer, moving_fast, frame):
   values = {
     "LKAS_STEERING_TORQUE": apply_steer,
     "LKAS_HIGH_TORQUE": int(moving_fast),
-    "COUNTER": frame,
+    "COUNTER": frame % 0x10,
   }
   return packer.make_can_msg("LKAS_COMMAND", 0, values)
 
@@ -51,6 +51,6 @@ def create_wheel_buttons_command(cc, packer, counter, button, value):
   # WHEEL_BUTTONS (571) Message sent
   values = {
     button: value,
-    "COUNTER": counter % 16,
+    "COUNTER": counter % 0x10,
   }
   return packer.make_can_msg("WHEEL_BUTTONS", 0, values)

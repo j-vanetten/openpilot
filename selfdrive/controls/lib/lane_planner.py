@@ -17,9 +17,8 @@ else:
   PATH_OFFSET = 0.0
 
 
-
 class LanePlanner:
-  def __init__(self):
+  def __init__(self, wide_camera=False):
     self.ll_t = np.zeros((TRAJECTORY_SIZE,))
     self.ll_x = np.zeros((TRAJECTORY_SIZE,))
     self.lll_y = np.zeros((TRAJECTORY_SIZE,))
@@ -38,8 +37,9 @@ class LanePlanner:
     self.l_lane_change_prob = 0.
     self.r_lane_change_prob = 0.
 
+    self.camera_offset = -CAMERA_OFFSET if wide_camera else CAMERA_OFFSET
+    self.path_offset = -PATH_OFFSET if wide_camera else PATH_OFFSET
     self.cachedParams = CachedParams()
-
 
   def parse_model(self, md):
     if len(md.laneLines) == 4 and len(md.laneLines[0].t) == TRAJECTORY_SIZE:
@@ -62,7 +62,7 @@ class LanePlanner:
   def get_d_path(self, v_ego, path_t, path_xyz):
     # Reduce reliance on lanelines that are too far apart or
     # will be in a few seconds
-    path_xyz[:,1] -= PATH_OFFSET
+    path_xyz[:, 1] -= self.path_offset
     l_prob, r_prob = self.lll_prob, self.rll_prob
     width_pts = self.rll_y - self.lll_y
     prob_mods = []

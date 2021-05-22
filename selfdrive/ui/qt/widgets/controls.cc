@@ -1,5 +1,5 @@
-#include "controls.hpp"
-#include "widgets/input.hpp"
+#include "controls.h"
+#include "widgets/input.h"
 #include "selfdrive/hardware/hw.h"
 
 QFrame *horizontal_line(QWidget *parent) {
@@ -16,7 +16,7 @@ QFrame *horizontal_line(QWidget *parent) {
   return line;
 }
 
-AbstractControl::AbstractControl(const QString &title, const QString &desc, const QString &icon, QList<struct ConfigButton> *btns, QWidget *parent) : QFrame(parent) {
+AbstractControl::AbstractControl(const QString &title, const QString &desc, const QString &icon, QWidget *parent, QList<struct ConfigButton> *btns) : QFrame(parent) {
   QVBoxLayout *vlayout = new QVBoxLayout();
   vlayout->setMargin(0);
 
@@ -59,20 +59,14 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
       config_layout->addWidget(horizontal_line());
       const ConfigButton btn = btns->at(i);
 
-      auto value = Params().get(btn.param);
-      if (QString::fromStdString(value).isNull() || QString::fromStdString(value).isEmpty()) {
-        Params().write_db_value(btn.param, btn.default_value);
-        value = btn.default_value;
-      }
-
-      const auto existng_value = value;
+      const auto existng_value = Params().get(btn.param);
       const auto control_title = QString::fromStdString(btn.title.toStdString() + ": " + existng_value);
       const auto b = new ButtonControl(control_title, "CHANGE", btn.text, [=]() {});
       b->released([=]() {
           auto set_value = Params().get(btn.param);
           auto new_value = InputDialog::getConfigDecimal(btn.title, set_value, btn.min, btn.max);
           if (new_value.length() > 0) {
-            Params().write_db_value(btn.param, new_value.toStdString());
+            Params().put(btn.param, new_value.toStdString());
             b->setLabel(QString::fromStdString(btn.title.toStdString() + ": " + new_value.toStdString()));
           }
         });
@@ -87,11 +81,20 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
     config_widget->setVisible(false);
     config_widget->setLayout(config_layout);
     connect(title_label, &QPushButton::clicked, [=]() {
-        config_widget->setVisible(!config_widget->isVisible());
+      if (!description->isVisible()) {
+        emit showDescription();
+      }
+      config_widget->setVisible(!config_widget->isVisible());
     });
     vlayout->addWidget(config_widget);
   }
 
   setLayout(vlayout);
   setStyleSheet("background-color: transparent;");
+}
+
+void AbstractControl::hideEvent(QHideEvent *e){
+  if(description != nullptr){
+    description->hide();
+  }
 }
