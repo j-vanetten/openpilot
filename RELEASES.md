@@ -1,3 +1,17 @@
+Version jvePilot-0.8.4(v3.2.1) (2021-05-22)
+========================
+* Update to version 0.8.4
+
+Version 0.8.4 (2021-05-17)
+========================
+ * Delay controls start until system is ready
+ * Fuzzy car identification, enabled with Community Features toggle
+ * Localizer optimized for increased precision and less CPU usage
+ * Retuned lateral control to be more aggressive when model is confident
+ * Toyota Mirai 2021 support
+ * Lexus NX 300 2020 support thanks to goesreallyfast!
+ * Volkswagen Atlas 2018-19 support thanks to jyoung8607!
+
 Version jvePilot-0.8.3(v3.2) (2021-05-08)
 ========================
 * Predict LKAS control frame
@@ -7,19 +21,19 @@ Version jvePilot-0.8.3(v3.2) (2021-05-08)
 Version jvePilot-0.8.3(v3.1.1) (2021-05-07)
 ========================
 * Enable some toggles by default
-* Divide by zero protection in slow in curvature code 
+* Divide by zero protection in slow in curvature code
 
 Version jvePilot-0.8.3(v3.1) (2021-05-04)
 ========================
 * Move everything to the UI. No more opEdit. All settings will need to be reset in the UI.
-* Curvature drop off setting 
+* Curvature drop off setting
 
 Version jvePilot-0.8.3(v3.0) (2021-04-22)
 ========================
 * ACC Eco
 * Fix Auto Follow ping/pong
 * Code changes to better consolidate state/control messaging
-* Option to reverse 1mph or 5mph on short ACC +/- presses 
+* Option to reverse 1mph or 5mph on short ACC +/- presses
 
 Version jvePilot-0.8.3(v2.2) (2021-04-11)
 ========================
@@ -33,25 +47,25 @@ Version jvePilot-0.8.3(v2.1) (2021-04-01)
 ========================
 * Report blind spot indicators to openpilot so auto lane change can abort if something is detected
 * Enable Longitudinal Control flag.  Enabled lead car tracking
-  
+
 Version jvePilot-0.8.3(v2.0) (2021-04-01)
 ========================
-* Update to openpilot v0.8.3 
+* Update to openpilot v0.8.3
 
 Version 0.8.3 (2021-04-01)
 ========================
-* New model
+ * New model
    * Trained on new diverse dataset from 2000+ users from 30+ countries
    * Trained with improved segnet from the comma-pencil community project
    * 🥬 Dramatically improved end-to-end lateral performance 🥬
-* Toggle added to disable the use of lanelines
-* NEOS update: update packages and support for new UI
-* New offroad UI based on Qt
-* Default SSH key only used for setup
-* Kia Ceed 2019 support thanks to ZanZaD13!
-* Kia Seltos 2021 support thanks to speedking456!
-* Added support for many Volkswagen and Škoda models thanks to jyoung8607!
-  
+ * Toggle added to disable the use of lanelines
+ * NEOS update: update packages and support for new UI
+ * New offroad UI based on Qt
+ * Default SSH key only used for setup
+ * Kia Ceed 2019 support thanks to ZanZaD13!
+ * Kia Seltos 2021 support thanks to speedking456!
+ * Added support for many Volkswagen and Škoda models thanks to jyoung8607!
+
 Version jvePilot-0.8.2(v2.0) (2021-03-28)
 ========================
 * Auto resume feature added (set `disable_auto_resume`to `True` to disable)
@@ -64,8 +78,8 @@ Version jvePilot-0.8.2(v1.1) (2021-03-12)
 
 Version jvePilot-0.8.2(v1) (2021-02-28)
 ========================
- * OpenPilot v0.8.2
- * Read curvature values directly from modal and use the largest curvature to calculate max speed. 
+* OpenPilot v0.8.2
+* Read curvature values directly from modal and use the largest curvature to calculate max speed.
 
 Version 0.8.2 (2021-02-26)
 ========================
