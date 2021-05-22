@@ -1,6 +1,6 @@
-Version jvePilot-0.8.4(v3.2.1) (2021-XX-XX)
+Version jvePilot-0.8.4(v3.2.1) (2021-05-22)
 ========================
-* Update to version 0.8.4 (2021-05-07)
+* Update to version 0.8.4
 
 Version 0.8.4 (2021-05-17)
 ========================
