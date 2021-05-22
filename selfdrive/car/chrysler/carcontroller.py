@@ -12,7 +12,8 @@ import cereal.messaging as messaging
 ButtonType = car.CarState.ButtonEvent.Type
 
 MIN_ACC_SPEED_MPH = 20
-AUTO_FOLLOW_LOCK_MPH = 4 * CV.MPH_TO_MS
+MIN_ACC_SPEED_METRIC = 30
+AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -33,6 +34,7 @@ class CarController():
     self.cachedParams = CachedParams()
     self.disable_auto_resume = self.params.get('jvePilot.settings.autoResume', encoding='utf8') != "1"
     self.autoFollowDistanceLock = None
+    self.minAccSetting = MIN_ACC_SPEED_METRIC if self.params.get_bool("IsMetric") else MIN_ACC_SPEED_MPH
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, jvepilot_state):
     can_sends = []
@@ -131,7 +133,7 @@ class CarController():
       current_speed = round(CS.out.vEgo * CV.MS_TO_MPH)
       target = min(target, int(current_speed + self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)))
 
-    if target < current and current > MIN_ACC_SPEED_MPH:
+    if target < current and current > self.minAccSetting:
       return 'ACC_SPEED_DEC'
     elif target > current:
       return 'ACC_SPEED_INC'
@@ -152,7 +154,7 @@ class CarController():
       else:
         target_follow = 3
 
-      if self.autoFollowDistanceLock is not None and abs(crossover[self.autoFollowDistanceLock] - CS.out.vEgo) > AUTO_FOLLOW_LOCK_MPH:
+      if self.autoFollowDistanceLock is not None and abs(crossover[self.autoFollowDistanceLock] - CS.out.vEgo) > AUTO_FOLLOW_LOCK_MS:
         self.autoFollowDistanceLock = None  # unlock
 
       if jvepilot_state.carState.accFollowDistance != target_follow and (self.autoFollowDistanceLock or target_follow) == target_follow:
