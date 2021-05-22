@@ -371,14 +371,6 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .2, .2, .2),
   },
 
-  EventName.accBrakeHold: {
-    ET.WARNING: Alert(
-      "WAITING TO RESUME ACC",
-      "Release brake to resume ACC",
-      AlertStatus.userPrompt, AlertSize.mid,
-      Priority.LOW, VisualAlert.none, AudibleAlert.none, .2, .2, .2),
-  },
-
   EventName.preDriverDistracted: {
     ET.WARNING: Alert(
       "KEEP EYES ON ROAD: Driver Distracted",

@@ -154,7 +154,7 @@ static int chrysler_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
     }
 
     // no torque if controls is not allowed
-    else if (!controls_allowed && (desired_torque != 0)) {
+    if (!controls_allowed && (desired_torque != 0)) {
       violation = 1;
     }
 
@@ -192,7 +192,7 @@ static int chrysler_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
       bus_fwd = 2;
     }
     // forward all messages from camera except LKAS_COMMAND and LKAS_HUD
-    else if ((bus_num == 2) && (addr != 658) && (addr != 678)) {
+    if ((bus_num == 2) && (addr != 658) && (addr != 678)) {
       bus_fwd = 0;
     }
   }
