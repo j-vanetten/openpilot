@@ -4,16 +4,14 @@ from cereal import car
 
 # kph
 V_CRUISE_MAX = 135
-V_CRUISE_MIN = 8
-V_CRUISE_DELTA = 8
-V_CRUISE_ENABLE_MIN = 32  # FCA gets down to 32
+V_CRUISE_MIN = 32  # Chrysler min ACC when imperial
+V_CRUISE_DELTA = 8  # 5 mph
 MPC_N = 16
 CAR_ROTATION_RADIUS = 0.0
 
 # metric
-V_CRUISE_MIN_METRIC = 10
-V_CRUISE_DELTA_METRIC = 5
-V_CRUISE_ENABLE_MIN_METRIC = 30  # FCA gets down to 30
+V_CRUISE_MIN_METRIC = 30  # Chrysler min ACC when metric
+V_CRUISE_DELTA_METRIC = 5  # 5 kph
 
 class MPC_COST_LAT:
   PATH = 1.0
@@ -39,9 +37,8 @@ def get_steer_max(CP, v_ego):
 def update_v_cruise(v_cruise_kph, button_events, enabled, reverse_acc_button_change, is_metric):
   # handle button presses. TODO: this should be in state_control, but a decelCruise press
   # would have the effect of both enabling and changing speed is checked after the state transition
+  v_cruise_min = cruise_min(is_metric)
   if enabled:
-    v_cruise_delta = cruise_delta_5(is_metric)
-    v_cruise_min = cruise_min(is_metric)
     for b in button_events:
       short_press = not b.pressed and b.pressedFrames < 30
       long_press = b.pressed and b.pressedFrames == 30 \
@@ -53,10 +50,11 @@ def update_v_cruise(v_cruise_kph, button_events, enabled, reverse_acc_button_cha
         long_press = sp
 
       if long_press:
+        v_cruise_delta_5 = cruise_delta_5(is_metric)
         if b.type == car.CarState.ButtonEvent.Type.accelCruise:
-          v_cruise_kph += v_cruise_delta - (v_cruise_kph % v_cruise_delta)
+          v_cruise_kph += v_cruise_delta_5 - (v_cruise_kph % v_cruise_delta_5)
         elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
-          v_cruise_kph -= v_cruise_delta - ((v_cruise_delta - v_cruise_kph) % v_cruise_delta)
+          v_cruise_kph -= v_cruise_delta_5 - ((v_cruise_delta_5 - v_cruise_kph) % v_cruise_delta_5)
         v_cruise_kph = clip(v_cruise_kph, v_cruise_min, V_CRUISE_MAX)
       elif short_press:
         if b.type == car.CarState.ButtonEvent.Type.accelCruise:
@@ -64,7 +62,7 @@ def update_v_cruise(v_cruise_kph, button_events, enabled, reverse_acc_button_cha
         elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
           v_cruise_kph -= cruise_delta_1(is_metric)
 
-  return max(v_cruise_kph, cruise_min(is_metric))
+  return max(v_cruise_kph, v_cruise_min)
 
 
 def initialize_v_cruise(v_ego, button_events, v_cruise_last, is_metric):
@@ -74,20 +72,16 @@ def initialize_v_cruise(v_ego, button_events, v_cruise_last, is_metric):
       if b.type == "resumeCruise":
         return v_cruise_last
 
-  return int(round(clip(v_ego * CV.MS_TO_KPH, cruise_enabled(is_metric), V_CRUISE_MAX)))
+  return int(round(clip(v_ego * CV.MS_TO_KPH, cruise_min(is_metric), V_CRUISE_MAX)))
 
 
 def cruise_min(is_metric):
   return V_CRUISE_MIN_METRIC if is_metric else V_CRUISE_MIN
 
 
-def cruise_delta_5(is_metric):
-  return V_CRUISE_DELTA_METRIC if is_metric else V_CRUISE_DELTA
-
-
 def cruise_delta_1(is_metric):
   return 1 if is_metric else CV.MPH_TO_KPH
 
 
-def cruise_enabled(is_metric):
-  return V_CRUISE_ENABLE_MIN_METRIC if is_metric else V_CRUISE_ENABLE_MIN
+def cruise_delta_5(is_metric):
+  return V_CRUISE_DELTA_METRIC if is_metric else V_CRUISE_DELTA
