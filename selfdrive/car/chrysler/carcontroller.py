@@ -35,6 +35,7 @@ class CarController():
     self.disable_auto_resume = self.params.get('jvePilot.settings.autoResume', encoding='utf8') != "1"
     self.autoFollowDistanceLock = None
     self.minAccSetting = MIN_ACC_SPEED_METRIC_MS if self.params.get_bool("IsMetric") else MIN_ACC_SPEED_IMPERIAL_MS
+    self.round_to_unit = CV.MS_TO_KPH if self.params.get_bool("IsMetric") else CV.MS_TO_MPH
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, jvepilot_state):
     can_sends = []
@@ -129,9 +130,8 @@ class CarController():
       target = min(target, int(CS.out.vEgo + (self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)) * CV.MPH_TO_MS))
 
     # keep from fluttering
-    round_to_unit = CV.MS_TO_KPH if self.params.get_bool("IsMetric") else CV.MS_TO_MPH
-    target = int(target * round_to_unit) / round_to_unit
-    current = int(CS.out.cruiseState.speed * round_to_unit) / round_to_unit
+    target = int(target * self.round_to_unit) / self.round_to_unit
+    current = int(CS.out.cruiseState.speed * self.round_to_unit) / self.round_to_unit
 
     if target < current and current > self.minAccSetting:
       return 'ACC_SPEED_DEC'
