@@ -12,7 +12,7 @@ import cereal.messaging as messaging
 ButtonType = car.CarState.ButtonEvent.Type
 
 MIN_ACC_SPEED_MPH = 20
-MIN_ACC_SPEED_METRIC = 30
+MIN_ACC_SPEED_MPH_METRIC = 19
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
 class CarController():
@@ -34,7 +34,7 @@ class CarController():
     self.cachedParams = CachedParams()
     self.disable_auto_resume = self.params.get('jvePilot.settings.autoResume', encoding='utf8') != "1"
     self.autoFollowDistanceLock = None
-    self.minAccSetting = MIN_ACC_SPEED_METRIC if self.params.get_bool("IsMetric") else MIN_ACC_SPEED_MPH
+    self.minAccSetting = MIN_ACC_SPEED_MPH_METRIC if self.params.get_bool("IsMetric") else MIN_ACC_SPEED_MPH
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, jvepilot_state):
     can_sends = []
