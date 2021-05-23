@@ -11,8 +11,8 @@ from cereal import car
 import cereal.messaging as messaging
 ButtonType = car.CarState.ButtonEvent.Type
 
-MIN_ACC_SPEED_MPH = 20
-MIN_ACC_SPEED_MPH_METRIC = 19
+MIN_ACC_SPEED_IMPERIAL_MS = 20 * CV.MPH_TO_MS
+MIN_ACC_SPEED_METRIC_MS = 30 * CV.KPH_TO_MS
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
 class CarController():
@@ -34,7 +34,7 @@ class CarController():
     self.cachedParams = CachedParams()
     self.disable_auto_resume = self.params.get('jvePilot.settings.autoResume', encoding='utf8') != "1"
     self.autoFollowDistanceLock = None
-    self.minAccSetting = MIN_ACC_SPEED_MPH_METRIC if self.params.get_bool("IsMetric") else MIN_ACC_SPEED_MPH
+    self.minAccSetting = MIN_ACC_SPEED_METRIC_MS if self.params.get_bool("IsMetric") else MIN_ACC_SPEED_IMPERIAL_MS
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, jvepilot_state):
     can_sends = []
@@ -122,16 +122,16 @@ class CarController():
 
   def hybrid_acc_button(self, CS, jvepilot_state):
     # Move the adaptive curse control to the target speed
-    acc_speed = CS.out.cruiseState.speed
-    current = round(acc_speed * CV.MS_TO_MPH)
-    target = round(jvepilot_state.carControl.vTargetFuture * CV.MS_TO_MPH)
-
+    target = jvepilot_state.carControl.vTargetFuture
     if jvepilot_state.carControl.accEco == 1:  # if eco mode
-      current_speed = round(CS.out.vEgo * CV.MS_TO_MPH)
-      target = min(target, int(current_speed + self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)))
+      target = min(target, int(CS.out.vEgo + (self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)) * CV.MPH_TO_MS))
     elif jvepilot_state.carControl.accEco == 2:  # if eco mode
-      current_speed = round(CS.out.vEgo * CV.MS_TO_MPH)
-      target = min(target, int(current_speed + self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)))
+      target = min(target, int(CS.out.vEgo + (self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)) * CV.MPH_TO_MS))
+
+    # keep from fluttering
+    round_to_unit = CV.MS_TO_KPH if self.params.get_bool("IsMetric") else CV.MS_TO_MPH
+    target = int(target * round_to_unit) / round_to_unit
+    current = int(CS.out.cruiseState.speed * round_to_unit) / round_to_unit
 
     if target < current and current > self.minAccSetting:
       return 'ACC_SPEED_DEC'
