@@ -125,13 +125,13 @@ class CarController():
     # Move the adaptive curse control to the target speed
     target = jvepilot_state.carControl.vTargetFuture
     if jvepilot_state.carControl.accEco == 1:  # if eco mode
-      target = min(target, int(CS.out.vEgo + (self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)) * CV.MPH_TO_MS))
+      target = min(target, int(CS.out.vEgo + (self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000) * CV.MPH_TO_MS)))
     elif jvepilot_state.carControl.accEco == 2:  # if eco mode
-      target = min(target, int(CS.out.vEgo + (self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)) * CV.MPH_TO_MS))
+      target = min(target, int(CS.out.vEgo + (self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000) * CV.MPH_TO_MS)))
 
     # keep from fluttering
-    target = int(target * self.round_to_unit) / self.round_to_unit
-    current = int(CS.out.cruiseState.speed * self.round_to_unit) / self.round_to_unit
+    target = round(target * self.round_to_unit) / self.round_to_unit
+    current = round(CS.out.cruiseState.speed * self.round_to_unit) / self.round_to_unit
 
     if target < current and current > self.minAccSetting:
       return 'ACC_SPEED_DEC'
