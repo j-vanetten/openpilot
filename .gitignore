@@ -75,3 +75,4 @@ comma*.sh
 
 selfdrive/modeld/thneed/compile
 models/*.thneed
+/.vs/OpenPilot-jve/v16
