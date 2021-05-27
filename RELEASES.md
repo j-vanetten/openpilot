@@ -1,3 +1,7 @@
+Version jvePilot-0.8.4(v3.2.2) (2021-05-26)
+========================
+* Fix UI bug
+
 Version jvePilot-0.8.4(v3.2.1) (2021-05-22)
 ========================
 * Update to version 0.8.4

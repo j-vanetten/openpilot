@@ -1,1 +1,1 @@
-#define COMMA_VERSION "jvePilot-0.8.4(v3.2.1)"
+#define COMMA_VERSION "jvePilot-0.8.4(v3.2.2)"
