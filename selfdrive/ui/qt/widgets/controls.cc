@@ -77,7 +77,7 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
   }
 
   if (hasToggle) {
-    QWidget *config_widget = new QWidget;
+    config_widget = new QWidget;
     config_widget->setVisible(false);
     config_widget->setLayout(config_layout);
     connect(title_label, &QPushButton::clicked, [=]() {
@@ -94,7 +94,7 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
 }
 
 void AbstractControl::hideEvent(QHideEvent *e){
-  if(description != nullptr){
-    description->hide();
+  if(config_widget != nullptr){
+    config_widget->hide();
   }
 }
