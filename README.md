@@ -218,6 +218,7 @@ Use this setting to adjust ACC Eco level 2 (two green leaves) for maximum eco-ne
 ### Device Offset
 Compensate for mounting your device off center in the windshield.
 If you mounted your device off center, use this setting to compensate.
+Use positive values if your device is to the left of center and negative if it's to the right.
 * Default: 0
 * Units: Meters
 * Vehicle Restart Required: No
