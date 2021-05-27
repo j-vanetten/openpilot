@@ -45,6 +45,7 @@ protected:
   QHBoxLayout *hlayout;
   QPushButton *title_label;
   QLabel *description = nullptr;
+  QWidget *config_widget = nullptr;
 };
 
 // widget to display a value
