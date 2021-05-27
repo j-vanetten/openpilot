@@ -101,11 +101,14 @@ void Sidebar::paintEvent(QPaintEvent *event) {
   p.drawImage(60, 1080 - 180 - 40, home_img);
 
   // network
-  p.drawImage(58, 196, signal_imgs[strength]);
+  p.drawImage(60, 190, signal_imgs[strength]);
   configFont(p, "Open Sans", 35, "Regular");
   p.setPen(QColor(0xff, 0xff, 0xff));
-  const QRect r = QRect(50, 247, 100, 50);
+  const QRect r = QRect(30, 220, 240, 50);
   p.drawText(r, Qt::AlignCenter, network_type[net_type]);
+  configFont(p, "Open Sans", 28, "Regular");
+  const QRect s = QRect(30, 260, 240, 50);
+  p.drawText(s, Qt::AlignCenter, "000.000.000.000");
 
   // metrics
   drawMetric(p, "TEMP", QString("%1°C").arg(temp_val), temp_status, 338);
