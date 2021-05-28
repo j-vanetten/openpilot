@@ -106,9 +106,10 @@ void Sidebar::paintEvent(QPaintEvent *event) {
   p.setPen(QColor(0xff, 0xff, 0xff));
   const QRect r = QRect(30, 220, 240, 50);
   p.drawText(r, Qt::AlignCenter, network_type[net_type]);
-  configFont(p, "Open Sans", 28, "Regular");
-  const QRect s = QRect(30, 260, 240, 50);
-  p.drawText(s, Qt::AlignCenter, "000.000.000.000");
+  // Future line for current IP Address
+  //configFont(p, "Open Sans", 28, "Regular");
+  //const QRect s = QRect(30, 260, 240, 50);
+  //p.drawText(s, Qt::AlignCenter, "000.000.000.000");
 
   // metrics
   drawMetric(p, "TEMP", QString("%1°C").arg(temp_val), temp_status, 338);
