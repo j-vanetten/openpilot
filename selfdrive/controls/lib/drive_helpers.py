@@ -4,14 +4,16 @@ from cereal import car
 
 # kph
 V_CRUISE_MAX = 135
-V_CRUISE_MIN = 32  # Chrysler min ACC when imperial
-V_CRUISE_DELTA = 8  # 5 mph
+V_CRUISE_MIN = 30  # Chrysler min ACC when metric
+V_CRUISE_DELTA = 5  # ACC increments (unit agnostic)
+
 MPC_N = 16
 CAR_ROTATION_RADIUS = 0.0
 
+V_CRUISE_MIN_IMPERIAL = int(20 * CV.MPH_TO_KPH)
+V_CRUISE_DELTA_IMPERIAL = int(V_CRUISE_DELTA * CV.MPH_TO_KPH)
+
 # metric
-V_CRUISE_MIN_METRIC = 30  # Chrysler min ACC when metric
-V_CRUISE_DELTA_METRIC = 5  # 5 kph
 
 class MPC_COST_LAT:
   PATH = 1.0
@@ -50,17 +52,18 @@ def update_v_cruise(v_cruise_kph, button_events, enabled, reverse_acc_button_cha
         long_press = sp
 
       if long_press:
-        v_cruise_delta_5 = cruise_delta_5(is_metric)
+        v_cruise_delta_5 = V_CRUISE_DELTA if is_metric else V_CRUISE_DELTA_IMPERIAL
         if b.type == car.CarState.ButtonEvent.Type.accelCruise:
           v_cruise_kph += v_cruise_delta_5 - (v_cruise_kph % v_cruise_delta_5)
         elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
           v_cruise_kph -= v_cruise_delta_5 - ((v_cruise_delta_5 - v_cruise_kph) % v_cruise_delta_5)
         v_cruise_kph = clip(v_cruise_kph, v_cruise_min, V_CRUISE_MAX)
       elif short_press:
+        v_cruise_delta_1 = 1 if is_metric else CV.MPH_TO_KPH
         if b.type == car.CarState.ButtonEvent.Type.accelCruise:
-          v_cruise_kph += cruise_delta_1(is_metric)
+          v_cruise_kph += v_cruise_delta_1
         elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
-          v_cruise_kph -= cruise_delta_1(is_metric)
+          v_cruise_kph -= v_cruise_delta_1
 
   return max(v_cruise_kph, v_cruise_min)
 
@@ -76,12 +79,4 @@ def initialize_v_cruise(v_ego, button_events, v_cruise_last, is_metric):
 
 
 def cruise_min(is_metric):
-  return V_CRUISE_MIN_METRIC if is_metric else V_CRUISE_MIN
-
-
-def cruise_delta_1(is_metric):
-  return 1 if is_metric else CV.MPH_TO_KPH
-
-
-def cruise_delta_5(is_metric):
-  return V_CRUISE_DELTA_METRIC if is_metric else V_CRUISE_DELTA
+  return V_CRUISE_MIN if is_metric else V_CRUISE_MIN_IMPERIAL
