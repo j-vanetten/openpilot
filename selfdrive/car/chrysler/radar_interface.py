@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 from opendbc.can.parser import CANParser
 from cereal import car
 from selfdrive.car.interfaces import RadarInterfaceBase
