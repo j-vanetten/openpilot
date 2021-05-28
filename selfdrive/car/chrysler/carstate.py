@@ -28,7 +28,7 @@ class CarState(CarStateBase):
 
   def update(self, cp, cp_cam):
     speed_adjust_ratio = self.cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
-    steer_zero_enabled = cachedParams.get('jvePilot.settings.enableSteerToZero', 5000)
+    steer_zero_enabled = self.cachedParams.get('jvePilot.settings.enableSteerToZero', 5000)
     inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
 
     ret = car.CarState.new_message()
