@@ -52,6 +52,7 @@ def manager_init():
     ("jvePilot.settings.slowInCurves.speedDropOff", "2.0"),
     ("jvePilot.settings.slowInCurves.speedDropOffAngle", "0.0"),
     ("jvePilot.settings.speedAdjustRatio", "1.00"),
+    ("jvePilot.settings.enableSteerToZero", "0"),
 
     ("CompletedTrainingVersion", "0"),
     ("HasAcceptedTerms", "0"),
