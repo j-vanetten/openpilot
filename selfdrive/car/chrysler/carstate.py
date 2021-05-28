@@ -28,6 +28,7 @@ class CarState(CarStateBase):
 
   def update(self, cp, cp_cam):
     speed_adjust_ratio = self.cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
+    steer_zero_enabled = cachedParams.get('jvePilot.settings.enableSteerToZero', 5000)
     inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
 
     ret = car.CarState.new_message()
@@ -74,7 +75,7 @@ class CarState(CarStateBase):
     ret.steeringTorqueEps = cp.vl["EPS_STATUS"]["TORQUE_MOTOR"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
     steer_state = cp.vl["EPS_STATUS"]["LKAS_STATE"]
-    ret.steerError = steer_state == 4 or (steer_state == 0 and ret.vEgo > self.CP.minSteerSpeed)
+    ret.steerError = steer_state == 4 or (steer_state == 0 and (ret.vEgo > self.CP.minSteerSpeed and steer_zero_enabled == "0"))
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]['HIGH_BEAM_FLASH'])
     
