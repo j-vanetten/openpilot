@@ -81,7 +81,7 @@ DBC = {
   CAR.PACIFICA_2020: dbc_dict('chrysler_pacifica_2017_hybrid', 'chrysler_pacifica_2017_hybrid_private_fusion'),
   CAR.PACIFICA_2018_HYBRID: dbc_dict('chrysler_pacifica_2017_hybrid', 'chrysler_pacifica_2017_hybrid_private_fusion'),
   CAR.PACIFICA_2019_HYBRID: dbc_dict('chrysler_pacifica_2017_hybrid', 'chrysler_pacifica_2017_hybrid_private_fusion'),
-  CAR.JEEP_CHEROKEE: dbc_dict('chrysler_pacifica_2017_hybrid', 'chrysler_pacifica_2017_hybrid_private_fusion'),
+  CAR.JEEP_CHEROKEE: dbc_dict('chrysler_pacifica_2017_hybrid', 'chrysler_pacifica_2017_hybrid_private_fusion', 'chrysler_jvepilot'),
   CAR.JEEP_CHEROKEE_2019: dbc_dict('chrysler_pacifica_2017_hybrid', 'chrysler_pacifica_2017_hybrid_private_fusion'),
 }
 
