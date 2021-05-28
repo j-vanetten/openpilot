@@ -20,7 +20,7 @@ class CarInterface(CarInterfaceBase):
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
     speed_adjust_ratio = cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
     inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
-    steer_zero_enabled = cachedParams.get_bool('jvePilot.settings.enableSteerToZero', 5000)
+    steer_zero_enabled = cachedParams.get('jvePilot.settings.enableSteerToZero', 5000)
 
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "chrysler"
