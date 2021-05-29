@@ -22,6 +22,7 @@ This fork is only for Chrysler/Jeep vehicles!
   * [Reverse ACC +/- Speeds](#reverse-acc-----speeds)
   * [Auto Resume](#auto-resume-1)
     + [Disable on Gas](#disable-on-gas)
+  * [Steer at Zero](#zero-steer-1)
   * [Auto Follow](#auto-follow-1)
     + [1-2 Bar Change Over](#1-2-bar-change-over)
     + [2-3 Bar Change Over](#2-3-bar-change-over)
@@ -170,6 +171,11 @@ This feature allows jvePilot to auto resume from an ACC stop.
 
 ## Disable on Gas
 When enabled, jvePilot will disengage when you press the gas
+* Default: Off
+* Vehicle Restart Required: Yes
+
+## Steer at Zero
+When enabled, jvePilot will attempt to steer all the way to 0mph.  If a [hardware interceptor](https://github.com/xps-genesis/panda/tree/xps_wp_chrysler_basic) is not inplace this will cause LKAS errors.
 * Default: Off
 * Vehicle Restart Required: Yes
 

@@ -97,6 +97,12 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
                                   "When enabled, jvePilot will disengage jvePilot when the gas pedal is pressed.",
                                   "../assets/jvepilot/settings/icon_gas_pedal.png",
                                   this));
+  // enableStereToZero
+  toggles.append(new ParamControl("jvePilot.settings.enableSteerToZero",
+                                  "Steer to 0 (White Panda Required)",
+                                  "When enabled, jvePilot will take advantage of eps intercept hardware and allow steering to 0mph.",
+                                  "../assets/offroad/icon_speed_limit.png",
+                                  this));
 
   // accEco
   QList<struct ConfigButton> ecoConfigs = {
