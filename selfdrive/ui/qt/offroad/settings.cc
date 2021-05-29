@@ -97,13 +97,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
                                   "When enabled, jvePilot will disengage jvePilot when the gas pedal is pressed.",
                                   "../assets/jvepilot/settings/icon_gas_pedal.png",
                                   this));
-  // enableStereToZero
-  toggles.append(new ParamControl("jvePilot.settings.enableSteerToZero",
-                                  "Steer to 0 (White Panda Required)",
-                                  "When enabled, jvePilot will take advantage of eps intercept hardware and allow steering to 0mph.",
-                                  "../assets/offroad/icon_speed_limit.png",
-                                  this));
-
   // accEco
   QList<struct ConfigButton> ecoConfigs = {
     { "jvePilot.settings.accEco.speedAheadLevel1",
@@ -168,6 +161,18 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
       "Ratio at Follow Level 4",
       "Default: 1.1, Min: 0.5, Max: 4.0\n"
         "At follow level 4, apply this ratio to the radar distance."
+    },
+    { "jvePilot.settings.enableWhitePandaSteer",
+      0, 1,
+      "Enable flag for WhitePanda 0 Steer Mod",
+      "Default: 0, Min: 0, Max: 1\n"
+        "Set to 1 to enable modification."
+    },
+    { "jvePilot.settings.minSteerSpeed",
+      0, 28,
+      "Speed at which OpenPilot will begin steering the car.",
+      "Default: 17.5, Min: 0, Max: 28\n"
+        "Unit of measure is in meters per second, 17.5 is 39mph, 3.8 is 9mph"
     }
   };
   toggles.append(new LabelControl("jvePilot Control Settings",

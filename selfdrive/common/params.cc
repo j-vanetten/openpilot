@@ -161,7 +161,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"jvePilot.settings.slowInCurves.speedDropOff", PERSISTENT},
     {"jvePilot.settings.slowInCurves.speedDropOffAngle", PERSISTENT},
     {"jvePilot.settings.speedAdjustRatio", PERSISTENT},
-    {"jvePilot.settings.enableSteerToZero", PERSISTENT},
+    {"jvePilot.settings.enableWhitePandaSteer", PERSISTENT},
+    {"jvePilot.settings.minSteerSpeed", PERSISTENT},
 
     {"AccessToken", CLEAR_ON_MANAGER_START},
     {"ApiCache_DriveStats", PERSISTENT},
