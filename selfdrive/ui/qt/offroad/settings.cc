@@ -99,7 +99,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
                                   this));
   // enableStereToZero
   toggles.append(new ParamControl("jvePilot.settings.enableSteerToZero",
-                                  "Enable Steer to Zero",
+                                  "Steer to 0 (White Panda Required)",
                                   "When enabled, jvePilot will take advantage of eps intercept hardware and allow steering to 0mph.",
                                   "../assets/offroad/icon_speed_limit.png",
                                   this));
