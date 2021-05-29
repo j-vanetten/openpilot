@@ -52,7 +52,8 @@ def manager_init():
     ("jvePilot.settings.slowInCurves.speedDropOff", "2.0"),
     ("jvePilot.settings.slowInCurves.speedDropOffAngle", "0.0"),
     ("jvePilot.settings.speedAdjustRatio", "1.00"),
-    ("jvePilot.settings.enableSteerToZero", "0"),
+    ("jvePilot.settings.enableWhitePandaSteer", "0"),
+    ("jvePilot.settings.minSteerSpeed", "17.5"),
 
     ("CompletedTrainingVersion", "0"),
     ("HasAcceptedTerms", "0"),

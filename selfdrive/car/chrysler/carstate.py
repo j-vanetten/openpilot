@@ -28,7 +28,7 @@ class CarState(CarStateBase):
 
   def update(self, cp, cp_cam):
     speed_adjust_ratio = self.cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
-    steer_zero_disabled = (self.cachedParams.get('jvePilot.settings.enableSteerToZero', 5000) != "1")
+    enable_white_panda_steer = (self.cachedParams.get('jvePilot.settings.enableWhitePandaSteer', 5000) == "1")
     inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
 
     ret = car.CarState.new_message()
@@ -75,7 +75,13 @@ class CarState(CarStateBase):
     ret.steeringTorqueEps = cp.vl["EPS_STATUS"]["TORQUE_MOTOR"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
     steer_state = cp.vl["EPS_STATUS"]["LKAS_STATE"]
-    ret.steerError = steer_state == 4 or (steer_state == 0 and (ret.vEgo > self.CP.minSteerSpeed and steer_zero_disabled))
+
+    if steer_state == 4:
+      ret.steerError = true
+    elif steer_state == 0 and not enable_white_panda_steer:
+      ret.steerError = (ret.vEgo > self.CP.minSteerSpeed)
+    else:
+      ret.steerError = false
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]['HIGH_BEAM_FLASH'])
     

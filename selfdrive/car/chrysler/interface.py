@@ -20,7 +20,7 @@ class CarInterface(CarInterfaceBase):
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
     speed_adjust_ratio = cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
     inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
-    steer_zero_enabled = (cachedParams.get('jvePilot.settings.enableSteerToZero', 5000) == "1")
+    min_steer_speed = cachedParams.get_float('jvePilot.settings.minSteerSpeed', 5000)
 
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "chrysler"
@@ -48,13 +48,8 @@ class CarInterface(CarInterfaceBase):
 
     ret.centerToFront = ret.wheelbase * 0.44
 
-    ret.minSteerSpeed = 3.8 * inverse_speed_adjust_ratio  # m/s
-    if candidate in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
-      # TODO allow 2019 cars to steer down to 13 m/s if already engaged.
-      if steer_zero_enabled:
-        ret.minSteerSpeed = 0
-      else:
-        ret.minSteerSpeed = 17.5 * inverse_speed_adjust_ratio  # m/s 17 on the way up, 13 on the way down once engaged.
+    # TODO allow 2019 cars to steer down to 13 m/s if already engaged.
+    ret.minSteerSpeed = min_steer_speed * inverse_speed_adjust_ratio  # m/s 17 on the way up, 13 on the way down once engaged.
 
     # starting with reasonable value for civic and scaling by mass and wheelbase
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)

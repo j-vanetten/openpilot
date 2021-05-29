@@ -22,7 +22,8 @@ This fork is only for Chrysler/Jeep vehicles!
   * [Reverse ACC +/- Speeds](#reverse-acc-----speeds)
   * [Auto Resume](#auto-resume-1)
     + [Disable on Gas](#disable-on-gas)
-  * [Steer at Zero](#zero-steer-1)
+  * [Enable White Panda Steering Intercept](#wp-steering-intercept)
+  * [Minimum Steer Speed](#minimum-steer-speed)
   * [Auto Follow](#auto-follow-1)
     + [1-2 Bar Change Over](#1-2-bar-change-over)
     + [2-3 Bar Change Over](#2-3-bar-change-over)
@@ -174,10 +175,19 @@ When enabled, jvePilot will disengage when you press the gas
 * Default: Off
 * Vehicle Restart Required: Yes
 
-## Steer at Zero
-When enabled, jvePilot will attempt to steer all the way to 0mph.  If a [hardware interceptor](https://github.com/xps-genesis/panda/tree/xps_wp_chrysler_basic) is not inplace this will cause LKAS errors.
-* Default: Off
+## Enable White Panda Steering Intercept
+When enabled, jvePilot will allow you steer all the way to 0mph.  If a [hardware interceptor](https://github.com/xps-genesis/panda/tree/xps_wp_chrysler_basic).
+* Default: 0
 * Vehicle Restart Required: Yes
+* Min/Max values (0, 1)
+
+## Minimum Steer Speed
+Adjust minimum speed Openpilot will attempt to steer the vehicle. Changing this below your car's threshold will likely cause an lkas fault.
+For 2018 and younger cars limit was 3.8, newer cars 17.5 seems to be the limit.
+* Default: 17.5
+* Units: Meters per Second
+* Vehicle Restart Required: Yes
+* Min/Max values (0, 28)
 
 ## Auto Follow
 If you don't want auto follow enabled on every start, turn this off.
