@@ -97,7 +97,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
                                   "When enabled, jvePilot will disengage jvePilot when the gas pedal is pressed.",
                                   "../assets/jvepilot/settings/icon_gas_pedal.png",
                                   this));
-
   // accEco
   QList<struct ConfigButton> ecoConfigs = {
     { "jvePilot.settings.accEco.speedAheadLevel1",
@@ -162,6 +161,18 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
       "Ratio at Follow Level 4",
       "Default: 1.1, Min: 0.5, Max: 4.0\n"
         "At follow level 4, apply this ratio to the radar distance."
+    },
+    { "jvePilot.settings.minSteerSpeedOffset",
+      -28, 28,
+      "Minimum Speed Steering Offset.",
+      "Default: 0, Min: -28, Max: 28\n"
+        "Unit of measure is in meters per second, 17.5 is 39mph, 3.8 is 9mph"
+    },
+    { "jvePilot.settings.enableWhitePandaSteer",
+      0, 1,
+      "Enable flag for WhitePanda 0 Steer Mod",
+      "Default: 0, Min: 0, Max: 1\n"
+        "Set to 1 to enable modification."
     }
   };
   toggles.append(new LabelControl("jvePilot Control Settings",
