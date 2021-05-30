@@ -1,3 +1,5 @@
+* Add support for vehicles that have been modified to allow no minimum steer speed. 
+
 Version jvePilot-0.8.4(v3.2.2) (2021-05-26)
 ========================
 * Fix UI bug

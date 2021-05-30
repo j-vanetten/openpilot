@@ -5,11 +5,13 @@ from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness,
 from selfdrive.car.interfaces import CarInterfaceBase
 from selfdrive.config import Conversions as CV
 from common.cached_params import CachedParams
+from common.op_params import opParams
 
 ButtonType = car.CarState.ButtonEvent.Type
 
 GAS_RESUME_SPEED = 2.
 cachedParams = CachedParams()
+opParams = opParams()
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
@@ -19,6 +21,7 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
     speed_adjust_ratio = cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
+    min_steer_check = not opParams.get('steer.checkMinimum')
     inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
 
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
@@ -47,10 +50,11 @@ class CarInterface(CarInterfaceBase):
 
     ret.centerToFront = ret.wheelbase * 0.44
 
-    ret.minSteerSpeed = 3.8 * inverse_speed_adjust_ratio  # m/s
-    if candidate in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
-      # TODO allow 2019 cars to steer down to 13 m/s if already engaged.
-      ret.minSteerSpeed = 17.5 * inverse_speed_adjust_ratio  # m/s 17 on the way up, 13 on the way down once engaged.
+    if min_steer_check:
+      ret.minSteerSpeed = 3.8 * inverse_speed_adjust_ratio  # m/s
+      if candidate in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
+        # TODO allow 2019 cars to steer down to 13 m/s if already engaged.
+        ret.minSteerSpeed = 17.5 * inverse_speed_adjust_ratio  # m/s 17 on the way up, 13 on the way down once engaged.
 
     # starting with reasonable value for civic and scaling by mass and wheelbase
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)

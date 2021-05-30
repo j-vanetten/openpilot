@@ -37,6 +37,8 @@ This fork is only for Chrysler/Jeep vehicles!
       - [Ratio at Follow Level 2](#ratio-at-follow-level-2)
       - [Ratio at Follow Level 3](#ratio-at-follow-level-3)
       - [Ratio at Follow Level 4](#ratio-at-follow-level-4)
+- [Advanced](#advanced-settings)
+  * [Disable Minimum Steer](#disable-minimum-steer)
 
 # **Safety Notes**
 * This is my experimental branch, so I'm not responsible for any damage this may cause.
@@ -262,6 +264,18 @@ Ratio to adjust jvePilot's default model distance when ACC follow distance is se
 * Vehicle Restart Required: No
 * Min/Max values 0.5, 4
 
+
+# Advanced settings
+These settings are for advanced users doing advanced things. 
+Use SSH and opEdit to change these settings.
+
+### Minimum Steer Check  
+When disabled, jvePilot will no longer put a minimum on steer speed.  
+Requires a mod like a [hardware interceptor](https://github.com/xps-genesis/panda/tree/xps_wp_chrysler_basic).
+* Setting: `steer.checkMinimum`
+* Default: True 
+* Vehicle Restart Required: Yes
+* Allowed values: False, True
 ---
 
 [![](https://i.imgur.com/UelUjKAh.png)](#)
