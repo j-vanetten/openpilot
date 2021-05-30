@@ -21,7 +21,7 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
     speed_adjust_ratio = cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
-    min_steer_check = not opParams.get('steer.checkMinimum')
+    min_steer_check = opParams.get('steer.checkMinimum')
     inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
 
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
