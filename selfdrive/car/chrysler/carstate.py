@@ -5,6 +5,7 @@ from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD
 from common.cached_params import CachedParams
+from common.op_params import opParams
 
 ButtonType = car.CarState.ButtonEvent.Type
 
@@ -23,11 +24,13 @@ class CarState(CarStateBase):
   def __init__(self, CP):
     super().__init__(CP)
     self.cachedParams = CachedParams()
+    self.opParams = opParams()
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["GEAR"]['PRNDL']
 
   def update(self, cp, cp_cam):
     speed_adjust_ratio = self.cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
+    min_steer_check = self.opParams.get('steer.checkMinimum')
     inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
 
     ret = car.CarState.new_message()
@@ -74,7 +77,7 @@ class CarState(CarStateBase):
     ret.steeringTorqueEps = cp.vl["EPS_STATUS"]["TORQUE_MOTOR"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
     steer_state = cp.vl["EPS_STATUS"]["LKAS_STATE"]
-    ret.steerError = steer_state == 4 or (steer_state == 0 and ret.vEgo > self.CP.minSteerSpeed)
+    ret.steerError = steer_state == 4 or (min_steer_check and steer_state == 0 and ret.vEgo > self.CP.minSteerSpeed)
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]['HIGH_BEAM_FLASH'])
     

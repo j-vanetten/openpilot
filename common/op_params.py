@@ -62,6 +62,7 @@ class opParams:
 
     VT = ValueTypes()
     self.fork_params = {
+      'steer.checkMinimum': Param(True, bool, 'Perform minimum steer speed checks.'),
     }
 
     self._params_file = '/data/op_params.json'
