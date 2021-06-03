@@ -338,7 +338,7 @@ class Controls:
     self.v_cruise_kph_last = self.v_cruise_kph
 
     # use our own set speed logic
-    self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled, self.reverse_acc_button_change)
+    self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.enabled, self.reverse_acc_button_change, self.is_metric)
 
     # decrease the soft disable timer at every step, as it's reset on
     # entrance in SOFT_DISABLING state
@@ -396,7 +396,7 @@ class Controls:
           else:
             self.state = State.enabled
           self.current_alert_types.append(ET.ENABLE)
-          self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last)
+          self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last, self.is_metric)
 
     # Check if actuators are enabled
     self.active = self.state == State.enabled or self.state == State.softDisabling
