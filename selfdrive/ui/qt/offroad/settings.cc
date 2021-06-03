@@ -51,19 +51,19 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
   QList<struct ConfigButton> autoFollowConfigs = {
     { "jvePilot.settings.autoFollow.speed1-2Bars",
       0, 300,
-      "1-2 Bar Change Over",
+      "1-2 Bar Change Over (MPH)",
       "Default: 15 mph, Min: 0, Max: 300\n"
         "Use this to change the speed at which Auto Follow will switch between one to two bars."
     },
     { "jvePilot.settings.autoFollow.speed2-3Bars",
       0, 300,
-      "2-3 Bar Change Over",
+      "2-3 Bar Change Over (MPH)",
       "Default: 30 mph, Min: 0, Max: 300\n"
         "Use this to change the speed at which Auto Follow will switch between two to three bars."
     },
     { "jvePilot.settings.autoFollow.speed3-4Bars",
       0, 300,
-      "3-4 Bar Change Over",
+      "3-4 Bar Change Over (MPH)",
       "Default: 65 mph, Min: 0, Max: 300\n"
         "Use this to change the speed at which Auto Follow will switch between three to four bars."
     }
@@ -78,8 +78,8 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
   // reverseAccSpeedChange
   toggles.append(new ParamControl("jvePilot.settings.reverseAccSpeedChange",
                                   "Reverse ACC +/- Speeds",
-                                  "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 mph increments."
-                                  " Hold a little longer to change by 1 mph."
+                                  "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 increments."
+                                  " Hold a little longer to change by 1."
                                   " Disable to keep stock setting.",
                                   "../assets/jvepilot/settings/icon_acc_speed_change.png",
                                   this));
@@ -102,13 +102,13 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
   QList<struct ConfigButton> ecoConfigs = {
     { "jvePilot.settings.accEco.speedAheadLevel1",
       1, 100,
-      "Keep ahead at ACC Eco level 1",
+      "Keep ahead at Eco 1 (MPH)",
       "Default: 7 mph, Min: 1, Max: 100\n"
         "The higher the number the more acceleration that occurs."
     },
     { "jvePilot.settings.accEco.speedAheadLevel2",
       1, 100,
-      "Keep ahead at ACC Eco level 2",
+      "Keep ahead at Eco 2 (MPH)",
       "Default: 5 mph, Min: 1, Max: 100\n"
         "The higher the number the more acceleration that occurs."
     }

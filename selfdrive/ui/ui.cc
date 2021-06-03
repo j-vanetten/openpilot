@@ -130,7 +130,8 @@ static void update_state(UIState *s) {
   SubMaster &sm = *(s->sm);
   UIScene &scene = s->scene;
 
-  if (sm.updated("radarState")) {
+  // don't draw leads when stopped
+  if (sm.updated("radarState") && sm.updated("carState") && sm["carState"].getCarState().getVEgo() > 0.27) {
     std::optional<cereal::ModelDataV2::XYZTData::Reader> line;
     if (sm.rcv_frame("modelV2") > 0) {
       line = sm["modelV2"].getModelV2().getPosition();

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 from opendbc.can.parser import CANParser
 from cereal import car
 from selfdrive.car.interfaces import RadarInterfaceBase
@@ -21,13 +22,17 @@ def _create_radar_can_parser(car_fingerprint):
   # The factor and offset are applied by the dbc parsing library, so the
   # default values should be after the factor/offset are applied.
   signals = list(zip(['LONG_DIST'] * msg_n +
-                ['LAT_DIST'] * msg_n +
-                ['REL_SPEED'] * msg_n,
+                ['LAT_ANGLE'] * msg_n +
+                ['REL_SPEED'] * msg_n +
+                ['PROBABILITY'] * msg_n +
+                ['MEASURED'] * msg_n,
                 RADAR_MSGS_C * 2 +  # LONG_DIST, LAT_DIST
-                RADAR_MSGS_D,    # REL_SPEED
+                RADAR_MSGS_D * 3,   # REL_SPEED, PROBABILITY, MEASURED
                 [0] * msg_n +  # LONG_DIST
-                [-1000] * msg_n +    # LAT_DIST
-                [-146.278] * msg_n))  # REL_SPEED set to 0, factor/offset to this
+                [-0.5] * msg_n +    # LAT_DIST
+                [-128] * msg_n +
+                [0] * msg_n +
+                [0] * msg_n))  # REL_SPEED set to 0, factor/offset to this
   # TODO what are the checks actually used for?
   # honda only checks the last message,
   # toyota checks all the messages. Which do we want?
@@ -74,18 +79,17 @@ class RadarInterface(RadarInterfaceBase):
         self.pts[trackId].trackId = trackId
         self.pts[trackId].aRel = float('nan')
         self.pts[trackId].yvRel = float('nan')
-        self.pts[trackId].measured = True
 
       if 'LONG_DIST' in cpt:  # c_* message
         self.pts[trackId].dRel = cpt['LONG_DIST']  # from front of car
-        # our lat_dist is positive to the right in car's frame.
-        # TODO what does yRel want?
-        self.pts[trackId].yRel = cpt['LAT_DIST']  # in car frame's y axis, left is positive
+        self.pts[trackId].yRel = cpt['LAT_ANGLE']  # in car frame's y axis, left is positive
+        self.pts[trackId].yRel = math.tan(self.pts[trackId].yRel) * self.pts[trackId].dRel
       else:  # d_* message
         self.pts[trackId].vRel = cpt['REL_SPEED']
+        self.pts[trackId].measured = bool(cpt['MEASURED'])
 
     # We want a list, not a dictionary. Filter out LONG_DIST==0 because that means it's not valid.
-    ret.points = [x for x in self.pts.values() if x.dRel != 0]
+    ret.points = [x for x in self.pts.values() if x.measured and 250 > x.dRel > 0]
 
     self.updated_messages.clear()
     return ret

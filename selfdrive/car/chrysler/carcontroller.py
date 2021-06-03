@@ -5,14 +5,16 @@ from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
 
+from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.cached_params import CachedParams
 from common.params import Params
 from cereal import car
 import cereal.messaging as messaging
 ButtonType = car.CarState.ButtonEvent.Type
 
-MIN_ACC_SPEED_MPH = 20
-AUTO_FOLLOW_LOCK_MPH = 4 * CV.MPH_TO_MS
+V_CRUISE_MIN_IMPERIAL_MS = V_CRUISE_MIN_IMPERIAL * CV.KPH_TO_MS
+V_CRUISE_MIN_MS = V_CRUISE_MIN * CV.KPH_TO_MS
+AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -33,6 +35,8 @@ class CarController():
     self.cachedParams = CachedParams()
     self.disable_auto_resume = self.params.get('jvePilot.settings.autoResume', encoding='utf8') != "1"
     self.autoFollowDistanceLock = None
+    self.minAccSetting = V_CRUISE_MIN_MS if self.params.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
+    self.round_to_unit = CV.MS_TO_KPH if self.params.get_bool("IsMetric") else CV.MS_TO_MPH
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, jvepilot_state):
     can_sends = []
@@ -120,18 +124,21 @@ class CarController():
 
   def hybrid_acc_button(self, CS, jvepilot_state):
     # Move the adaptive curse control to the target speed
-    acc_speed = CS.out.cruiseState.speed
-    current = round(acc_speed * CV.MS_TO_MPH)
-    target = round(jvepilot_state.carControl.vTargetFuture * CV.MS_TO_MPH)
-
+    eco_limit = None
     if jvepilot_state.carControl.accEco == 1:  # if eco mode
-      current_speed = round(CS.out.vEgo * CV.MS_TO_MPH)
-      target = min(target, int(current_speed + self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)))
+      eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)
     elif jvepilot_state.carControl.accEco == 2:  # if eco mode
-      current_speed = round(CS.out.vEgo * CV.MS_TO_MPH)
-      target = min(target, int(current_speed + self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)))
+      eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
 
-    if target < current and current > MIN_ACC_SPEED_MPH:
+    target = jvepilot_state.carControl.vTargetFuture
+    if eco_limit:
+      target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
+
+    # round to nearest unit
+    target = round(target * self.round_to_unit)
+    current = round(CS.out.cruiseState.speed * self.round_to_unit)
+
+    if target < current and current > self.minAccSetting:
       return 'ACC_SPEED_DEC'
     elif target > current:
       return 'ACC_SPEED_INC'
@@ -152,7 +159,7 @@ class CarController():
       else:
         target_follow = 3
 
-      if self.autoFollowDistanceLock is not None and abs(crossover[self.autoFollowDistanceLock] - CS.out.vEgo) > AUTO_FOLLOW_LOCK_MPH:
+      if self.autoFollowDistanceLock is not None and abs(crossover[self.autoFollowDistanceLock] - CS.out.vEgo) > AUTO_FOLLOW_LOCK_MS:
         self.autoFollowDistanceLock = None  # unlock
 
       if jvepilot_state.carState.accFollowDistance != target_follow and (self.autoFollowDistanceLock or target_follow) == target_follow:
