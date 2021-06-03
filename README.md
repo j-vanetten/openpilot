@@ -65,7 +65,6 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 * Auto follow feature to adjust the follow distance based on speed (Speeds are configurable)
 * ACC Eco to limit the throttle when accelerating  
 * Pressing the gas does not disengage jvePilot (Can be disabled)
-* Report blind spot indicators to jvePilot for better lane change safety
 * Setting to sync jvePilot speed to vehicle speedometer 
 
 ### Longitudinal control
