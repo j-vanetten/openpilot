@@ -1,6 +1,8 @@
 # FCA Hybrid OpenPilot/ACC jvePilot
 This fork is only for Chrysler/Jeep vehicles!
 
+[![Buy me a beer!](https://github.com/j-vanetten/openpilot/blob/jvePilot-release/.github/ButMeABeer.png?raw=true)](https://www.buymeacoffee.com/jvePilot)
+
 # Table of contents
 - [**Safety Notes**](#--safety-notes--)
 - [FCA Hybrid OpenPilot/ACC jvePilot](#fca-hybrid-openpilot-acc-jvepilot)
