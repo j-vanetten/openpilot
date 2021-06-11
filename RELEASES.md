@@ -1,3 +1,7 @@
+Version jvePilot-0.8.4(v3.4.0) (2021-XX-XX)
+========================
+* Fix for LKAS button coming on
+
 Version jvePilot-0.8.4(v3.3.0) (2021-06-02)
 ========================
 * Fix radar tracking thanks to @xps
