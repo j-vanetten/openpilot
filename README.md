@@ -1,6 +1,8 @@
 # FCA Hybrid OpenPilot/ACC jvePilot
 This fork is only for Chrysler/Jeep vehicles!
 
+[![Buy me a beer!](https://github.com/j-vanetten/openpilot/blob/jvePilot-release/.github/ButMeABeer.png?raw=true)](https://www.buymeacoffee.com/jvePilot)
+
 # Table of contents
 - [**Safety Notes**](#--safety-notes--)
 - [FCA Hybrid OpenPilot/ACC jvePilot](#fca-hybrid-openpilot-acc-jvepilot)
@@ -65,7 +67,6 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 * Auto follow feature to adjust the follow distance based on speed (Speeds are configurable)
 * ACC Eco to limit the throttle when accelerating  
 * Pressing the gas does not disengage jvePilot (Can be disabled)
-* Report blind spot indicators to jvePilot for better lane change safety
 * Setting to sync jvePilot speed to vehicle speedometer 
 
 ### Longitudinal control
