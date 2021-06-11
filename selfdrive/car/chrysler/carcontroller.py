@@ -1,6 +1,6 @@
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
-  create_wheel_buttons_command
+  create_wheel_buttons_command, create_lkas_heartbit
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -103,8 +103,10 @@ class CarController():
 
     self.apply_steer_last = apply_steer
 
-    # LKAS_HEARTBIT is forwarded by Panda so no need to send it here.
-    # frame is 100Hz (0.01s period)
+    if self.ccframe % 10 == 0:  # 0.1s period
+      new_msg = create_lkas_heartbit(self.packer, 0)
+      can_sends.append(new_msg)
+
     if (self.ccframe % 25 == 0):  # 0.25s period
       if (CS.lkas_car_model != -1):
         new_msg = create_lkas_hud(
