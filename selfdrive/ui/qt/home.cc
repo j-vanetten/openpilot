@@ -22,7 +22,7 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
 
   sidebar = new Sidebar(this);
   layout->addWidget(sidebar);
-  QObject::connect(this, &HomeWindow::update, sidebar, &Sidebar::update);
+  QObject::connect(this, &HomeWindow::update, sidebar, &Sidebar::updateState);
   QObject::connect(sidebar, &Sidebar::openSettings, this, &HomeWindow::openSettings);
 
   slayout = new QStackedLayout();
@@ -30,12 +30,19 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
 
   onroad = new OnroadWindow(this);
   slayout->addWidget(onroad);
+
   QObject::connect(this, &HomeWindow::update, onroad, &OnroadWindow::update);
-  QObject::connect(this, &HomeWindow::offroadTransitionSignal, onroad, &OnroadWindow::offroadTransition);
+  QObject::connect(this, &HomeWindow::offroadTransitionSignal, onroad, &OnroadWindow::offroadTransitionSignal);
 
   home = new OffroadHome();
   slayout->addWidget(home);
   QObject::connect(this, &HomeWindow::openSettings, home, &OffroadHome::refresh);
+
+  driver_view = new DriverViewWindow(this);
+  connect(driver_view, &DriverViewWindow::done, [=] {
+    showDriverView(false);
+  });
+  slayout->addWidget(driver_view);
 
   setLayout(layout);
 }
@@ -58,14 +65,17 @@ void HomeWindow::offroadTransition(bool offroad) {
   emit offroadTransitionSignal(offroad);
 }
 
-void HomeWindow::mousePressEvent(QMouseEvent* e) {
-  // TODO: make a nice driver view widget
-  if (QUIState::ui_state.scene.driver_view) {
-    Params().putBool("IsDriverViewEnabled", false);
-    QUIState::ui_state.scene.driver_view = false;
-    return;
+void HomeWindow::showDriverView(bool show) {
+  if (show) {
+    emit closeSettings();
+    slayout->setCurrentWidget(driver_view);
+  } else {
+    slayout->setCurrentWidget(home);
   }
+  sidebar->setVisible(show == false);
+}
 
+void HomeWindow::mousePressEvent(QMouseEvent* e) {
   // Handle sidebar collapsing
   // Handle button touch events
   if (onroad->isVisible()) {
@@ -76,7 +86,17 @@ void HomeWindow::mousePressEvent(QMouseEvent* e) {
       QUIState::ui_state.scene.accEco = QUIState::ui_state.scene.accEco == 2 ? 0 : QUIState::ui_state.scene.accEco + 1;
       notify_state();
     } else if(!sidebar->isVisible() || e->x() > sidebar->width()) {
-      sidebar->setVisible(!sidebar->isVisible());
+      // TODO: Handle this without exposing pointer to map widget
+      // Hide map first if visible, then hide sidebar
+      if (onroad->map != nullptr && onroad->map->isVisible()){
+        onroad->map->setVisible(false);
+      } else if (!sidebar->isVisible()) {
+        sidebar->setVisible(true);
+      } else {
+        sidebar->setVisible(false);
+
+        if (onroad->map != nullptr) onroad->map->setVisible(true);
+      }
     }
   }
 }

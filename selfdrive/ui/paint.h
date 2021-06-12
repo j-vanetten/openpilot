@@ -8,6 +8,7 @@ void ui_draw_rect(NVGcontext *vg, const Rect &r, NVGcolor color, int width, floa
 void ui_fill_rect(NVGcontext *vg, const Rect &r, const NVGpaint &paint, float radius = 0);
 void ui_fill_rect(NVGcontext *vg, const Rect &r, const NVGcolor &color, float radius = 0);
 void ui_nvg_init(UIState *s);
+void ui_resize(UIState *s, int width, int height);
 
 const int v_edge_padding = 140;
 const int h_edge_padding = 70;
