@@ -131,7 +131,6 @@ class ParamControl : public ToggleControl {
 
 public:
   ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {}) : ToggleControl(title, desc, icon, false, parent, btns) {
-    // set initial state from param
     if (params.getBool(param.toStdString().c_str())) {
       toggle.togglePosition();
     }

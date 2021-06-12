@@ -107,7 +107,6 @@ void Keyboard::setKeyboardLayout(int index) {
   main_layout->setCurrentIndex(index);
 }
 
-
 void Keyboard::handleButton(QAbstractButton* m_button) {
   QString id = m_button->text();
   if (!QString::compare(m_button->text(), "↑") || !QString::compare(m_button->text(), "ABC")) {

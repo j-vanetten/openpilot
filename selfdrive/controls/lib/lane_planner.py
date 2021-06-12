@@ -40,6 +40,7 @@ class LanePlanner:
 
     self.camera_offset = -CAMERA_OFFSET if wide_camera else CAMERA_OFFSET
     self.path_offset = -PATH_OFFSET if wide_camera else PATH_OFFSET
+    self.device_offset_multiplier = -1 if wide_camera else 1
     self.cachedParams = CachedParams()
 
   def parse_model(self, md):
@@ -48,9 +49,9 @@ class LanePlanner:
       # left and right ll x is the same
       self.ll_x = md.laneLines[1].x
       # only offset left and right lane lines; offsetting path does not make sense
-      device_offset = self.cachedParams.get_float('jvePilot.settings.deviceOffset', 5000)
-      self.lll_y = np.array(md.laneLines[1].y) - (CAMERA_OFFSET + device_offset)
-      self.rll_y = np.array(md.laneLines[2].y) - (CAMERA_OFFSET + device_offset)
+      device_offset = self.cachedParams.get_float('jvePilot.settings.deviceOffset', 5000) * self.device_offset_multiplier
+      self.lll_y = np.array(md.laneLines[1].y) - (self.camera_offset + device_offset)
+      self.rll_y = np.array(md.laneLines[2].y) - (self.camera_offset + device_offset)
       self.lll_prob = md.laneLineProbs[1]
       self.rll_prob = md.laneLineProbs[2]
       self.lll_std = md.laneLineStds[1]

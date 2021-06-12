@@ -79,7 +79,9 @@ void HomeWindow::mousePressEvent(QMouseEvent* e) {
   // Handle sidebar collapsing
   // Handle button touch events
   if (onroad->isVisible()) {
-    if (authFollow_btn.ptInRect(e->x(), e->y())) {
+    if (onroad->map != nullptr && onroad->map->isVisible()) {
+       onroad->map->setVisible(false);
+    } else if (authFollow_btn.ptInRect(e->x(), e->y())) {
       QUIState::ui_state.scene.autoFollowEnabled = !QUIState::ui_state.scene.autoFollowEnabled;
       notify_state();
     } else if (accEco_img.ptInRect(e->x(), e->y())) {
@@ -88,9 +90,7 @@ void HomeWindow::mousePressEvent(QMouseEvent* e) {
     } else if(!sidebar->isVisible() || e->x() > sidebar->width()) {
       // TODO: Handle this without exposing pointer to map widget
       // Hide map first if visible, then hide sidebar
-      if (onroad->map != nullptr && onroad->map->isVisible()){
-        onroad->map->setVisible(false);
-      } else if (!sidebar->isVisible()) {
+      if (!sidebar->isVisible()) {
         sidebar->setVisible(true);
       } else {
         sidebar->setVisible(false);
