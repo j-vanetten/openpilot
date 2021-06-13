@@ -50,7 +50,7 @@ def create_lkas_command(packer, apply_steer, moving_fast, frame):
 def create_lkas_heartbit(packer, value):
   # LKAS_HEARTBIT (697) LKAS heartbeat
   values = {
-    "LKAS_HEARTBIT": value
+    "LKAS_STATUS_OK": value
   }
   return packer.make_can_msg("LKAS_HEARTBIT", 0, values)
 

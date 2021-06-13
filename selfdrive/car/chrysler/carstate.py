@@ -203,11 +203,9 @@ class CarState(CarStateBase):
       # sig_name, sig_address, default
       ("COUNTER", "LKAS_COMMAND", -1),
       ("CAR_MODEL", "LKAS_HUD", -1),
-      # ("LKAS_STATUS_OK", "LKAS_HEARTBIT", -1)
     ]
     checks = [
       ("LKAS_COMMAND", 100),
-      # ("LKAS_HEARTBIT", 10),
       ("LKAS_HUD", 4),
     ]
 
