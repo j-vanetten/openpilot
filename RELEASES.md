@@ -1,6 +1,7 @@
 Version jvePilot-0.8.5(v3.3.1)
 ========================
-* Fix for LKAS button coming on
+* Fix for LKAS button coming on for no reason
+* Use LKAS button to disable lane lines and use new model (aka 🥬)
 * Update to version 0.8.5
   * NEOS update: improved reliability and stability with better voltage regulator configuration
   * Smart model-based Forward Collision Warning
