@@ -88,7 +88,7 @@ class CarState(CarStateBase):
     ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
     ret.jvePilotCarState.leadDistanceRadarRatio = self.cachedParams.get_float(LEAD_RADAR_CONFIG[ret.jvePilotCarState.accFollowDistance], 1000) * inverse_speed_adjust_ratio
     ret.jvePilotCarState.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
-    ret.jvePilotCarState.useLaneLines = bool(cp_cam.vl["LKAS_HUD"]['LKAS_LANE_LINES'])
+    ret.jvePilotCarState.useLaneLines = not bool(cp_cam.vl["LKAS_HUD"]['LKAS_LANE_LINES'])
 
     button_events = []
     for buttonType in CHECK_BUTTONS:
