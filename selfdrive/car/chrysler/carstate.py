@@ -84,7 +84,6 @@ class CarState(CarStateBase):
 
     self.lkas_counter = cp_cam.vl["LKAS_COMMAND"]["COUNTER"]
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]["CAR_MODEL"]
-    self.lkas_status_ok = cp_cam.vl["LKAS_HEARTBIT"]["LKAS_STATUS_OK"]
 
     ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
     ret.jvePilotCarState.leadDistanceRadarRatio = self.cachedParams.get_float(LEAD_RADAR_CONFIG[ret.jvePilotCarState.accFollowDistance], 1000) * inverse_speed_adjust_ratio
@@ -200,11 +199,9 @@ class CarState(CarStateBase):
       # sig_name, sig_address, default
       ("COUNTER", "LKAS_COMMAND", -1),
       ("CAR_MODEL", "LKAS_HUD", -1),
-      ("LKAS_STATUS_OK", "LKAS_HEARTBIT", -1)
     ]
     checks = [
       ("LKAS_COMMAND", 100),
-      ("LKAS_HEARTBIT", 10),
       ("LKAS_HUD", 4),
     ]
 
