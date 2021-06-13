@@ -45,8 +45,8 @@ DESIRES = {
 
 
 class LateralPlanner():
-  def __init__(self, CP, use_lanelines=True, wide_camera=False):
-    self.use_lanelines = use_lanelines
+  def __init__(self, CP, wide_camera=False):
+    # self.use_lanelines = use_lanelines
     self.LP = LanePlanner(wide_camera)
 
     self.last_cloudlog_t = 0
@@ -164,7 +164,7 @@ class LateralPlanner():
     if self.desire == log.LateralPlan.Desire.laneChangeRight or self.desire == log.LateralPlan.Desire.laneChangeLeft:
       self.LP.lll_prob *= self.lane_change_ll_prob
       self.LP.rll_prob *= self.lane_change_ll_prob
-    if self.use_lanelines:
+    if sm['carstate'].jvePilotCarState.useLaneLines:
       d_path_xyz = self.LP.get_d_path(v_ego, self.t_idxs, self.path_xyz)
       self.libmpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, CP.steerRateCost)
     else:

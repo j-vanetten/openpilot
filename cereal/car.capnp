@@ -18,6 +18,7 @@ struct JvePilotState {
     leadDistanceRadarRatio @0 :Float32;
     accFollowDistance @1 :UInt8;
     buttonCounter @2 :UInt8;
+    useLaneLines @0 :Bool;
   }
 
   struct CarControl {
