@@ -1,5 +1,6 @@
-Version jvePilot-0.8.5(v3.3.1)
+Version jvePilot-0.8.5(v3.4.0)
 ========================
+Visit http://bit.ly/jvepilot_readme for more information
 * Fix for LKAS button coming on for no reason
 * Use LKAS button to disable lane lines and use new model (aka 🥬)
 * Update to version 0.8.5
