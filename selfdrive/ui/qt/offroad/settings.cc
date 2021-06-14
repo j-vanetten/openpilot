@@ -224,14 +224,9 @@ TogglesPanel::TogglesPanel(QWidget *parent) : QWidget(parent) {
                                                 "../assets/offroad/icon_monitoring.png",
                                                 this);
   toggles.append(record_toggle);
-  toggles.append(new ParamControl("EndToEndToggle",
-                                   "\U0001f96c Disable use of lanelines (Alpha) \U0001f96c",
-                                   "In this mode openpilot will ignore lanelines and just drive how it thinks a human would.",
-                                   "../assets/offroad/icon_road.png",
-                                   this));
 
   if (Hardware::TICI()) {
-    toggles.append(new ParamControl("EnableWideCamera",
+    toggles.append(new ParamControl("EnableWide`[Camera",
                                     "Enable use of Wide Angle Camera",
                                     "Use wide angle camera for driving and ui.",
                                     "../assets/offroad/icon_openpilot.png",
