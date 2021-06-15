@@ -104,7 +104,7 @@ class CarController():
     self.apply_steer_last = apply_steer
 
     if self.ccframe % 10 == 0:  # 0.1s period
-      new_msg = create_lkas_heartbit(self.packer, 0 if jvepilot_state.carState.useLaneLines else 256)
+      new_msg = create_lkas_heartbit(self.packer, 256 if jvepilot_state.carState.useLaneLines else 0)
       can_sends.append(new_msg)
 
     if (self.ccframe % 25 == 0):  # 0.25s period
