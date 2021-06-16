@@ -13,12 +13,13 @@ LEAD_RADAR_CONFIG = ['jvePilot.settings.accFollow1RadarRatio',
                      'jvePilot.settings.accFollow2RadarRatio',
                      'jvePilot.settings.accFollow3RadarRatio',
                      'jvePilot.settings.accFollow4RadarRatio']
-CHECK_BUTTONS = {ButtonType.cancel: 'ACC_CANCEL',
-                 ButtonType.resumeCruise: 'ACC_RESUME',
-                 ButtonType.accelCruise: 'ACC_SPEED_INC',
-                 ButtonType.decelCruise: 'ACC_SPEED_DEC',
-                 ButtonType.followInc: 'ACC_FOLLOW_INC',
-                 ButtonType.followDec: 'ACC_FOLLOW_DEC'}
+CHECK_BUTTONS = {ButtonType.cancel: ["WHEEL_BUTTONS", 'ACC_CANCEL'],
+                 ButtonType.resumeCruise: ["WHEEL_BUTTONS", 'ACC_RESUME'],
+                 ButtonType.accelCruise: ["WHEEL_BUTTONS", 'ACC_SPEED_INC'],
+                 ButtonType.decelCruise: ["WHEEL_BUTTONS", 'ACC_SPEED_DEC'],
+                 ButtonType.followInc: ["WHEEL_BUTTONS", 'ACC_FOLLOW_INC'],
+                 ButtonType.followDec: ["WHEEL_BUTTONS", 'ACC_FOLLOW_DEC'],
+                 ButtonType.lkasToggle: ["TRACTION_BUTTON", 'TOGGLE_LKAS']}
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -88,11 +89,10 @@ class CarState(CarStateBase):
     ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
     ret.jvePilotCarState.leadDistanceRadarRatio = self.cachedParams.get_float(LEAD_RADAR_CONFIG[ret.jvePilotCarState.accFollowDistance], 1000) * inverse_speed_adjust_ratio
     ret.jvePilotCarState.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
-    ret.jvePilotCarState.useLaneLines = not bool(cp_cam.vl["LKAS_HUD"]['LKAS_LANE_LINES'])
 
     button_events = []
     for buttonType in CHECK_BUTTONS:
-      self.check_button(button_events, buttonType, bool(cp.vl["WHEEL_BUTTONS"][CHECK_BUTTONS[buttonType]]))
+      self.check_button(button_events, buttonType, bool(cp.vl[CHECK_BUTTONS[buttonType][0]][CHECK_BUTTONS[buttonType][1]]))
     ret.buttonEvents = button_events
 
     return ret
@@ -164,6 +164,7 @@ class CarState(CarStateBase):
       ("ACC_DISTANCE_CONFIG_2", "DASHBOARD", 0),
       ("BLIND_SPOT_LEFT", "BLIND_SPOT_WARNINGS", 0),
       ("BLIND_SPOT_RIGHT", "BLIND_SPOT_WARNINGS", 0),
+      ("TOGGLE_LKAS", "TRACTION_BUTTON", 0),
     ]
 
     checks = [

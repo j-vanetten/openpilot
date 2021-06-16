@@ -255,7 +255,7 @@ static void update_status(UIState *s) {
   }
 
   if (s->scene.started && s->sm->updated("carState")) {
-    s->scene.end_to_end = (*s->sm)["carState"].getCarState().getJvePilotCarState().getUseLaneLines();
+    s->scene.end_to_end = (*s->sm)["carState"].getCarState().getJvePilotCarControl().getUseLaneLines();
   }
 
   // Handle onroad/offroad transition

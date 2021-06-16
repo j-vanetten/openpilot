@@ -18,13 +18,13 @@ struct JvePilotState {
     leadDistanceRadarRatio @0 :Float32;
     accFollowDistance @1 :UInt8;
     buttonCounter @2 :UInt8;
-    useLaneLines @3 :Bool;
   }
 
   struct CarControl {
     vTargetFuture @0 :Float32;
     autoFollow @1 :Bool;
     accEco @2 :UInt8;
+    useLaneLines @3 :Bool;
   }
 }
 
@@ -264,6 +264,7 @@ struct CarState {
       gapAdjustCruise @11;
       followInc @12;
       followDec @13;
+      lkasToggle @14;
     }
   }
 

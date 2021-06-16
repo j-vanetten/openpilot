@@ -42,6 +42,10 @@ class CarController():
     can_sends = []
     self.ccframe += 1
 
+    if CS.button_pressed(ButtonType.lkasToggle, False):
+      jvepilot_state.carControl.useLaneLines = not jvepilot_state.carControl.useLaneLines
+      self.params.put("jvePilot.carState.useLaneLines", 1 if jvepilot_state.carControl.useLaneLines else 0)
+
     #*** control msgs ***
     button_counter = jvepilot_state.carState.buttonCounter
     if button_counter != self.last_button_counter:
@@ -104,7 +108,7 @@ class CarController():
     self.apply_steer_last = apply_steer
 
     if self.ccframe % 10 == 0:  # 0.1s period
-      new_msg = create_lkas_heartbit(self.packer, 256 if jvepilot_state.carState.useLaneLines else 0)
+      new_msg = create_lkas_heartbit(self.packer, 256 if jvepilot_state.carControl.useLaneLines else 0)
       can_sends.append(new_msg)
 
     if (self.ccframe % 25 == 0):  # 0.25s period
