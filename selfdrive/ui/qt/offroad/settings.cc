@@ -226,7 +226,7 @@ TogglesPanel::TogglesPanel(QWidget *parent) : QWidget(parent) {
   toggles.append(record_toggle);
 
   if (Hardware::TICI()) {
-    toggles.append(new ParamControl("EnableWide`[Camera",
+    toggles.append(new ParamControl("EnableWideCamera",
                                     "Enable use of Wide Angle Camera",
                                     "Use wide angle camera for driving and ui.",
                                     "../assets/offroad/icon_openpilot.png",

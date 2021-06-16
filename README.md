@@ -68,7 +68,8 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 * ACC Eco to limit the throttle when accelerating  
 * Pressing the gas does not disengage jvePilot (Can be disabled)
 * Setting to sync jvePilot speed to vehicle speedometer 
-* Use LKAS button in the dash to disable lane line driving and instead use the new driving model 
+* Use LKAS button in the dash to disable lane line driving and instead use the new KL driving model
+  * Read about KL model here: https://blog.comma.ai/end-to-end-lateral-planning/
 
 ### Longitudinal control
 This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC).

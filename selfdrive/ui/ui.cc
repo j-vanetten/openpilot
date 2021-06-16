@@ -213,6 +213,7 @@ static void update_state(UIState *s) {
   if (sm.updated("jvePilotState")) {
     scene.autoFollowEnabled = sm["jvePilotState"].getJvePilotUIState().getAutoFollow() ? 1 : 0;
     scene.accEco = sm["jvePilotState"].getJvePilotUIState().getAccEco();
+    scene.end_to_end = sm["jvePilotState"].getJvePilotUIState().getUseLaneLines();
   }
 }
 
@@ -252,10 +253,6 @@ static void update_status(UIState *s) {
     } else {
       s->status = controls_state.getEnabled() ? STATUS_ENGAGED : STATUS_DISENGAGED;
     }
-  }
-
-  if (s->scene.started && s->sm->updated("carState")) {
-    s->scene.end_to_end = (*s->sm)["carState"].getCarState().getJvePilotCarState().getUseLaneLines();
   }
 
   // Handle onroad/offroad transition
