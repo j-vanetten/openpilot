@@ -122,7 +122,6 @@ The reason you need to look at jvePilot is because jvePilot will be changing the
 It will be adjusting it as needed, never raising it above the one set on the jvePilot display.
 
 **ONLY look at the MAX speed on jvePilot when setting the ACC speed instead of the dashboard!**
-![](https://github.com/j-vanetten/jvePilot/blob/hacc-release/common/images/openpilot.jpg)
 
 ---
 
@@ -131,7 +130,7 @@ The easiest way to install jvePilot is to factory reset and use this Custom Soft
 
 ## Branches
 `/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for daily use.
-`/beta/*` - Sometimes I have people wanting to beta test jvePilot's new features.  Mostly stable, but still experimental. 
+`/jvePilot-beta` - Sometimes I have people wanting to beta test jvePilot's new features.  Mostly stable, but still experimental. 
 `/feature/*` - These branches are where I'm working on new features.  These are never safe to run as they change all the time.
 
 ---
