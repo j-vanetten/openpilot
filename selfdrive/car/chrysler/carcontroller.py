@@ -32,11 +32,12 @@ class CarController():
     self.packer = CANPacker(dbc_name)
 
     self.params = Params()
-    self.cachedParams = CachedParams()
-    self.disable_auto_resume = self.params.get('jvePilot.settings.autoResume', encoding='utf8') != "1"
-    self.autoFollowDistanceLock = None
+    self.auto_resume = self.params.get_bool('jvePilot.settings.autoResume')
     self.minAccSetting = V_CRUISE_MIN_MS if self.params.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
     self.round_to_unit = CV.MS_TO_KPH if self.params.get_bool("IsMetric") else CV.MS_TO_MPH
+
+    self.cachedParams = CachedParams()
+    self.autoFollowDistanceLock = None
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, jvepilot_state):
     can_sends = []
@@ -45,6 +46,7 @@ class CarController():
     if CS.button_pressed(ButtonType.lkasToggle, False):
       jvepilot_state.carControl.useLaneLines = not jvepilot_state.carControl.useLaneLines
       self.params.put("jvePilot.carState.useLaneLines", 1 if jvepilot_state.carControl.useLaneLines else 0)
+      jvepilot_state.notifyUi = True
 
     #*** control msgs ***
     button_counter = jvepilot_state.carState.buttonCounter
@@ -125,7 +127,7 @@ class CarController():
     return can_sends
 
   def auto_resume_button(self, CS, gas_resume_speed):
-    if (not self.disable_auto_resume) and CS.out.vEgo <= gas_resume_speed:  # Keep trying while under gas_resume_speed
+    if (self.auto_resume) and CS.out.vEgo <= gas_resume_speed:  # Keep trying while under gas_resume_speed
       return 'ACC_RESUME'
 
   def hybrid_acc_button(self, CS, jvepilot_state):

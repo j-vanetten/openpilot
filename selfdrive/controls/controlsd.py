@@ -362,6 +362,7 @@ class Controls:
     msg.jvePilotUIState = self.sm['jvePilotUIState']
     msg.jvePilotUIState.autoFollow = self.jvePilotState.carControl.autoFollow
     msg.jvePilotUIState.accEco = self.jvePilotState.carControl.accEco
+    msg.jvePilotUIState.useLaneLines = self.jvePilotState.carControl.useLaneLines
     self.pm.send('jvePilotState', msg)
 
   def state_transition(self, CS):
