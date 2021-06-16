@@ -45,7 +45,7 @@ class CarController():
 
     if CS.button_pressed(ButtonType.lkasToggle, False):
       jvepilot_state.carControl.useLaneLines = not jvepilot_state.carControl.useLaneLines
-      self.params.put("jvePilot.carState.useLaneLines", 1 if jvepilot_state.carControl.useLaneLines else 0)
+      self.params.put("jvePilot.carState.useLaneLines", "1" if jvepilot_state.carControl.useLaneLines else "0")
       jvepilot_state.notifyUi = True
 
     #*** control msgs ***
