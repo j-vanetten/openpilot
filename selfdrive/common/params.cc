@@ -141,7 +141,6 @@ private:
 };
 
 std::unordered_map<std::string, uint32_t> keys = {
-    {"jvePilot.carState.useLaneLines", PERSISTENT},
     {"jvePilot.carState.accEco", PERSISTENT},
     {"jvePilot.settings.accEco.speedAheadLevel1", PERSISTENT},
     {"jvePilot.settings.accEco.speedAheadLevel2", PERSISTENT},
@@ -176,6 +175,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"CommunityFeaturesToggle", PERSISTENT},
     {"ControlsReady", CLEAR_ON_MANAGER_START | CLEAR_ON_PANDA_DISCONNECT | CLEAR_ON_IGNITION_ON},
     {"EnableLteOnroad", PERSISTENT},
+    {"EndToEndToggle", PERSISTENT},
     {"CompletedTrainingVersion", PERSISTENT},
     {"DisablePowerDown", PERSISTENT},
     {"DisableUpdates", PERSISTENT},
