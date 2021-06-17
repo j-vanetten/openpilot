@@ -1,6 +1,7 @@
 from common.numpy_fast import interp
 import numpy as np
 from selfdrive.hardware import EON, TICI
+from selfdrive.swaglog import cloudlog
 from cereal import log
 from common.cached_params import CachedParams
 
@@ -39,6 +40,7 @@ class LanePlanner:
 
     self.camera_offset = -CAMERA_OFFSET if wide_camera else CAMERA_OFFSET
     self.path_offset = -PATH_OFFSET if wide_camera else PATH_OFFSET
+    self.device_offset_multiplier = -1 if wide_camera else 1
     self.cachedParams = CachedParams()
 
   def parse_model(self, md):
@@ -47,9 +49,9 @@ class LanePlanner:
       # left and right ll x is the same
       self.ll_x = md.laneLines[1].x
       # only offset left and right lane lines; offsetting path does not make sense
-      device_offset = self.cachedParams.get_float('jvePilot.settings.deviceOffset', 5000)
-      self.lll_y = np.array(md.laneLines[1].y) - (CAMERA_OFFSET + device_offset)
-      self.rll_y = np.array(md.laneLines[2].y) - (CAMERA_OFFSET + device_offset)
+      device_offset = self.cachedParams.get_float('jvePilot.settings.deviceOffset', 5000) * self.device_offset_multiplier
+      self.lll_y = np.array(md.laneLines[1].y) - (self.camera_offset + device_offset)
+      self.rll_y = np.array(md.laneLines[2].y) - (self.camera_offset + device_offset)
       self.lll_prob = md.laneLineProbs[1]
       self.rll_prob = md.laneLineProbs[2]
       self.lll_std = md.laneLineStds[1]
@@ -93,6 +95,10 @@ class LanePlanner:
 
     self.d_prob = l_prob + r_prob - l_prob * r_prob
     lane_path_y = (l_prob * path_from_left_lane + r_prob * path_from_right_lane) / (l_prob + r_prob + 0.0001)
-    lane_path_y_interp = np.interp(path_t, self.ll_t, lane_path_y)
-    path_xyz[:,1] = self.d_prob * lane_path_y_interp + (1.0 - self.d_prob) * path_xyz[:,1]
+    safe_idxs = np.isfinite(self.ll_t)
+    if safe_idxs[0]:
+      lane_path_y_interp = np.interp(path_t, self.ll_t[safe_idxs], lane_path_y[safe_idxs])
+      path_xyz[:,1] = self.d_prob * lane_path_y_interp + (1.0 - self.d_prob) * path_xyz[:,1]
+    else:
+      cloudlog.warning("Lateral mpc - NaNs in laneline times, ignoring")
     return path_xyz

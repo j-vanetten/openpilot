@@ -47,6 +47,13 @@ def create_lkas_command(packer, apply_steer, moving_fast, frame):
   }
   return packer.make_can_msg("LKAS_COMMAND", 0, values)
 
+def create_lkas_heartbit(packer, value):
+  # LKAS_HEARTBIT (697) LKAS heartbeat
+  values = {
+    "LKAS_STATUS_OK": value
+  }
+  return packer.make_can_msg("LKAS_HEARTBIT", 0, values)
+
 def create_wheel_buttons_command(cc, packer, counter, button, value):
   # WHEEL_BUTTONS (571) Message sent
   values = {

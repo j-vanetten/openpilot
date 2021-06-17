@@ -54,18 +54,25 @@ class Controls:
       self.pm = messaging.PubMaster(['jvePilotState', 'sendcan', 'controlsState', 'carState',
                                      'carControl', 'carEvents', 'carParams'])
 
+    self.camera_packets = ["roadCameraState", "driverCameraState"]
+    if TICI:
+      self.camera_packets.append("wideRoadCameraState")
+
     self.sm = sm
     if self.sm is None:
       ignore = ['driverCameraState', 'managerState'] if SIMULATION else None
       self.sm = messaging.SubMaster(['jvePilotUIState', 'deviceState', 'pandaState', 'modelV2', 'liveCalibration',
                                      'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
-                                     'roadCameraState', 'driverCameraState', 'managerState', 'liveParameters', 'radarState'],
+                                     'managerState', 'liveParameters', 'radarState'] + self.camera_packets,
                                      ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan'])
 
     self.can_sock = can_sock
     if can_sock is None:
       can_timeout = None if os.environ.get('NO_CAN_TIMEOUT', False) else 100
       self.can_sock = messaging.sub_sock('can', timeout=can_timeout)
+
+    if TICI:
+      self.log_sock = messaging.sub_sock('androidLog')
 
     # wait for one pandaState and one CAN packet
     print("Waiting for CAN messages...")
@@ -86,11 +93,11 @@ class Controls:
     sounds_available = HARDWARE.get_sound_card_online()
 
     car_recognized = self.CP.carName != 'mock'
-    fuzzy_fingerprint = self.CP.fuzzyFingerprint
 
     # If stock camera is disconnected, we loaded car controls and it's not dashcam mode
     controller_available = self.CP.enableCamera and self.CI.CC is not None and not passive and not self.CP.dashcamOnly
-    community_feature = self.CP.communityFeature or fuzzy_fingerprint
+    community_feature = self.CP.communityFeature or self.CP.fuzzyFingerprint or \
+                        self.CP.fingerprintSource == car.CarParams.FingerprintSource.can
     community_feature_disallowed = community_feature and (not community_feature_toggle)
     self.read_only = not car_recognized or not controller_available or \
                        self.CP.dashcamOnly or community_feature_disallowed
@@ -140,18 +147,20 @@ class Controls:
     self.cachedParams = CachedParams()
     self.reverse_acc_button_change = self.cachedParams.get('jvePilot.settings.reverseAccSpeedChange', 0) == "1"
     self.jvePilotState = car.JvePilotState.new_message()
-    self.jvePilotState.carControl.autoFollow = params.get('jvePilot.settings.autoFollow', encoding='utf8') == "1"
+    self.jvePilotState.carControl.autoFollow = params.get_bool('jvePilot.settings.autoFollow')
+    self.jvePilotState.carControl.useLaneLines = not params.get_bool('EndToEndToggle')
     self.jvePilotState.carControl.accEco = int(params.get('jvePilot.carState.accEco', encoding='utf8') or "1")
     self.ui_notify()
 
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
-    self.startup_event = get_startup_event(car_recognized, controller_available, fuzzy_fingerprint)
+    self.startup_event = get_startup_event(car_recognized, controller_available, self.CP.fuzzyFingerprint,
+                                           len(self.CP.carFw) > 0)
 
     if not sounds_available:
       self.events.add(EventName.soundsUnavailable, static=True)
-    if community_feature_disallowed:
+    if community_feature_disallowed and car_recognized:
       self.events.add(EventName.communityFeatureDisallowed, static=True)
     if not car_recognized:
       self.events.add(EventName.carUnrecognized, static=True)
@@ -188,7 +197,8 @@ class Controls:
     if self.sm['deviceState'].freeSpacePercent < 7:
       # under 7% of space free no enable allowed
       self.events.add(EventName.outOfSpace)
-    if self.sm['deviceState'].memoryUsagePercent  > 90:
+    # TODO: make tici threshold the same
+    if self.sm['deviceState'].memoryUsagePercent > (90 if TICI else 65):
       self.events.add(EventName.lowMemory)
 
     # Alert if fan isn't spinning for 5 seconds
@@ -255,8 +265,28 @@ class Controls:
       self.events.add(EventName.deviceFalling)
     if log.PandaState.FaultType.relayMalfunction in self.sm['pandaState'].faults:
       self.events.add(EventName.relayMalfunction)
-    if self.sm['longitudinalPlan'].fcw:
+    if self.sm['longitudinalPlan'].fcw or (self.enabled and self.sm['modelV2'].meta.hardBrakePredicted):
       self.events.add(EventName.fcw)
+
+    if TICI and self.enable_lte_onroad:
+      logs = messaging.drain_sock(self.log_sock, wait_for_one=False)
+      messages = []
+      for m in logs:
+        try:
+          messages.append(m.androidLog.message)
+        except UnicodeDecodeError:
+          pass
+
+      for err in ["ERROR_CRC", "ERROR_ECC", "ERROR_STREAM_UNDERFLOW", "APPLY FAILED"]:
+        for m in messages:
+          if err not in m:
+            continue
+
+          csid = m.split("CSID:")[-1].split(" ")[0]
+          evt = {"0": EventName.roadCameraError, "1": EventName.wideRoadCameraError,
+                 "2": EventName.driverCameraError}.get(csid, None)
+          if evt is not None:
+            self.events.add(evt)
 
     # TODO: fix simulator
     if not SIMULATION:
@@ -265,10 +295,12 @@ class Controls:
           (not TICI or self.enable_lte_onroad):
           # Not show in first 1 km to allow for driving out of garage. This event shows after 5 minutes
           self.events.add(EventName.noGps)
-      if not self.sm.all_alive(['roadCameraState', 'driverCameraState']):
+      if not self.sm.all_alive(self.camera_packets):
         self.events.add(EventName.cameraMalfunction)
       if self.sm['modelV2'].frameDropPerc > 20:
         self.events.add(EventName.modeldLagging)
+      if self.sm['liveLocationKalman'].excessiveResets:
+        self.events.add(EventName.localizerMalfunction)
 
       # Check if all manager processes are running
       not_running = set(p.name for p in self.sm['managerState'].processes if not p.running)
@@ -330,6 +362,7 @@ class Controls:
     msg.jvePilotUIState = self.sm['jvePilotUIState']
     msg.jvePilotUIState.autoFollow = self.jvePilotState.carControl.autoFollow
     msg.jvePilotUIState.accEco = self.jvePilotState.carControl.accEco
+    msg.jvePilotUIState.useLaneLines = self.jvePilotState.carControl.useLaneLines
     self.pm.send('jvePilotState', msg)
 
   def state_transition(self, CS):

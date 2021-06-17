@@ -34,7 +34,7 @@ signals:
 
 protected:
   AbstractControl(const QString &title, const QString &desc = "", const QString &icon = "", QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {});
-  void hideEvent(QHideEvent *e);
+  void hideEvent(QHideEvent *e) override;
 
   QSize minimumSizeHint() const override {
     QSize size = QFrame::minimumSizeHint();
@@ -131,7 +131,6 @@ class ParamControl : public ToggleControl {
 
 public:
   ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {}) : ToggleControl(title, desc, icon, false, parent, btns) {
-    // set initial state from param
     if (params.getBool(param.toStdString().c_str())) {
       toggle.togglePosition();
     }

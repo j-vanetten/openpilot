@@ -45,8 +45,8 @@ DESIRES = {
 
 
 class LateralPlanner():
-  def __init__(self, CP, use_lanelines=True, wide_camera=False):
-    self.use_lanelines = use_lanelines
+  def __init__(self, CP, wide_camera=False):
+    # self.use_lanelines = use_lanelines
     self.LP = LanePlanner(wide_camera)
 
     self.last_cloudlog_t = 0
@@ -105,42 +105,44 @@ class LateralPlanner():
       self.lane_change_state = LaneChangeState.off
       self.lane_change_direction = LaneChangeDirection.none
     else:
-      torque_applied = sm['carState'].steeringPressed and \
-                       ((sm['carState'].steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left) or
-                        (sm['carState'].steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.right))
-
-      blindspot_detected = ((sm['carState'].leftBlindspot and self.lane_change_direction == LaneChangeDirection.left) or
-                            (sm['carState'].rightBlindspot and self.lane_change_direction == LaneChangeDirection.right))
-
-      lane_change_prob = self.LP.l_lane_change_prob + self.LP.r_lane_change_prob
-
-      # State transitions
-      # off
+      # LaneChangeState.off
       if self.lane_change_state == LaneChangeState.off and one_blinker and not self.prev_one_blinker and not below_lane_change_speed:
+        self.lane_change_state = LaneChangeState.preLaneChange
+        self.lane_change_ll_prob = 1.0
+
+      # LaneChangeState.preLaneChange
+      elif self.lane_change_state == LaneChangeState.preLaneChange:
+        # Set lane change direction
         if sm['carState'].leftBlinker:
           self.lane_change_direction = LaneChangeDirection.left
         elif sm['carState'].rightBlinker:
           self.lane_change_direction = LaneChangeDirection.right
+        else:  # If there are no blinkers we will go back to LaneChangeState.off
+          self.lane_change_direction = LaneChangeDirection.none
 
-        self.lane_change_state = LaneChangeState.preLaneChange
-        self.lane_change_ll_prob = 1.0
+        torque_applied = sm['carState'].steeringPressed and \
+                         ((sm['carState'].steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left) or
+                          (sm['carState'].steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.right))
 
-      # pre
-      elif self.lane_change_state == LaneChangeState.preLaneChange:
+        blindspot_detected = ((sm['carState'].leftBlindspot and self.lane_change_direction == LaneChangeDirection.left) or
+                              (sm['carState'].rightBlindspot and self.lane_change_direction == LaneChangeDirection.right))
+
         if not one_blinker or below_lane_change_speed:
           self.lane_change_state = LaneChangeState.off
         elif torque_applied and not blindspot_detected:
           self.lane_change_state = LaneChangeState.laneChangeStarting
 
-      # starting
+      # LaneChangeState.laneChangeStarting
       elif self.lane_change_state == LaneChangeState.laneChangeStarting:
         # fade out over .5s
         self.lane_change_ll_prob = max(self.lane_change_ll_prob - 2*DT_MDL, 0.0)
+
         # 98% certainty
+        lane_change_prob = self.LP.l_lane_change_prob + self.LP.r_lane_change_prob
         if lane_change_prob < 0.02 and self.lane_change_ll_prob < 0.01:
           self.lane_change_state = LaneChangeState.laneChangeFinishing
 
-      # finishing
+      # LaneChangeState.laneChangeFinishing
       elif self.lane_change_state == LaneChangeState.laneChangeFinishing:
         # fade in laneline over 1s
         self.lane_change_ll_prob = min(self.lane_change_ll_prob + DT_MDL, 1.0)
@@ -162,7 +164,7 @@ class LateralPlanner():
     if self.desire == log.LateralPlan.Desire.laneChangeRight or self.desire == log.LateralPlan.Desire.laneChangeLeft:
       self.LP.lll_prob *= self.lane_change_ll_prob
       self.LP.rll_prob *= self.lane_change_ll_prob
-    if self.use_lanelines:
+    if sm['carControl'].jvePilotState.carControl.useLaneLines:
       d_path_xyz = self.LP.get_d_path(v_ego, self.t_idxs, self.path_xyz)
       self.libmpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, CP.steerRateCost)
     else:
