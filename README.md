@@ -1,12 +1,12 @@
-# FCA Hybrid OpenPilot/ACC jvePilot
+# jvePilot Hybrid OpenPilot/ACC for Chrysler/Jeep 
 This fork is only for Chrysler/Jeep vehicles!
 
 [![Buy me a beer!](https://github.com/j-vanetten/openpilot/blob/jvePilot-release/.github/ButMeABeer.png?raw=true)](https://www.buymeacoffee.com/jvePilot)
 
 # Table of contents
-- [**Safety Notes**](#--safety-notes--)
-- [FCA Hybrid OpenPilot/ACC jvePilot](#fca-hybrid-openpilot-acc-jvepilot)
-  * [What is this Fork?](#what-is-this-fork-)
+- [**Safety Notes**](#safety-notes)
+- [jvePilot](#jvepilot)
+  * [What is this Fork?](#what-is-this-fork)
   * [Benefits of jvePilot](#benefits-of-jvepilot)
     + [Longitudinal control](#longitudinal-control)
     + [Auto Resume](#auto-resume)
@@ -16,31 +16,8 @@ This fork is only for Chrysler/Jeep vehicles!
     + [Where to look when setting ACC speed](#where-to-look-when-setting-acc-speed)
 - [Install](#install)
   * [Branches](#branches)
-  * [Panda Firmware Flashing](#panda-firmware-flashing)
 - [Customizing](#customizing)
-  * [Slow in Curves](#slow-in-curves)
-    + [Speed Ratio](#speed-ratio)
-    + [Drop off](#drop-off)
-  * [Reverse ACC +/- Speeds](#reverse-acc-----speeds)
-  * [Auto Resume](#auto-resume-1)
-    + [Disable on Gas](#disable-on-gas)
-  * [Auto Follow](#auto-follow-1)
-    + [1-2 Bar Change Over](#1-2-bar-change-over)
-    + [2-3 Bar Change Over](#2-3-bar-change-over)
-    + [2-3 Bar Change Over](#2-3-bar-change-over-1)
-  * [ACC Eco](#acc-eco-1)
-    + [Keep ahead at ACC Eco level 1](#keep-ahead-at-acc-eco-level-1)
-    + [Keep ahead at ACC Eco level 1](#keep-ahead-at-acc-eco-level-1-1)
-  * [jvePilot Control Settings](#jvepilot-control-settings)
-    + [Device Offset](#device-offset)
-    + [Speed Adjust Ratio](#speed-adjust-ratio)
-    + [Lead Distance Ratio](#lead-distance-ratio)
-      - [Ratio at Follow Level 1](#ratio-at-follow-level-1)
-      - [Ratio at Follow Level 2](#ratio-at-follow-level-2)
-      - [Ratio at Follow Level 3](#ratio-at-follow-level-3)
-      - [Ratio at Follow Level 4](#ratio-at-follow-level-4)
 - [Advanced](#advanced-settings)
-  * [Minimum Steer Check](#minimum-steer-check)
 
 # **Safety Notes**
 * This is my experimental branch, so I'm not responsible for any damage this may cause.
@@ -52,7 +29,7 @@ This fork is only for Chrysler/Jeep vehicles!
 
 ---
 
-# Vehicle 
+# jvePilot 
 I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features using this vehicle.
 * 2017 Gas Chrysler Pacifica: Confirmed by @debugged-hosting
 
@@ -130,7 +107,7 @@ The easiest way to install jvePilot is to factory reset and use this Custom Soft
 
 ## Branches
 `/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for daily use.
-`/jvePilot-beta` - Sometimes I have people wanting to beta test jvePilot's new features.  Mostly stable, but still experimental. 
+`/jvePilot-beta` - Sometimes I have people wanting to beta test jvePilot's new features.  Mostly stable, but still can be buggy. 
 `/feature/*` - These branches are where I'm working on new features.  These are never safe to run as they change all the time.
 
 ---
@@ -192,7 +169,7 @@ When you reach this speed (in MPH), Auto Follow will set the follow setting to t
 * Units: MPH
 * Vehicle Restart Required: No
 * Min/Max values (0, 300)
-### 2-3 Bar Change Over
+### 3-4 Bar Change Over
 When your speed (in MPH) is below this setting, Auto Follow will set the follow setting to three bars.
 When you reach this speed (in MPH), Auto Follow will set the follow setting to four bars.
 * Default: 65
@@ -210,7 +187,7 @@ Use this setting to adjust ACC Eco level 1 (one green leaf) for a balance of spe
 * Units: MPH
 * Vehicle Restart Required: No
 * Min/Max values 1, 100
-### Keep ahead at ACC Eco level 1
+### Keep ahead at ACC Eco level 2
 Use this setting to adjust ACC Eco level 2 (two green leaves) for maximum eco-ness
 * Default: 5
 * Units: MPH
