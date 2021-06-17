@@ -121,7 +121,7 @@ class LateralPlanner():
           self.lane_change_direction = LaneChangeDirection.none
 
         torque_applied = sm['carState'].steeringPressed and \
-                        ((sm['carState'].steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left) or
+                         ((sm['carState'].steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left) or
                           (sm['carState'].steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.right))
 
         blindspot_detected = ((sm['carState'].leftBlindspot and self.lane_change_direction == LaneChangeDirection.left) or
@@ -164,7 +164,7 @@ class LateralPlanner():
     if self.desire == log.LateralPlan.Desire.laneChangeRight or self.desire == log.LateralPlan.Desire.laneChangeLeft:
       self.LP.lll_prob *= self.lane_change_ll_prob
       self.LP.rll_prob *= self.lane_change_ll_prob
-    if (not sm.updated['carState']) or sm['carState'].jvePilotCarState.carControl.useLaneLines:
+    if sm['carControl'].jvePilotState.carControl.useLaneLines:
       d_path_xyz = self.LP.get_d_path(v_ego, self.t_idxs, self.path_xyz)
       self.libmpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, CP.steerRateCost)
     else:
