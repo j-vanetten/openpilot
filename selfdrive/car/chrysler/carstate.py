@@ -89,6 +89,7 @@ class CarState(CarStateBase):
     ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
     ret.jvePilotCarState.leadDistanceRadarRatio = self.cachedParams.get_float(LEAD_RADAR_CONFIG[ret.jvePilotCarState.accFollowDistance], 1000) * inverse_speed_adjust_ratio
     ret.jvePilotCarState.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
+    self.lkasHeartbit = cp_cam.vl["LKAS_HEARTBIT"]
 
     button_events = []
     for buttonType in CHECK_BUTTONS:
@@ -202,10 +203,16 @@ class CarState(CarStateBase):
       ("COUNTER", "LKAS_COMMAND", -1),
       ("CAR_MODEL", "LKAS_HUD", -1),
       ("LKAS_LANE_LINES", "LKAS_HUD", -1),
+      ("NEW_SIGNAL_1", "LKAS_HEARTBIT", 0),
+      ("NEW_SIGNAL_2", "LKAS_HEARTBIT", 0),
+      ("NEW_SIGNAL_3", "LKAS_HEARTBIT", 0),
+      ("NEW_SIGNAL_4", "LKAS_HEARTBIT", 0),
+      ("NEW_SIGNAL_5", "LKAS_HEARTBIT", 0),
     ]
     checks = [
       ("LKAS_COMMAND", 100),
       ("LKAS_HUD", 4),
+      ("LKAS_HEARTBIT", 10),
     ]
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 2)
