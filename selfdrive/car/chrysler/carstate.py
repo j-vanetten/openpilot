@@ -204,11 +204,11 @@ class CarState(CarStateBase):
       ("COUNTER", "LKAS_COMMAND", -1),
       ("CAR_MODEL", "LKAS_HUD", -1),
       ("LKAS_LANE_LINES", "LKAS_HUD", -1),
-      ("NEW_SIGNAL_1", "LKAS_HEARTBIT", 0),
-      ("NEW_SIGNAL_2", "LKAS_HEARTBIT", 0),
-      ("NEW_SIGNAL_3", "LKAS_HEARTBIT", 0),
-      ("NEW_SIGNAL_4", "LKAS_HEARTBIT", 0),
-      ("NEW_SIGNAL_5", "LKAS_HEARTBIT", 0),
+      ("FORWARD_1", "LKAS_HEARTBIT", 0),  # get LKAS_HEARTBIT data we need to forward
+      ("FORWARD_2", "LKAS_HEARTBIT", 0),  # get LKAS_HEARTBIT data we need to forward
+      ("FORWARD_3", "LKAS_HEARTBIT", 0),  # get LKAS_HEARTBIT data we need to forward
+      ("FORWARD_4", "LKAS_HEARTBIT", 0),  # get LKAS_HEARTBIT data we need to forward
+      ("FORWARD_5", "LKAS_HEARTBIT", 0),  # get LKAS_HEARTBIT data we need to forward
     ]
     checks = [
       ("LKAS_COMMAND", 100),
