@@ -205,8 +205,6 @@ class CarState(CarStateBase):
       ("FORWARD_1", "LKAS_HEARTBIT", 0),
       ("FORWARD_2", "LKAS_HEARTBIT", 0),
       ("FORWARD_3", "LKAS_HEARTBIT", 0),
-      ("FORWARD_4", "LKAS_HEARTBIT", 0),
-      ("FORWARD_5", "LKAS_HEARTBIT", 0),
     ]
 
     signals = [
