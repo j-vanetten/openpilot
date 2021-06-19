@@ -28,6 +28,7 @@ class CarState(CarStateBase):
     self.shifter_values = can_define.dv["GEAR"]["PRNDL"]
     self.cachedParams = CachedParams()
     self.opParams = opParams()
+    self.lkasHeartbit = None
 
   def update(self, cp, cp_cam):
     speed_adjust_ratio = self.cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
