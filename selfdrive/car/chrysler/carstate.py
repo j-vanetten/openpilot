@@ -199,17 +199,23 @@ class CarState(CarStateBase):
 
   @staticmethod
   def get_cam_can_parser(CP):
+    # LKAS_HEARTBIT data needs to be forwarded!
+    forward_lkas_heartbit_signals = [
+      ("AUTO_HIGH_BEAM", "LKAS_HEARTBIT", 0),
+      ("FORWARD_1", "LKAS_HEARTBIT", 0),
+      ("FORWARD_2", "LKAS_HEARTBIT", 0),
+      ("FORWARD_3", "LKAS_HEARTBIT", 0),
+      ("FORWARD_4", "LKAS_HEARTBIT", 0),
+      ("FORWARD_5", "LKAS_HEARTBIT", 0),
+    ]
+
     signals = [
       # sig_name, sig_address, default
       ("COUNTER", "LKAS_COMMAND", -1),
       ("CAR_MODEL", "LKAS_HUD", -1),
       ("LKAS_LANE_LINES", "LKAS_HUD", -1),
-      ("FORWARD_1", "LKAS_HEARTBIT", 0),  # get LKAS_HEARTBIT data we need to forward
-      ("FORWARD_2", "LKAS_HEARTBIT", 0),  # get LKAS_HEARTBIT data we need to forward
-      ("FORWARD_3", "LKAS_HEARTBIT", 0),  # get LKAS_HEARTBIT data we need to forward
-      ("FORWARD_4", "LKAS_HEARTBIT", 0),  # get LKAS_HEARTBIT data we need to forward
-      ("FORWARD_5", "LKAS_HEARTBIT", 0),  # get LKAS_HEARTBIT data we need to forward
-    ]
+    ] + forward_lkas_heartbit_signals
+
     checks = [
       ("LKAS_COMMAND", 100),
       ("LKAS_HUD", 4),
