@@ -28,6 +28,7 @@ class CarState(CarStateBase):
     self.shifter_values = can_define.dv["GEAR"]["PRNDL"]
     self.cachedParams = CachedParams()
     self.opParams = opParams()
+    self.lkasHeartbit = None
 
   def update(self, cp, cp_cam):
     speed_adjust_ratio = self.cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
@@ -89,6 +90,7 @@ class CarState(CarStateBase):
     ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
     ret.jvePilotCarState.leadDistanceRadarRatio = self.cachedParams.get_float(LEAD_RADAR_CONFIG[ret.jvePilotCarState.accFollowDistance], 1000) * inverse_speed_adjust_ratio
     ret.jvePilotCarState.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
+    self.lkasHeartbit = cp_cam.vl["LKAS_HEARTBIT"]
 
     button_events = []
     for buttonType in CHECK_BUTTONS:
@@ -197,15 +199,25 @@ class CarState(CarStateBase):
 
   @staticmethod
   def get_cam_can_parser(CP):
+    # LKAS_HEARTBIT data needs to be forwarded!
+    forward_lkas_heartbit_signals = [
+      ("AUTO_HIGH_BEAM", "LKAS_HEARTBIT", 0),
+      ("FORWARD_1", "LKAS_HEARTBIT", 0),
+      ("FORWARD_2", "LKAS_HEARTBIT", 0),
+      ("FORWARD_3", "LKAS_HEARTBIT", 0),
+    ]
+
     signals = [
       # sig_name, sig_address, default
       ("COUNTER", "LKAS_COMMAND", -1),
       ("CAR_MODEL", "LKAS_HUD", -1),
       ("LKAS_LANE_LINES", "LKAS_HUD", -1),
-    ]
+    ] + forward_lkas_heartbit_signals
+
     checks = [
       ("LKAS_COMMAND", 100),
       ("LKAS_HUD", 4),
+      ("LKAS_HEARTBIT", 10),
     ]
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 2)

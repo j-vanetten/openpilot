@@ -39,7 +39,8 @@ class CarController():
     self.cachedParams = CachedParams()
     self.autoFollowDistanceLock = None
 
-  def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, jvepilot_state):
+  def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
+    jvepilot_state = c.jvePilotState
     can_sends = []
     self.ccframe += 1
 
@@ -110,7 +111,7 @@ class CarController():
     self.apply_steer_last = apply_steer
 
     if self.ccframe % 10 == 0:  # 0.1s period
-      new_msg = create_lkas_heartbit(self.packer, 0 if jvepilot_state.carControl.useLaneLines else 256)
+      new_msg = create_lkas_heartbit(self.packer, 0 if jvepilot_state.carControl.useLaneLines else 1, CS.lkasHeartbit)
       can_sends.append(new_msg)
 
     if (self.ccframe % 25 == 0):  # 0.25s period
