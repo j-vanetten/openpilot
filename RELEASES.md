@@ -1,4 +1,9 @@
-Version jvePilot-0.8.5(v3.4.0)
+Version jvePilot-0.8.5(v3.4.1)
+========================
+Visit http://bit.ly/jvereadme for more information
+* Fix auto high beams
+
+Version jvePilot-0.8.5(v3.4)
 ========================
 Visit http://bit.ly/jvereadme for more information
 * Use LKAS button to disable lane lines and use new model (aka 🥬)
@@ -16,7 +21,7 @@ Visit http://bit.ly/jvereadme for more information
   * SEAT Leon 2017 & 2020 support thanks to jyoung8607!
   * Škoda Octavia 2015 & 2019 support thanks to jyoung8607!
 
-Version jvePilot-0.8.4(v3.3.0) (2021-06-02)
+Version jvePilot-0.8.4(v3.3) (2021-06-02)
 ========================
 * Fix radar tracking thanks to @xps
 * Metric ACC control.  Starts at 30kph, ACC +/- changes by 5kph
