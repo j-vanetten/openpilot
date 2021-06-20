@@ -16,6 +16,9 @@ V_CRUISE_MIN_IMPERIAL_MS = V_CRUISE_MIN_IMPERIAL * CV.KPH_TO_MS
 V_CRUISE_MIN_MS = V_CRUISE_MIN * CV.KPH_TO_MS
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
+ACC_BRAKE_MIN = 2 * CV.MPH_TO_MS
+ACC_BRAKE_MAX = 20 * CV.MPH_TO_MS
+
 class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.apply_steer_last = 0
@@ -77,7 +80,7 @@ class CarController():
           if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
             button_to_press = self.auto_resume_button(CS, gas_resume_speed)
           elif CS.out.cruiseState.enabled:  # Control ACC
-            button_to_press = self.auto_follow_button(CS, jvepilot_state) or self.hybrid_acc_button(CS, jvepilot_state)
+            button_to_press = self.auto_follow_button(CS, jvepilot_state) or self.hybrid_acc_button(CS, actuators, jvepilot_state)
 
       if button_to_press:
         new_msg = create_wheel_buttons_command(self, self.packer, button_counter + 1, button_to_press, True)
@@ -131,7 +134,7 @@ class CarController():
     if (self.auto_resume) and CS.out.vEgo <= gas_resume_speed:  # Keep trying while under gas_resume_speed
       return 'ACC_RESUME'
 
-  def hybrid_acc_button(self, CS, jvepilot_state):
+  def hybrid_acc_button(self, CS, actuators, jvepilot_state):
     # Move the adaptive curse control to the target speed
     eco_limit = None
     if jvepilot_state.carControl.accEco == 1:  # if eco mode
@@ -143,10 +146,16 @@ class CarController():
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
 
-    # exaggerate when slowing to get more from the breaks
+    # acc_braking 1: Overshoot the targeted slower speed by the distance to the target slower speed.  (ex. given(vego=37, vfuture=30), then(target=23))
+    # acc_braking 2: Use brake actuator to calc how much lower the ACC should be from current speed to get desired braking.
+    acc_braking_type = 2
+
     diff = target - CS.out.vEgo
-    if diff < -2 * CV.MPH_TO_MS:
-      target += diff
+    if diff < -ACC_BRAKE_MIN:  # within reason
+      if acc_braking_type == 1:
+          target += diff
+      elif acc_braking_type == 2:
+        target = min(target, CS.out.vEgo - (ACC_BRAKE_MAX * actuators.brake))
 
     # round to nearest unit
     target = round(target * self.round_to_unit)
