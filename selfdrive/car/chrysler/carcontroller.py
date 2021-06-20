@@ -145,7 +145,7 @@ class CarController():
 
     # exaggerate when slowing to get more from the breaks
     diff = target - CS.out.vEgo
-    if diff < 0:
+    if diff < -2 * CV.MPH_TO_MS:
       target += diff
 
     # round to nearest unit
