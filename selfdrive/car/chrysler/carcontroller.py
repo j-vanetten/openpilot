@@ -143,6 +143,11 @@ class CarController():
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
 
+    # exaggerate when slowing to get more from the breaks
+    diff = target - CS.out.vEgo
+    if diff < 0:
+      target += diff
+
     # round to nearest unit
     target = round(target * self.round_to_unit)
     current = round(CS.out.cruiseState.speed * self.round_to_unit)
