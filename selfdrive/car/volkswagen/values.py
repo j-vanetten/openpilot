@@ -70,6 +70,11 @@ class CAR:
   SKODA_SUPERB_MK3 = "SKODA SUPERB 3RD GEN"   # Chassis 3V/NP, Mk3 Skoda Superb and variants
   SKODA_OCTAVIA_MK3 = "SKODA OCTAVIA 3RD GEN" # Chassis NE, Mk3 Skoda Octavia and variants
 
+# All VW should be here
+IGNORED_FINGERPRINTS = [CAR.ATLAS_MK1, CAR.GOLF_MK7, CAR.JETTA_MK7, CAR.PASSAT_MK8,
+                        CAR.TIGUAN_MK2, CAR.AUDI_A3_MK3, CAR.SEAT_ATECA_MK1,
+                        CAR.SKODA_KODIAQ_MK1, CAR.SKODA_SCALA_MK1, CAR.SKODA_SUPERB_MK3 ]
+
 FW_VERSIONS = {
   CAR.ATLAS_MK1: {
     (Ecu.engine, 0x7e0, None): [

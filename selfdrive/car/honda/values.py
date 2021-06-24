@@ -114,6 +114,9 @@ FINGERPRINTS = {
   }],
 }
 
+# Don't use theses fingerprints for fingerprinting, they are still needed for ECU detection
+IGNORED_FINGERPRINTS = [CAR.INSIGHT, CAR.CIVIC_BOSCH_DIESEL, CAR.CRV_EU, CAR.HRV, CAR.ACURA_RDX_3G]
+
 # add DIAG_MSGS to fingerprints
 for c in FINGERPRINTS:
   for f, _ in enumerate(FINGERPRINTS[c]):
