@@ -75,14 +75,14 @@ class CarController():
       if pcm_cancel_cmd:
         button_to_press = 'ACC_CANCEL'
       elif enabled and not CS.out.brakePressed:
-        if self.ccframe >= self.pause_control_until_frame and self.ccframe % 12 < 8:  # spend more of the time trying spoof the button
+        if self.ccframe >= self.pause_control_until_frame and self.ccframe % 8 < 6:
           if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
             button_to_press = self.auto_resume_button(CS, gas_resume_speed)
           elif CS.out.cruiseState.enabled:  # Control ACC
             button_to_press = self.auto_follow_button(CS, jvepilot_state) or self.hybrid_acc_button(CS, actuators, jvepilot_state)
 
       if button_to_press:
-        counter_offset = 1 if self.ccframe % 12 < 4 else 0 # half the time tries the next counter
+        counter_offset = 1 if self.ccframe % 8 < 4 else 0
         new_msg = create_wheel_buttons_command(self, self.packer, button_counter + counter_offset, button_to_press, True)
         can_sends.append(new_msg)
 
