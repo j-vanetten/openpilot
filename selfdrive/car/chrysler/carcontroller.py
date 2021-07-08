@@ -16,7 +16,7 @@ V_CRUISE_MIN_IMPERIAL_MS = V_CRUISE_MIN_IMPERIAL * CV.KPH_TO_MS
 V_CRUISE_MIN_MS = V_CRUISE_MIN * CV.KPH_TO_MS
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
-ACC_BRAKE_MIN = 2 * CV.MPH_TO_MS
+ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -134,6 +134,8 @@ class CarController():
       return 'ACC_RESUME'
 
   def hybrid_acc_button(self, CS, actuators, jvepilot_state):
+    target = jvepilot_state.carControl.vTargetFuture
+
     # Move the adaptive curse control to the target speed
     eco_limit = None
     if jvepilot_state.carControl.accEco == 1:  # if eco mode
@@ -141,13 +143,12 @@ class CarController():
     elif jvepilot_state.carControl.accEco == 2:  # if eco mode
       eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
 
-    target = jvepilot_state.carControl.vTargetFuture
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
 
     # ACC Braking
     diff = CS.out.vEgo - target
-    if diff > ACC_BRAKE_MIN:  # ignore flux
+    if diff > ACC_BRAKE_THRESHOLD and abs(target - jvepilot_state.carControl.vMaxCruise) > ACC_BRAKE_THRESHOLD:  # ignore change in max cruise speed
       target -= diff
 
     # round to nearest unit
