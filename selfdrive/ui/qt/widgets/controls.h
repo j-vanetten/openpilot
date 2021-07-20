@@ -4,7 +4,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
-#include <QVBoxLayout>
 
 #include "selfdrive/common/params.h"
 #include "selfdrive/ui/qt/widgets/toggle.h"
@@ -19,6 +18,19 @@ struct ConfigButton {
   float max;
   QString title;
   QString text;
+};
+
+class ElidedLabel : public QLabel {
+  Q_OBJECT
+
+ public:
+  explicit ElidedLabel(QWidget *parent = 0);
+  explicit ElidedLabel(const QString &text, QWidget *parent = 0);
+
+ protected:
+  void paintEvent(QPaintEvent *event) override;
+  void resizeEvent(QResizeEvent* event) override;
+  QString lastText_, elidedText_;
 };
 
 class AbstractControl : public QFrame {
@@ -53,7 +65,7 @@ class LabelControl : public AbstractControl {
   Q_OBJECT
 
 public:
-  LabelControl(const QString &title, const QString &text, const QString &desc = "", QWidget *parent = nullptr, const QString &icon = "", QList<struct ConfigButton> *btns = {}) : AbstractControl(title, desc, icon, parent, btns) {
+  LabelControl(const QString &title, const QString &text = "", const QString &desc = "", QWidget *parent = nullptr, const QString &icon = "", QList<struct ConfigButton> *btns = {}) : AbstractControl(title, desc, icon, parent, btns) {
     label.setText(text);
     label.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     hlayout->addWidget(&label);
@@ -61,7 +73,7 @@ public:
   void setText(const QString &text) { label.setText(text); }
 
 private:
-  QLabel label;
+  ElidedLabel label;
 };
 
 // widget for a button with a label
@@ -70,34 +82,18 @@ class ButtonControl : public AbstractControl {
 
 public:
   template <typename Functor>
-  ButtonControl(const QString &title, const QString &text, const QString &desc, Functor functor, const QString &icon = "", QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {}) : AbstractControl(title, desc, icon, parent, btns) {
-    btn.setText(text);
-    btn.setStyleSheet(R"(
-      QPushButton {
-        padding: 0;
-        border-radius: 50px;
-        font-size: 35px;
-        font-weight: 500;
-        color: #E4E4E4;
-        background-color: #393939;
-      }
-      QPushButton:disabled {
-        color: #33E4E4E4;
-      }
-    )");
-    btn.setFixedSize(250, 100);
-    QObject::connect(&btn, &QPushButton::released, functor);
-    hlayout->addWidget(&btn);
-  }
-  void setLabel(const QString &text) { title_label->setText(text); }
-  void setText(const QString &text) { btn.setText(text); }
+  ButtonControl(const QString &title, const QString &text, const QString &desc, Functor functor, const QString &icon = "", QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {});
+  inline void setText(const QString &text) { btn.setText(text); }
+  inline QString text() const { return btn.text(); }
+  inline setLabel(const QString &text) { title_label->setText(text); }
   template <typename Functor>
-  void released(Functor functor) { QObject::connect(&btn, &QPushButton::released, functor); }
+  inline released(Functor functor) { QObject::connect(&btn, &QPushButton::released, functor); }
+
+signals:
+  void released();
 
 public slots:
-  void setEnabled(bool enabled) {
-    btn.setEnabled(enabled);
-  };
+  void setEnabled(bool enabled) { btn.setEnabled(enabled); };
 
 private:
   QPushButton btn;

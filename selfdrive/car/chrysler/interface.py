@@ -64,6 +64,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.enableCamera = True
     ret.openpilotLongitudinalControl = ret.enableCamera  # kind of...
+    ret.pcmCruise = True
 
     ret.enableBsm |= 720 in fingerprint[0]
 

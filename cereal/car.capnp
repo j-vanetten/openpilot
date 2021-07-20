@@ -72,7 +72,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     lowSpeedLockout @31;
     plannerError @32;
     joystickDebug @34;
-    steerTempUnavailableUserOverride @35;
+    steerTempUnavailableSilent @35;
     resumeRequired @36;
     preDriverDistracted @37;
     promptDriverDistracted @38;
@@ -97,7 +97,6 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     stockAeb @64;
     ldw @65;
     carUnrecognized @66;
-    driverMonitorLowAcc @68;
     invalidLkasSetting @69;
     speedTooHigh @70;
     laneChangeBlocked @71;
@@ -129,7 +128,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     wideRoadCameraError @102;
     localizerMalfunction @103;
 
-    accBrakeHold @15; # repurposed for jvePilot
+    driverMonitorLowAccDEPRECATED @68;
+    radarCanErrorDEPRECATED @15;
     radarCommIssueDEPRECATED @67;
     gasUnavailableDEPRECATED @3;
     dataNeededDEPRECATED @16;
@@ -147,7 +147,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     focusRecoverActiveDEPRECATED @86;
     neosUpdateRequiredDEPRECATED @88;
     modelLagWarningDEPRECATED @93;
-    startupOneplusDEPRECATED @82;
+    accBrakeHold @82; # repurposed for jvePilot
   }
 }
 
@@ -389,12 +389,11 @@ struct CarParams {
   fuzzyFingerprint @55 :Bool;
 
   enableGasInterceptor @2 :Bool;
-  enableCruise @3 :Bool;
-  enableCamera @4 :Bool;
-  enableDsu @5 :Bool; # driving support unit
-  enableApgs @6 :Bool; # advanced parking guidance system
-  enableBsm @56 :Bool; # blind spot monitoring
-  hasStockCamera @57 :Bool; # factory LKAS/LDW camera is present
+  pcmCruise @3 :Bool;        # is openpilot's state tied to the PCM's cruise state?
+  enableDsu @5 :Bool;        # driving support unit
+  enableApgs @6 :Bool;       # advanced parking guidance system
+  enableBsm @56 :Bool;       # blind spot monitoring
+  hasStockCamera @57 :Bool;  # factory LKAS/LDW camera is present
 
   minEnableSpeed @7 :Float32;
   minSteerSpeed @8 :Float32;
@@ -591,5 +590,6 @@ struct CarParams {
     gateway @1;    # Integration at vehicle's CAN gateway
   }
 
+  enableCameraDEPRECATED @4 :Bool;
   isPandaBlackDEPRECATED @39: Bool;
 }
