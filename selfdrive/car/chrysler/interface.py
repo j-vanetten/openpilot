@@ -64,7 +64,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.enableCamera = True
     ret.openpilotLongitudinalControl = ret.enableCamera  # kind of...
-    ret.pcmCruise = True
+    ret.pcmCruiseSpeed = False  # Let jvePilot control the pcm cruise speed
 
     ret.enableBsm |= 720 in fingerprint[0]
 

@@ -9,7 +9,7 @@
 #include "selfdrive/hardware/hw.h"
 
 QString getBrand() {
-  return Params().getBool("Passive") ? "dashcam" : "openpilot";
+  return Params().getBool("Passive") ? "dashcam" : "jvePilot";
 }
 
 QString getBrandVersion() {
