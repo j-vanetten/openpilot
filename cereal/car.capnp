@@ -590,6 +590,6 @@ struct CarParams {
     gateway @1;    # Integration at vehicle's CAN gateway
   }
 
-  enableCameraDEPRECATED @4 :Bool;
+  pcmCruiseSpeed @4: Bool; # repurposed for jvePilot;
   isPandaBlackDEPRECATED @39: Bool;
 }
