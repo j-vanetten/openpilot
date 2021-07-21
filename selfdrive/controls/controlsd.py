@@ -549,9 +549,15 @@ class Controls:
     CC.cruiseControl.accelOverride = float(self.CI.calc_accel_override(CS.aEgo, self.a_target,
                                                                        CS.vEgo, self.v_target))
 
-    CC.jvePilotState.carControl.vTargetFuture = self.v_target
+    # target the future speed
+    v_max_speed = float(self.v_cruise_kph * CV.KPH_TO_MS)
+    v_target_future = self.v_target
+    speeds = self.sm['longitudinalPlan'].speeds
+    if len(speeds) > 0:
+      v_target_future = speeds[-1]
+    CC.jvePilotState.carControl.vTargetFuture = min(v_max_speed, v_target_future)
 
-    CC.hudControl.setSpeed = float(self.v_cruise_kph * CV.KPH_TO_MS)
+    CC.hudControl.setSpeed = v_max_speed
     CC.hudControl.speedVisible = self.enabled
     CC.hudControl.lanesVisible = self.enabled
     CC.hudControl.leadVisible = self.sm['longitudinalPlan'].hasLead
