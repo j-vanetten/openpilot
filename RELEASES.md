@@ -1,6 +1,7 @@
-Version jvePilot-0.8.6(v3.4.1)
+Version jvePilot-0.8.6(v3.5)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* ACC Breaking
 * Update to version 0.8.6
  * Revamp lateral and longitudinal planners
    * Refactor planner output API to be more readable and verbose
@@ -23,7 +24,6 @@ Visit http://bit.ly/jvereadme for more information
 
 Version jvePilot-0.8.5(v3.4)
 ========================
-Visit http://bit.ly/jvereadme for more information
 * Use LKAS button to disable lane lines and use new model (aka 🥬)
 * Update to version 0.8.5
   * NEOS update: improved reliability and stability with better voltage regulator configuration

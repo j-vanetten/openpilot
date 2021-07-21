@@ -556,6 +556,7 @@ class Controls:
     if len(speeds) > 0:
       v_target_future = speeds[-1] + (CV.KPH_TO_MS * .5)
     CC.jvePilotState.carControl.vTargetFuture = min(v_max_speed, v_target_future)
+    CC.jvePilotState.carControl.vMaxCruise = v_max_speed
 
     CC.hudControl.setSpeed = v_max_speed
     CC.hudControl.speedVisible = self.enabled

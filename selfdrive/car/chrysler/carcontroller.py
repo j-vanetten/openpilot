@@ -16,6 +16,8 @@ V_CRUISE_MIN_IMPERIAL_MS = V_CRUISE_MIN_IMPERIAL * CV.KPH_TO_MS
 V_CRUISE_MIN_MS = V_CRUISE_MIN * CV.KPH_TO_MS
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
+ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
+
 class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.apply_steer_last = 0
@@ -73,11 +75,11 @@ class CarController():
       if pcm_cancel_cmd:
         button_to_press = 'ACC_CANCEL'
       elif enabled and not CS.out.brakePressed:
-        if self.ccframe >= self.pause_control_until_frame and self.ccframe % 8 < 4:  # press for 40ms, not for 40ms
+        if self.ccframe >= self.pause_control_until_frame and self.ccframe % 8 < 4:
           if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
             button_to_press = self.auto_resume_button(CS, gas_resume_speed)
           elif CS.out.cruiseState.enabled:  # Control ACC
-            button_to_press = self.auto_follow_button(CS, jvepilot_state) or self.hybrid_acc_button(CS, jvepilot_state)
+            button_to_press = self.auto_follow_button(CS, jvepilot_state) or self.hybrid_acc_button(CS, actuators, jvepilot_state)
 
       if button_to_press:
         new_msg = create_wheel_buttons_command(self, self.packer, button_counter + 1, button_to_press, True)
@@ -131,7 +133,9 @@ class CarController():
     if (self.auto_resume) and CS.out.vEgo <= gas_resume_speed:  # Keep trying while under gas_resume_speed
       return 'ACC_RESUME'
 
-  def hybrid_acc_button(self, CS, jvepilot_state):
+  def hybrid_acc_button(self, CS, actuators, jvepilot_state):
+    target = jvepilot_state.carControl.vTargetFuture
+
     # Move the adaptive curse control to the target speed
     eco_limit = None
     if jvepilot_state.carControl.accEco == 1:  # if eco mode
@@ -139,9 +143,13 @@ class CarController():
     elif jvepilot_state.carControl.accEco == 2:  # if eco mode
       eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
 
-    target = jvepilot_state.carControl.vTargetFuture
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
+
+    # ACC Braking
+    diff = CS.out.vEgo - target
+    if diff > ACC_BRAKE_THRESHOLD and abs(target - jvepilot_state.carControl.vMaxCruise) > ACC_BRAKE_THRESHOLD:  # ignore change in max cruise speed
+      target -= diff
 
     # round to nearest unit
     target = round(target * self.round_to_unit)
