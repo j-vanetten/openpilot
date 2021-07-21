@@ -85,9 +85,9 @@ public:
   ButtonControl(const QString &title, const QString &text, const QString &desc, Functor functor, const QString &icon = "", QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {});
   inline void setText(const QString &text) { btn.setText(text); }
   inline QString text() const { return btn.text(); }
-  inline setLabel(const QString &text) { title_label->setText(text); }
+  inline void setLabel(const QString &text) { title_label->setText(text); }
   template <typename Functor>
-  inline released(Functor functor) { QObject::connect(&btn, &QPushButton::released, functor); }
+  inline void released(Functor functor) { QObject::connect(&btn, &QPushButton::released, functor); }
 
 signals:
   void released();

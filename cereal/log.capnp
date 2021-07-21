@@ -1465,8 +1465,6 @@ struct Event {
     featuresDEPRECATED @10 :Legacy.CalibrationFeatures;
     kalmanOdometryDEPRECATED @65 :Legacy.KalmanOdometry;
     gpsLocationDEPRECATED @21 :GpsLocationData;
-    uiLayoutStateDEPRECATED @57 :Legacy.UiLayoutState;
-
-    jvePilotUIState @79 :JvePilotUIState;
+    jvePilotUIState @57 :JvePilotUIState; # repurposed for jvePilot;
   }
 }
