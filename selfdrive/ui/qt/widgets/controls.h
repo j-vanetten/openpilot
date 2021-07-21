@@ -81,13 +81,10 @@ class ButtonControl : public AbstractControl {
   Q_OBJECT
 
 public:
-  template <typename Functor>
-  ButtonControl(const QString &title, const QString &text, const QString &desc, Functor functor, const QString &icon = "", QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {});
+  ButtonControl(const QString &title, const QString &text, const QString &desc = "", QWidget *parent = nullptr);
   inline void setText(const QString &text) { btn.setText(text); }
   inline QString text() const { return btn.text(); }
   inline void setLabel(const QString &text) { title_label->setText(text); }
-  template <typename Functor>
-  inline void released(Functor functor) { QObject::connect(&btn, &QPushButton::released, functor); }
 
 signals:
   void released();

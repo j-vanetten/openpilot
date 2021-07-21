@@ -23,7 +23,7 @@ class InputDialog : public QDialogBase {
 public:
   explicit InputDialog(const QString &prompt_text, QWidget *parent);
   static QString getText(const QString &prompt, QWidget *parent, int minLength = -1, const QString &defaultText = "");
-  static QString getConfigDecimal(const QString &prompt, std::string existingValue, float min, float max);
+  static QString getConfigDecimal(const QString &prompt, QWidget *parent, std::string existingValue, float min, float max);
   QString text();
   void setMessage(const QString &message, bool clearInputField = true);
   void setMinLength(int length);

@@ -80,8 +80,8 @@ QString InputDialog::getText(const QString &prompt, QWidget *parent, int minLeng
   return ret ? d.text() : QString();
 }
 
-QString InputDialog::getConfigDecimal(const QString &prompt, std::string existingValue, float min, float max) {
-  InputDialog d = InputDialog(prompt);
+QString InputDialog::getConfigDecimal(const QString &prompt, QWidget *parent, std::string existingValue, float min, float max) {
+  InputDialog d = InputDialog(prompt, parent);
   const QString existing = QString::fromStdString(existingValue);
   d.setText(existing);
   d.setMinLength(1);
