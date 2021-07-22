@@ -554,7 +554,7 @@ class Controls:
     v_target_future = self.v_target
     speeds = self.sm['longitudinalPlan'].speeds
     if len(speeds) > 0:
-      v_target_future = speeds[-1] + (CV.KPH_TO_MS * .5)
+      v_target_future = max(speeds)
     CC.jvePilotState.carControl.vTargetFuture = min(v_max_speed, v_target_future)
     CC.jvePilotState.carControl.vMaxCruise = v_max_speed
 

@@ -119,11 +119,10 @@ class Planner():
     if self.mpcs['lead0'].new_lead:
       self.fcw_checker.reset_lead(cur_time)
     blinkers = sm['carState'].leftBlinker or sm['carState'].rightBlinker
-    lead_distance_ratio = sm['carState'].jvePilotCarState.leadDistanceRadarRatio  # Make the car seem further away so we can get closer
     self.fcw = self.fcw_checker.update(self.mpcs['lead0'].mpc_solution, cur_time,
                                        sm['controlsState'].active,
                                        v_ego, sm['carState'].aEgo,
-                                       self.lead_1.dRel * lead_distance_ratio, self.lead_1.vLead, self.lead_1.aLeadK,
+                                       self.lead_1.dRel, self.lead_1.vLead, self.lead_1.aLeadK,
                                        self.lead_1.yRel, self.lead_1.vLat,
                                        self.lead_1.fcw, blinkers) and not sm['carState'].brakePressed
     if self.fcw:
