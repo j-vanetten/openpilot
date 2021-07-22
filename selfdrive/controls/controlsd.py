@@ -554,7 +554,7 @@ class Controls:
     v_target_future = self.v_target
     speeds = self.sm['longitudinalPlan'].speeds
     if len(speeds) > 0:
-      v_target_future = max(speeds)
+      v_target_future = min(speeds) if actuators.brake > 0 else max(speeds)
     CC.jvePilotState.carControl.vTargetFuture = min(v_max_speed, v_target_future)
     CC.jvePilotState.carControl.vMaxCruise = v_max_speed
 
