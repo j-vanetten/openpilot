@@ -557,12 +557,10 @@ class Controls:
     v_target_future = self.v_target
     speeds = self.sm['longitudinalPlan'].speeds
     if len(speeds) > 0:
-      if actuators.brake > 0:
+      v_target_future = max(speeds)
+      if v_target_future < CS.vEgo:
         v_target_future = min(speeds)
-      elif actuators.gas > 0:
-        v_target_future = max(speeds)
-      else:
-        v_target_future = speeds[-1]
+
     CC.jvePilotState.carControl.vTargetFuture = min(v_max_speed, v_target_future)
 
     CC.hudControl.setSpeed = v_max_speed
