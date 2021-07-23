@@ -58,7 +58,8 @@ class LeadMpc():
     self.cur_state[0].x_ego = 0.0
 
     if lead is not None and lead.status:
-      x_lead = lead.dRel
+      lead_ratio = CS.jvePilotCarState.leadDistanceRadarRatio if CS.jvePilotCarState.leadDistanceRadarRatio != 0 else 1
+      x_lead = lead.dRel * lead_ratio
       v_lead = max(0.0, lead.vLead)
       a_lead = lead.aLeadK
 

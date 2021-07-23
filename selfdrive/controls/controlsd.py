@@ -7,6 +7,7 @@ from common.realtime import sec_since_boot, config_realtime_process, Priority, R
 from common.profiler import Profiler
 from common.params import Params, put_nonblocking
 from common.cached_params import CachedParams
+import numpy as np
 import cereal.messaging as messaging
 from selfdrive.config import Conversions as CV
 from selfdrive.swaglog import cloudlog
@@ -551,12 +552,18 @@ class Controls:
 
     # target the future speed
     v_max_speed = float(self.v_cruise_kph * CV.KPH_TO_MS)
+    CC.jvePilotState.carControl.vMaxCruise = v_max_speed
+
     v_target_future = self.v_target
     speeds = self.sm['longitudinalPlan'].speeds
     if len(speeds) > 0:
-      v_target_future = min(speeds) if actuators.brake > 0 else max(speeds)
+      if actuators.brake > 0:
+        v_target_future = min(speeds)
+      elif actuators.gas > 0:
+        v_target_future = max(speeds)
+      else:
+        v_target_future = speeds[-1]
     CC.jvePilotState.carControl.vTargetFuture = min(v_max_speed, v_target_future)
-    CC.jvePilotState.carControl.vMaxCruise = v_max_speed
 
     CC.hudControl.setSpeed = v_max_speed
     CC.hudControl.speedVisible = self.enabled

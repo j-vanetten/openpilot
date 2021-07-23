@@ -101,17 +101,15 @@ class RadarD():
   def update(self, sm, rr, enable_lead):
     self.current_time = 1e-9*max(sm.logMonoTime.values())
 
-    lead_distance_ratio = 1
     if sm.updated['carState']:
       self.v_ego = sm['carState'].vEgo
       self.v_ego_hist.append(self.v_ego)
-      lead_distance_ratio = sm['carState'].jvePilotCarState.leadDistanceRadarRatio
     if sm.updated['modelV2']:
       self.ready = True
 
     ar_pts = {}
     for pt in rr.points:
-      ar_pts[pt.trackId] = [pt.dRel * lead_distance_ratio, pt.yRel, pt.vRel, pt.measured]
+      ar_pts[pt.trackId] = [pt.dRel, pt.yRel, pt.vRel, pt.measured]
 
     # *** remove missing points from meta data ***
     for ids in list(self.tracks.keys()):
