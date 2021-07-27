@@ -38,6 +38,7 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 
 ## Benefits of jvePilot
 * Smother driving in traffic as jvePilot will do a better job at predicting traffic and adjust ACC speed accordingly
+* ACC braking by setting the cruse speed lower that the target to help slow the vehicle sooner
 * Slow for cars cutting in before ACC does
 * Slow in a turn, so you don't have to change the set speed yourself (Speeds are configurable)
 * Auto resume after ACC comes to a stop behind vehicle (Can be disabled)
