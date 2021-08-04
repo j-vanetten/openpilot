@@ -3,7 +3,9 @@ Version jvePilot-0.8.7(v3.5)
 Visit http://bit.ly/jvereadme for more information
 * ACC Braking
 * Update to version 0.8.7
-  * Volkswagen T-Cross 2021 support thanks to jyoung8607!
+ * comma three support!
+ * Navigation alpha for the comma three!
+ * Volkswagen T-Cross 2021 support thanks to jyoung8607!
 * Update to version 0.8.6
 * Revamp lateral and longitudinal planners
   * Refactor planner output API to be more readable and verbose
