@@ -1,8 +1,9 @@
 #include "selfdrive/camerad/cameras/camera_common.h"
 
-#include <assert.h>
-#include <stdio.h>
 #include <unistd.h>
+
+#include <cassert>
+#include <cstdio>
 #include <chrono>
 #include <thread>
 
@@ -26,6 +27,8 @@
 #else
 #include "selfdrive/camerad/cameras/camera_frame_stream.h"
 #endif
+
+const int YUV_COUNT = 100;
 
 static cl_program build_debayer_program(cl_device_id device_id, cl_context context, const CameraInfo *ci, const CameraBuf *b, const CameraState *s) {
   char args[4096];
@@ -162,7 +165,7 @@ bool CameraBuf::acquire() {
 }
 
 void CameraBuf::release() {
-  if (release_callback){
+  if (release_callback) {
     release_callback((void*)camera_state, cur_buf_idx);
   }
 }
@@ -179,12 +182,14 @@ void fill_frame_data(cereal::FrameData::Builder &framed, const FrameMetadata &fr
   framed.setTimestampSof(frame_data.timestamp_sof);
   framed.setFrameLength(frame_data.frame_length);
   framed.setIntegLines(frame_data.integ_lines);
-  framed.setGlobalGain(frame_data.global_gain);
+  framed.setGain(frame_data.gain);
+  framed.setHighConversionGain(frame_data.high_conversion_gain);
+  framed.setMeasuredGreyFraction(frame_data.measured_grey_fraction);
+  framed.setTargetGreyFraction(frame_data.target_grey_fraction);
   framed.setLensPos(frame_data.lens_pos);
   framed.setLensSag(frame_data.lens_sag);
   framed.setLensErr(frame_data.lens_err);
   framed.setLensTruePos(frame_data.lens_true_pos);
-  framed.setGainFrac(frame_data.gain_frac);
 }
 
 kj::Array<uint8_t> get_frame_image(const CameraBuf *b) {

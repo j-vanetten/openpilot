@@ -12,7 +12,6 @@
 #include "selfdrive/common/swaglog.h"
 #include "selfdrive/common/timing.h"
 #include "selfdrive/common/util.h"
-#include <math.h>
 
 #include "selfdrive/sensord/sensors/constants.h"
 #define VISION_DECIMATION 2
@@ -32,6 +31,7 @@ public:
   void finite_check(double current_time = NAN);
   void time_check(double current_time = NAN);
   void update_reset_tracker();
+  bool isGpsOK();
 
   kj::ArrayPtr<capnp::byte> get_message_bytes(MessageBuilder& msg_builder, uint64_t logMonoTime,
     bool inputsOK, bool sensorsOK, bool gpsOK);

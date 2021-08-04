@@ -1,30 +1,32 @@
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#include <assert.h>
+#include "selfdrive/camerad/cameras/camera_qcom2.h"
+
 #include <fcntl.h>
+#include <poll.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
-#include <poll.h>
-#include <math.h>
+#include <unistd.h>
+
 #include <atomic>
+#include <cassert>
+#include <cerrno>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
 
 #include "media/cam_defs.h"
 #include "media/cam_isp.h"
 #include "media/cam_isp_ife.h"
-#include "media/cam_sensor_cmn_header.h"
 #include "media/cam_sensor.h"
+#include "media/cam_sensor_cmn_header.h"
 #include "media/cam_sync.h"
-#include "sensor2_i2c.h"
-
 #include "selfdrive/common/swaglog.h"
-#include "selfdrive/camerad/cameras/camera_qcom2.h"
+#include "selfdrive/camerad/cameras/sensor2_i2c.h"
 
 #define FRAME_WIDTH  1928
 #define FRAME_HEIGHT 1208
 //#define FRAME_STRIDE 1936 // for 8 bit output
 #define FRAME_STRIDE 2416  // for 10 bit output
+//#define FRAME_STRIDE 1936 // for 8 bit output
 
 #define MIPI_SETTLE_CNT 33  // Calculated by camera_freqs.py
 
@@ -536,7 +538,7 @@ static int open_v4l_by_name_and_index(const char name[], int index, int flags) {
   char nbuf[0x100];
   int v4l_index = 0;
   int cnt_index = index;
-  while (1) {
+  while (true) {
     snprintf(nbuf, sizeof(nbuf), "/sys/class/video4linux/v4l-subdev%d/name", v4l_index);
     FILE *f = fopen(nbuf, "rb");
     if (f == NULL) return -1;
@@ -903,9 +905,11 @@ void handle_camera_event(CameraState *s, void *evdat) {
     meta_data.frame_id = main_id - s->idx_offset;
     meta_data.timestamp_sof = timestamp;
     s->exp_lock.lock();
-    meta_data.global_gain = s->analog_gain + (100*s->dc_gain_enabled);
-    meta_data.gain_frac = s->analog_gain_frac;
+    meta_data.gain = s->dc_gain_enabled ? s->analog_gain_frac * 2.5 : s->analog_gain_frac;
+    meta_data.high_conversion_gain = s->dc_gain_enabled;
     meta_data.integ_lines = s->exposure_time;
+    meta_data.measured_grey_fraction = s->measured_grey_fraction;
+    meta_data.target_grey_fraction = s->target_grey_fraction;
     s->exp_lock.unlock();
 
     // dispatch
@@ -967,6 +971,9 @@ static void set_camera_exposure(CameraState *s, float grey_frac) {
   }
 
   s->exp_lock.lock();
+  s->measured_grey_fraction = grey_frac;
+  s->target_grey_fraction = target_grey;
+
   // always prioritize exposure time adjust
   s->exposure_time *= exposure_factor;
 

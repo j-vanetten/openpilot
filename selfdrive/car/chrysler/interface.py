@@ -62,8 +62,9 @@ class CarInterface(CarInterfaceBase):
     # mass and CG position, so all cars will have approximately similar dyn behaviors
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront)
 
-    ret.enableCamera = True
-    ret.openpilotLongitudinalControl = ret.enableCamera  # kind of...
+    ret.gasMaxV = [1.]  # we want full speed
+    ret.openpilotLongitudinalControl = True  # kind of...
+    ret.pcmCruiseSpeed = False  # Let jvePilot control the pcm cruise speed
 
     ret.enableBsm |= 720 in fingerprint[0]
 

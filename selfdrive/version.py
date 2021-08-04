@@ -7,6 +7,9 @@ from common.basedir import BASEDIR
 from selfdrive.swaglog import cloudlog
 
 
+TESTED_BRANCHES = ['jvePilot-release', 'origin/jvePilot-release']
+
+
 def run_cmd(cmd: List[str]) -> str:
     return subprocess.check_output(cmd, encoding='utf8').strip()
 
@@ -60,7 +63,7 @@ commit = get_git_commit()
 if (origin is not None) and (branch is not None):
   try:
     comma_remote = origin.startswith('git@github.com:j-vanetten') or origin.startswith('https://github.com/j-vanetten')
-    tested_branch = get_git_branch() in ['jvePilot-release', 'origin/jvePilot-release']
+    tested_branch = get_git_branch() in TESTED_BRANCHES
 
     dirty = False
 

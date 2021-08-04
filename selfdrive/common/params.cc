@@ -5,14 +5,14 @@
 #endif  // _GNU_SOURCE
 
 #include <dirent.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 #include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <mutex>
 #include <unordered_map>
 
@@ -42,9 +42,9 @@ void params_sig_handler(int signal) {
   params_do_exit = 1;
 }
 
-int fsync_dir(const char* path){
+int fsync_dir(const char* path) {
   int fd = HANDLE_EINTR(open(path, O_RDONLY, 0755));
-  if (fd < 0){
+  if (fd < 0) {
     return -1;
   }
 
@@ -78,7 +78,7 @@ int mkdir_p(std::string path) {
   return 0;
 }
 
-bool ensure_params_path(const std::string &param_path, const std::string &key_path) {
+static bool create_params_path(const std::string &param_path, const std::string &key_path) {
   // Make sure params path exists
   if (!util::file_exists(param_path) && mkdir_p(param_path) != 0) {
     return false;
@@ -117,6 +117,12 @@ bool ensure_params_path(const std::string &param_path, const std::string &key_pa
   return chmod(key_path.c_str(), 0777) == 0;
 }
 
+static void ensure_params_path(const std::string &params_path) {
+  if (!create_params_path(params_path, params_path + "/d")) {
+    throw std::runtime_error(util::string_format("Failed to ensure params path, errno=%d", errno));
+  }
+}
+
 class FileLock {
  public:
   FileLock(const std::string& file_name, int op) : fn_(file_name), op_(op) {}
@@ -128,7 +134,6 @@ class FileLock {
       return;
     }
     if (HANDLE_EINTR(flock(fd_, op_)) < 0) {
-      close(fd_);
       LOGE("Failed to lock file %s, errno=%d", fn_.c_str(), errno);
     }
   }
@@ -162,10 +167,11 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"jvePilot.settings.slowInCurves.speedDropOffAngle", PERSISTENT},
     {"jvePilot.settings.speedAdjustRatio", PERSISTENT},
 
-    {"AccessToken", CLEAR_ON_MANAGER_START},
+    {"AccessToken", CLEAR_ON_MANAGER_START | DONT_LOG},
     {"ApiCache_DriveStats", PERSISTENT},
     {"ApiCache_Device", PERSISTENT},
     {"ApiCache_Owner", PERSISTENT},
+    {"ApiCache_NavDestinations", PERSISTENT},
     {"AthenadPid", PERSISTENT},
     {"CalibrationParams", PERSISTENT},
     {"CarBatteryCapacity", PERSISTENT},
@@ -174,12 +180,13 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"CarVin", CLEAR_ON_MANAGER_START | CLEAR_ON_PANDA_DISCONNECT | CLEAR_ON_IGNITION_ON},
     {"CommunityFeaturesToggle", PERSISTENT},
     {"ControlsReady", CLEAR_ON_MANAGER_START | CLEAR_ON_PANDA_DISCONNECT | CLEAR_ON_IGNITION_ON},
-    {"EnableLteOnroad", PERSISTENT},
+    {"CurrentRoute", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_ON},
+    {"DisableRadar", PERSISTENT}, // WARNING: THIS DISABLES AEB
     {"EndToEndToggle", PERSISTENT},
     {"CompletedTrainingVersion", PERSISTENT},
     {"DisablePowerDown", PERSISTENT},
     {"DisableUpdates", PERSISTENT},
-    {"EnableWideCamera", PERSISTENT},
+    {"EnableWideCamera", CLEAR_ON_MANAGER_START},
     {"DoUninstall", CLEAR_ON_MANAGER_START},
     {"DongleId", PERSISTENT},
     {"GitDiff", PERSISTENT},
@@ -200,18 +207,20 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"IsTakingSnapshot", CLEAR_ON_MANAGER_START},
     {"IsUpdateAvailable", CLEAR_ON_MANAGER_START},
     {"UploadRaw", PERSISTENT},
-    {"LastAthenaPingTime", PERSISTENT},
+    {"LastAthenaPingTime", CLEAR_ON_MANAGER_START},
     {"LastGPSPosition", PERSISTENT},
     {"LastUpdateException", PERSISTENT},
     {"LastUpdateTime", PERSISTENT},
     {"LiveParameters", PERSISTENT},
-    {"MapboxToken", PERSISTENT},
+    {"MapboxToken", PERSISTENT | DONT_LOG},
     {"NavDestination", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_OFF},
+    {"NavSettingTime24h", PERSISTENT},
     {"OpenpilotEnabledToggle", PERSISTENT},
     {"PandaFirmware", CLEAR_ON_MANAGER_START | CLEAR_ON_PANDA_DISCONNECT},
     {"PandaFirmwareHex", CLEAR_ON_MANAGER_START | CLEAR_ON_PANDA_DISCONNECT},
     {"PandaDongleId", CLEAR_ON_MANAGER_START | CLEAR_ON_PANDA_DISCONNECT},
     {"Passive", PERSISTENT},
+    {"PrimeRedirected", PERSISTENT},
     {"RecordFront", PERSISTENT},
     {"RecordFrontLock", PERSISTENT},  // for the internal fleet
     {"ReleaseNotes", PERSISTENT},
@@ -238,20 +247,28 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"Offroad_UnofficialHardware", CLEAR_ON_MANAGER_START},
     {"Offroad_NvmeMissing", CLEAR_ON_MANAGER_START},
     {"ForcePowerDown", CLEAR_ON_MANAGER_START},
+    {"JoystickDebugMode", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_OFF},
 };
 
 } // namespace
 
 Params::Params(bool persistent_param) : Params(persistent_param ? persistent_params_path : default_params_path) {}
 
+std::once_flag default_params_path_ensured;
 Params::Params(const std::string &path) : params_path(path) {
-  if (!ensure_params_path(params_path, params_path + "/d")) {
-    throw std::runtime_error(util::string_format("Failed to ensure params path, errno=%d", errno));
+  if (path == default_params_path) {
+    std::call_once(default_params_path_ensured, ensure_params_path, path);
+  } else {
+    ensure_params_path(path);
   }
 }
 
 bool Params::checkKey(const std::string &key) {
   return keys.find(key) != keys.end();
+}
+
+ParamKeyType Params::getKeyType(const std::string &key) {
+  return static_cast<ParamKeyType>(keys[key]);
 }
 
 int Params::put(const char* key, const char* value, size_t value_size) {
@@ -289,7 +306,7 @@ int Params::put(const char* key, const char* value, size_t value_size) {
     // fsync parent directory
     path = params_path + "/d";
     result = fsync_dir(path.c_str());
-  } while(0);
+  } while (false);
 
   close(tmp_fd);
   remove(tmp_path.c_str());

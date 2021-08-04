@@ -1,6 +1,9 @@
-#include "controls.h"
-#include "widgets/input.h"
+#include "selfdrive/ui/qt/widgets/controls.h"
+#include "selfdrive/ui/qt/widgets/input.h"
 #include "selfdrive/hardware/hw.h"
+
+#include <QPainter>
+#include <QStyleOption>
 
 QFrame *horizontal_line(QWidget *parent) {
   QFrame *line = new QFrame(parent);
@@ -17,8 +20,8 @@ QFrame *horizontal_line(QWidget *parent) {
 }
 
 AbstractControl::AbstractControl(const QString &title, const QString &desc, const QString &icon, QWidget *parent, QList<struct ConfigButton> *btns) : QFrame(parent) {
-  QVBoxLayout *vlayout = new QVBoxLayout();
-  vlayout->setMargin(0);
+  QVBoxLayout *main_layout = new QVBoxLayout(this);
+  main_layout->setMargin(0);
 
   hlayout = new QHBoxLayout;
   hlayout->setMargin(0);
@@ -38,7 +41,7 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
   title_label->setStyleSheet("font-size: 50px; font-weight: 400; text-align: left;");
   hlayout->addWidget(title_label);
 
-  vlayout->addLayout(hlayout);
+  main_layout->addLayout(hlayout);
 
   QVBoxLayout *config_layout = new QVBoxLayout;
 
@@ -61,10 +64,10 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
 
       const auto existng_value = Params().get(btn.param);
       const auto control_title = QString::fromStdString(btn.title.toStdString() + ": " + existng_value);
-      const auto b = new ButtonControl(control_title, "CHANGE", btn.text, [=]() {});
-      b->released([=]() {
+      const auto b = new ButtonControl(control_title, "CHANGE", btn.text);
+      QObject::connect(b, &ButtonControl::clicked, [=]() {
           auto set_value = Params().get(btn.param);
-          auto new_value = InputDialog::getConfigDecimal(btn.title, set_value, btn.min, btn.max);
+          auto new_value = InputDialog::getConfigDecimal(btn.title, parent, set_value, btn.min, btn.max);
           if (new_value.length() > 0) {
             Params().put(btn.param, new_value.toStdString());
             b->setLabel(QString::fromStdString(btn.title.toStdString() + ": " + new_value.toStdString()));
@@ -86,15 +89,65 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
       }
       config_widget->setVisible(!config_widget->isVisible());
     });
-    vlayout->addWidget(config_widget);
+    main_layout->addWidget(config_widget);
   }
-
-  setLayout(vlayout);
-  setStyleSheet("background-color: transparent;");
 }
 
-void AbstractControl::hideEvent(QHideEvent *e){
-  if(config_widget != nullptr){
+void AbstractControl::hideEvent(QHideEvent *e) {
+  if(config_widget != nullptr) {
     config_widget->hide();
   }
+}
+
+// controls
+
+ButtonControl::ButtonControl(const QString &title, const QString &text, const QString &desc, QWidget *parent) : AbstractControl(title, desc, "", parent) {
+  btn.setText(text);
+  btn.setStyleSheet(R"(
+    QPushButton {
+      padding: 0;
+      border-radius: 50px;
+      font-size: 35px;
+      font-weight: 500;
+      color: #E4E4E4;
+      background-color: #393939;
+    }
+    QPushButton:pressed {
+      background-color: #4a4a4a;
+    }
+    QPushButton:disabled {
+      color: #33E4E4E4;
+    }
+  )");
+  btn.setFixedSize(250, 100);
+  QObject::connect(&btn, &QPushButton::clicked, this, &ButtonControl::clicked);
+  hlayout->addWidget(&btn);
+}
+
+// ElidedLabel
+
+ElidedLabel::ElidedLabel(QWidget *parent) : ElidedLabel({}, parent) {}
+
+ElidedLabel::ElidedLabel(const QString &text, QWidget *parent) : QLabel(text.trimmed(), parent) {
+  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  setMinimumWidth(1);
+}
+
+void ElidedLabel::resizeEvent(QResizeEvent* event) {
+  QLabel::resizeEvent(event);
+  lastText_ = elidedText_ = "";
+}
+
+void ElidedLabel::paintEvent(QPaintEvent *event) {
+  const QString curText = text();
+  if (curText != lastText_) {
+    elidedText_ = fontMetrics().elidedText(curText, Qt::ElideRight, contentsRect().width());
+    lastText_ = curText;
+  }
+
+  QPainter painter(this);
+  drawFrame(&painter);
+  QStyleOption opt;
+  opt.initFrom(this);
+  style()->drawItemText(&painter, contentsRect(), alignment(), opt.palette, isEnabled(), elidedText_, foregroundRole());
 }

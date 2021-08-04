@@ -7,9 +7,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "messaging.h"
-#include "ipc.h"
-#include "visionipc_server.h"
+#include "messaging/messaging.h"
+#include "visionipc/ipc.h"
+#include "visionipc/visionipc_server.h"
 
 std::string get_endpoint_name(std::string name, VisionStreamType type){
   if (messaging_use_zmq()){
@@ -122,7 +122,6 @@ void VisionIpcServer::listener(){
       bufs[i].buf_cl = 0;
       bufs[i].copy_q = 0;
       bufs[i].handle = 0;
-      bufs[i].owner = false;
 
       bufs[i].server_id = server_id;
     }
