@@ -65,7 +65,7 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
       const auto existng_value = Params().get(btn.param);
       const auto control_title = QString::fromStdString(btn.title.toStdString() + ": " + existng_value);
       const auto b = new ButtonControl(control_title, "CHANGE", btn.text);
-      QObject::connect(b, &ButtonControl::released, [=]() {
+      QObject::connect(b, &ButtonControl::clicked, [=]() {
           auto set_value = Params().get(btn.param);
           auto new_value = InputDialog::getConfigDecimal(btn.title, parent, set_value, btn.min, btn.max);
           if (new_value.length() > 0) {
@@ -112,12 +112,15 @@ ButtonControl::ButtonControl(const QString &title, const QString &text, const QS
       color: #E4E4E4;
       background-color: #393939;
     }
+    QPushButton:pressed {
+      background-color: #4a4a4a;
+    }
     QPushButton:disabled {
       color: #33E4E4E4;
     }
   )");
   btn.setFixedSize(250, 100);
-  QObject::connect(&btn, &QPushButton::released, this, &ButtonControl::released);
+  QObject::connect(&btn, &QPushButton::clicked, this, &ButtonControl::clicked);
   hlayout->addWidget(&btn);
 }
 
