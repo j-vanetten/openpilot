@@ -19,8 +19,8 @@ from selfdrive.swaglog import cloudlog
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2     # car smoothly decel at .2m/s^2 when user is distracted
-A_CRUISE_MIN = -5.
-A_CRUISE_MAX = 5.
+A_CRUISE_MIN = -10.
+A_CRUISE_MAX = 10.
 
 # Lookup table for turns
 _A_TOTAL_MAX_V = [1.7, 3.2]
@@ -130,7 +130,7 @@ class Planner():
     # Interpolate 0.05 seconds and save as starting point for next iteration
     a_prev = self.a_desired
     self.a_desired = float(interp(DT_MDL, T_IDXS[:CONTROL_N], self.a_desired_trajectory))
-    self.v_desired = self.v_desired + DT_MDL * (self.a_desired + a_prev)/2.0
+    self.v_desired = self.v_desired + DT_MDL * self.a_desired
 
     if self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
       curvs = list(lateral_planner.mpc_solution.curvature)
@@ -166,7 +166,7 @@ class Planner():
     # drop off
     drop_off = self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedDropOff', 5000)
     if drop_off != 2 and a_y_max > 0:
-      a_y_max = np.sqrt(a_y_max) ** a_y_max
+      a_y_max = np.sqrt(a_y_max) ** drop_off
 
     v_curvature = np.sqrt(a_y_max / np.clip(curv, 1e-4, None))
     model_speed = np.min(v_curvature)
