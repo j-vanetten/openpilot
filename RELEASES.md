@@ -1,6 +1,11 @@
-Version jvePilot-0.8.7(v3.5)
+Version jvePilot-0.8.7(v3.5.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Improved/more acceleration that model was providing
+* Jeep Grand Cherokee Trackhawk 2018 fingerprint thanks to adamrb!
+
+Version jvePilot-0.8.7(v3.5)
+========================
 * ACC Braking
 * Update to version 0.8.7
   * comma three support!
