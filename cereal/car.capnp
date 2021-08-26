@@ -271,10 +271,8 @@ struct CarState {
     }
   }
 
-  jvePilotCarState @37: JvePilotState.CarState;
-
   errorsDEPRECATED @0 :List(CarEvent.EventName);
-  brakeLightsDEPRECATED @19 :Bool;
+  jvePilotCarState @19 :JvePilotState.CarState;  # repurposed for jvePilot
 }
 
 # ******* radar state @ 20hz *******
@@ -378,11 +376,9 @@ struct CarControl {
     }
   }
 
-  jvePilotState @8: JvePilotState;
-
   gasDEPRECATED @1 :Float32;
   brakeDEPRECATED @2 :Float32;
-  steeringTorqueDEPRECATED @3 :Float32;
+  jvePilotState @3 :JvePilotState; # repurposed for jvePilot
 }
 
 # ****** car param ******
