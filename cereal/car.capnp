@@ -128,6 +128,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     driverCameraError @101;
     wideRoadCameraError @102;
     localizerMalfunction @103;
+    highCpuUsage @105;
 
     driverMonitorLowAccDEPRECATED @68;
     radarCanErrorDEPRECATED @15;
@@ -176,6 +177,7 @@ struct CarState {
 
   # steering wheel
   steeringAngleDeg @7 :Float32;
+  steeringAngleOffsetDeg @37 :Float32; # Offset betweens sensors in case there multiple
   steeringRateDeg @15 :Float32;
   steeringTorque @8 :Float32;      # TODO: standardize units
   steeringTorqueEps @27 :Float32;  # TODO: standardize units
@@ -269,10 +271,8 @@ struct CarState {
     }
   }
 
-  jvePilotCarState @37: JvePilotState.CarState;
-
   errorsDEPRECATED @0 :List(CarEvent.EventName);
-  brakeLightsDEPRECATED @19 :Bool;
+  jvePilotCarState @19 :JvePilotState.CarState;  # repurposed for jvePilot
 }
 
 # ******* radar state @ 20hz *******
@@ -328,6 +328,7 @@ struct CarControl {
     # range from -1.0 - 1.0
     steer @2: Float32;
     steeringAngleDeg @3: Float32;
+    accel @4: Float32; # m/s^2
   }
 
   struct CruiseControl {
@@ -375,11 +376,9 @@ struct CarControl {
     }
   }
 
-  jvePilotState @8: JvePilotState;
-
   gasDEPRECATED @1 :Float32;
   brakeDEPRECATED @2 :Float32;
-  steeringTorqueDEPRECATED @3 :Float32;
+  jvePilotState @3 :JvePilotState; # repurposed for jvePilot
 }
 
 # ****** car param ******
