@@ -104,11 +104,11 @@ It will be adjusting it as needed, never raising it above the one set on the jve
 ---
 
 # Install
-The easiest way to install jvePilot is to factory reset and use this Custom Software URL: `https://bit.ly/jvepilot`
+The easiest way to install jvePilot is to factory reset and use this Custom Software URL: `https://bit.ly/jvePilot-release`
 
 ## Branches
-`/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for daily use.
-`/jvePilot-beta` - Sometimes I have people wanting to beta test jvePilot's new features.  Mostly stable, but still can be buggy. 
+`/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for daily use. Custom Software URL: `https://bit.ly/jvePilot-release`
+`/jvePilot-beta` - Sometimes I have people wanting to beta test jvePilot's new features.  Mostly stable, but still can be buggy. Custom Software URL: `https://bit.ly/jvePilot-beta` 
 `/feature/*` - These branches are where I'm working on new features.  These are never safe to run as they change all the time.
 
 ---
