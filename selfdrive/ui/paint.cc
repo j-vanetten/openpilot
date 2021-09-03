@@ -229,8 +229,8 @@ static void ui_draw_vision_face(UIState *s) {
 static void ui_draw_button(UIState *s, Rect btn, const char *text, bool enabled) {
   int btn_x = btn.x;
   int btn_y = btn.y;
-  int btn_w = btn.right() - btn.x;
-  int btn_h = btn.bottom() - btn.y;
+  int btn_w = btn.w;
+  int btn_h = btn.h;
   int center_x = btn_x + (btn_w / 2);
   int center_y = btn_y + (btn_h / 2);
 
@@ -261,11 +261,19 @@ static void ui_draw_button(UIState *s, Rect btn, const char *text, bool enabled)
 static void ui_draw_jve_pilot_buttons(UIState *s) {
   if (s->scene.autoFollowEnabled != -1) {
     bool autoFollowEnabled = s->scene.autoFollowEnabled == 1;
-    ui_draw_button(s, authFollow_btn, autoFollowEnabled ? "Auto Follow" : "Auto Follow OFF", autoFollowEnabled);
+
+    const char *message;
+    if (s->scene.autoFollow_btn.w == autoFollowSmallWidth_btn) {
+      message = autoFollowEnabled ? "AF ON" : "AF OFF";
+    } else {
+      message = autoFollowEnabled ? "Auto Follow" : "Auto Follow OFF";
+    }
+
+    ui_draw_button(s, s->scene.autoFollow_btn, message, autoFollowEnabled);
   }
   if (s->scene.accEco != -1) {
     const char *img = s->scene.accEco == 1 ? "acc_eco_1" : s->scene.accEco == 2 ? "acc_eco_2" : "acc_eco_off";
-    ui_draw_image(s, accEco_img, img, s->scene.accEco != 0 ? 1.0f : 0.7f);
+    ui_draw_image(s, s->scene.accEco_img, img, s->scene.accEco != 0 ? 1.0f : 0.7f);
   }
 }
 
@@ -455,6 +463,10 @@ void ui_nvg_init(UIState *s) {
 void ui_resize(UIState *s, int width, int height) {
   s->fb_w = width;
   s->fb_h = height;
+
+  int autoFollowWidth_btn = width < 1200 ? autoFollowSmallWidth_btn : autoFollowLargeWidth_btn;
+  s->scene.autoFollow_btn = {width/2 - autoFollowWidth_btn/2, height - v_edge_padding - 130/2, autoFollowWidth_btn, 130};
+  s->scene.accEco_img = {width - h_edge_padding - 233, height - v_edge_padding/2 - 233, 233, 233};
 
   auto intrinsic_matrix = s->wide_camera ? ecam_intrinsic_matrix : fcam_intrinsic_matrix;
 

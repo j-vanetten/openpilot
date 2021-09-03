@@ -1,6 +1,11 @@
-Version jvePilot-0.8.8(v3.5.1)
+Version jvePilot-
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Fix UI buttons on comma three
+* Fix occasional comma three controls not starting error
+
+Version jvePilot-0.8.8(v3.5.1)
+========================
 * Improved/more acceleration that model was providing
 * Jeep Grand Cherokee Trackhawk 2018 fingerprint thanks to adamrb!
 * Update to version 0.8.8
