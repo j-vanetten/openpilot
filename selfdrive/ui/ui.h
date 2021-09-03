@@ -126,6 +126,9 @@ typedef struct UIScene {
   int accEcoButtonEnabled;
   int autoFollowEnabled;
   int accEco;
+
+  Rect autoFollow_btn;
+  Rect accEco_img;
 } UIScene;
 
 typedef struct UIState {
