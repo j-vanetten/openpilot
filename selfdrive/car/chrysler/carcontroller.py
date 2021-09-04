@@ -40,6 +40,7 @@ class CarController():
 
     self.cachedParams = CachedParams()
     self.autoFollowDistanceLock = None
+    self.moving_fast = False
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
     jvepilot_state = c.jvePilotState
@@ -99,14 +100,17 @@ class CarController():
                                                    CS.out.steeringTorqueEps, CarControllerParams)
     self.steer_rate_limited = new_steer != apply_steer
 
-    moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed  # for status message
-    if CS.out.vEgo > (CS.CP.minSteerSpeed - 0.5):  # for command high bit
-      self.gone_fast_yet = True
-    elif self.car_fingerprint in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
-      if CS.out.vEgo < (CS.CP.minSteerSpeed - 3.0):
+    if self.car_fingerprint in (CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID):
+      self.gone_fast_yet = self.gone_fast_yet or CS.torq_status > 1
+      self.moving_fast = not CS.out.steerError and CS.lkas_active
+    else:
+      self.moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed  # for status message
+      if CS.out.vEgo > (CS.CP.minSteerSpeed - 0.5):  # for command high bit
+        self.gone_fast_yet = True
+      elif CS.out.vEgo < (CS.CP.minSteerSpeed - 3.0):
         self.gone_fast_yet = False  # < 14.5m/s stock turns off this bit, but fine down to 13.5
-    lkas_active = moving_fast and enabled
 
+    lkas_active = self.moving_fast and enabled
     if not lkas_active:
       apply_steer = 0
 
