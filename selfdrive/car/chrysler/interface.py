@@ -87,7 +87,7 @@ class CarInterface(CarInterfaceBase):
 
     if ret.brakePressed and ret.vEgo < GAS_RESUME_SPEED:
       events.add(car.CarEvent.EventName.accBrakeHold)
-    elif ret.vEgo < self.CP.minSteerSpeed:
+    elif not self.CC.moving_fast:
       events.add(car.CarEvent.EventName.belowSteerSpeed)
 
     if self.CS.button_pressed(ButtonType.cancel):
