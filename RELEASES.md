@@ -3,7 +3,8 @@ Version jvePilot-
 Visit http://bit.ly/jvereadme for more information
 * Fix UI buttons on comma three
 * Fix occasional comma three controls not starting error
-
+* Use speed from dashboard instead of calculated from wheel rpm
+  
 Version jvePilot-0.8.8(v3.5.1)
 ========================
 * Improved/more acceleration that model was providing
