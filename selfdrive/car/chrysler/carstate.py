@@ -19,7 +19,9 @@ CHECK_BUTTONS = {ButtonType.cancel: ["WHEEL_BUTTONS", 'ACC_CANCEL'],
                  ButtonType.decelCruise: ["WHEEL_BUTTONS", 'ACC_SPEED_DEC'],
                  ButtonType.followInc: ["WHEEL_BUTTONS", 'ACC_FOLLOW_INC'],
                  ButtonType.followDec: ["WHEEL_BUTTONS", 'ACC_FOLLOW_DEC'],
-                 ButtonType.lkasToggle: ["TRACTION_BUTTON", 'TOGGLE_LKAS']}
+                 ButtonType.altButton1: ["TRACTION_BUTTON", 'TOGGLE_LKAS'],
+                 ButtonType.setCruise: ["WHEEL_BUTTONS", 'ACC_ENABLE'],
+                 ButtonType.altButton2: ["WHEEL_BUTTONS", 'CRUISE_ENABLE']}
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -29,6 +31,7 @@ class CarState(CarStateBase):
     self.cachedParams = CachedParams()
     self.opParams = opParams()
     self.lkasHeartbit = None
+    self.wheelButtons = None
 
   def update(self, cp, cp_cam):
     min_steer_check = self.opParams.get('steer.checkMinimum')
@@ -69,6 +72,7 @@ class CarState(CarStateBase):
     ret.cruiseState.speed = cp.vl["DASHBOARD"]["ACC_SPEED_CONFIG_KPH"] * CV.KPH_TO_MS
     # CRUISE_STATE is a three bit msg, 0 is off, 1 and 2 are Non-ACC mode, 3 and 4 are ACC mode, find if there are other states too
     ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2]
+    self.dashboard = cp.vl["DASHBOARD"]
 
     ret.steeringTorque = cp.vl["EPS_STATUS"]["TORQUE_DRIVER"]
     ret.steeringTorqueEps = cp.vl["EPS_STATUS"]["TORQUE_MOTOR"]
@@ -91,6 +95,7 @@ class CarState(CarStateBase):
     ret.jvePilotCarState.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
     self.lkasHeartbit = cp_cam.vl["LKAS_HEARTBIT"]
 
+    self.wheelButtons = cp.vl["WHEEL_BUTTONS"]
     button_events = []
     for buttonType in CHECK_BUTTONS:
       self.check_button(button_events, buttonType, bool(cp.vl[CHECK_BUTTONS[buttonType][0]][CHECK_BUTTONS[buttonType][1]]))
@@ -155,18 +160,26 @@ class CarState(CarStateBase):
       ("COUNTER", "EPS_STATUS", -1),
       ("TRACTION_OFF", "TRACTION_BUTTON", 0),
       ("SEATBELT_DRIVER_UNLATCHED", "SEATBELT_STATUS", 0),
+      ("ACC_DISTANCE_CONFIG_2", "DASHBOARD", 0),
+      ("BLIND_SPOT_LEFT", "BLIND_SPOT_WARNINGS", 0),
+      ("BLIND_SPOT_RIGHT", "BLIND_SPOT_WARNINGS", 0),
+      ("TOGGLE_LKAS", "TRACTION_BUTTON", 0),
+      ("VEHICLE_SPEED_KPH", "BRAKE_1", 0),
+    ]
+
+    signals += [
       ("COUNTER", "WHEEL_BUTTONS", 0),
+      ("CRUISE_ENABLE", "WHEEL_BUTTONS", 0),
+      ("ACC_ENABLE", "WHEEL_BUTTONS", 0),
       ("ACC_RESUME", "WHEEL_BUTTONS", 0),
       ("ACC_CANCEL", "WHEEL_BUTTONS", 0),
       ("ACC_SPEED_INC", "WHEEL_BUTTONS", 0),
       ("ACC_SPEED_DEC", "WHEEL_BUTTONS", 0),
       ("ACC_FOLLOW_INC", "WHEEL_BUTTONS", 0),
       ("ACC_FOLLOW_DEC", "WHEEL_BUTTONS", 0),
-      ("ACC_DISTANCE_CONFIG_2", "DASHBOARD", 0),
-      ("BLIND_SPOT_LEFT", "BLIND_SPOT_WARNINGS", 0),
-      ("BLIND_SPOT_RIGHT", "BLIND_SPOT_WARNINGS", 0),
-      ("TOGGLE_LKAS", "TRACTION_BUTTON", 0),
-      ("VEHICLE_SPEED_KPH", "BRAKE_1", 0),
+      ("ACC_ENABLE", "WHEEL_BUTTONS", 0),
+      ("FORWARD_1", "WHEEL_BUTTONS", 0),
+      ("FORWARD_2", "WHEEL_BUTTONS", 0),
     ]
 
     checks = [

@@ -90,8 +90,8 @@ Much like your vehicles eco/sport modes, the current setting is persisted betwee
 ## How to use it 
 When using this branch, you will be setting the max ACC speed on the jvePilot display instead of the one in the dashboard.
 jvePilot will then set the ACC setting in the dashboard to the targeted speed, but never exceeding the max speed set on the jvePilot display.
-A quick press of the ACC+ and ACC- buttons will change this speed by 5 mph on the jvePilot display, while a long deliberate press (about a 1/2 second press) changes it by 1 mph.
-DO NOT hold the ACC+ or ACC- buttons for longer that a 1 second. Either make quick or long deliberate presses only.
+A quick press of the ACC+ and ACC- buttons will change this speed by 5 mph on the jvePilot display, while holding the button changes it by 1 mph.
+
 
 ### Where to look when setting ACC speed
 Do not look at the dashboard when setting your ACC max speed.

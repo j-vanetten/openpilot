@@ -49,8 +49,7 @@ def update_v_cruise(v_cruise_kph, button_events, enabled, reverse_acc_button_cha
   if enabled:
     for b in button_events:
       short_press = not b.pressed and b.pressedFrames < 30
-      long_press = b.pressed and b.pressedFrames == 30 \
-                   or ((not reverse_acc_button_change) and b.pressedFrames % 50 == 0 and b.pressedFrames > 50)
+      long_press = b.pressed and (b.pressedFrames == 50 or (b.pressedFrames > 50 and (b.pressedFrames - 50) % 30 == 0))
 
       if reverse_acc_button_change:
         sp = short_press

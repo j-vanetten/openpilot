@@ -267,7 +267,6 @@ struct CarState {
       gapAdjustCruise @11;
       followInc @12;
       followDec @13;
-      lkasToggle @14;
     }
   }
 

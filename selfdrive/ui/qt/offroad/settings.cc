@@ -136,6 +136,15 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
         "\nFor example, 0.04 if your device is 4cm left of center."
         "\nNOTE: This is not how far the CAMERA is off-center, but how far the MOUNT/DEVICE is off-center."
     },
+    { "jvePilot.settings.speedAdjustRatio",
+      0.9, 1.1,
+      "Speed Adjust Ratio",
+      "Default: 1.0, Min: 0.9, Max: 1.1\n"
+        "jvePilot can report an incorrect speed compared to your vehicle or the real world."
+        " Apps like Waze report you current speed using GPS which is more accurate than jvePilot or your speedometer may report."
+        " Use this setting to get the speed reported by jvePilot just right."
+        "\nFor example, set to 1.052 if you see 76 mph on the jvePilot display, but it should be 80 mph."
+    },
     { "jvePilot.settings.accFollow1RadarRatio",
       0.5, 4,
       "Ratio at Follow Level 1",
