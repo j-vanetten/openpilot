@@ -14,6 +14,10 @@ opParams = opParams()
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
+  def get_pid_accel_limits(CP, current_speed, cruise_speed):
+    return 10., 10.  # high limits
+
+  @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
     min_steer_check = opParams.get('steer.checkMinimum')
 
@@ -56,7 +60,6 @@ class CarInterface(CarInterfaceBase):
     # mass and CG position, so all cars will have approximately similar dyn behaviors
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront)
 
-    ret.gasMaxV = [1.]  # we want full speed
     ret.openpilotLongitudinalControl = True  # kind of...
     ret.pcmCruiseSpeed = False  # Let jvePilot control the pcm cruise speed
 
