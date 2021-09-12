@@ -1,4 +1,4 @@
-Version jvePilot-
+Version jvePilot-0.8.9(v3.6)
 ========================
 Visit http://bit.ly/jvereadme for more information
 * Fix UI buttons on comma three
