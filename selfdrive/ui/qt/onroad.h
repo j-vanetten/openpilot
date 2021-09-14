@@ -70,6 +70,7 @@ signals:
   void offroadTransitionSignal(bool offroad);
 
 private slots:
+  void notify_state();
   void offroadTransition(bool offroad);
   void updateState(const UIState &s);
 };

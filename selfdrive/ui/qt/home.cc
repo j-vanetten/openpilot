@@ -47,14 +47,6 @@ void HomeWindow::showSidebar(bool show) {
   sidebar->setVisible(show);
 }
 
-void HomeWindow::notify_state() {
-  MessageBuilder msg;
-  auto state = msg.initEvent().initJvePilotUIState();
-  state.setAutoFollow(QUIState::ui_state.scene.autoFollowEnabled);
-  state.setAccEco(QUIState::ui_state.scene.accEco);
-  QUIState::ui_state.pm->send("jvePilotUIState", msg);
-}
-
 void HomeWindow::offroadTransition(bool offroad) {
   sidebar->setVisible(offroad);
   if (offroad) {
@@ -76,18 +68,9 @@ void HomeWindow::showDriverView(bool show) {
 }
 
 void HomeWindow::mousePressEvent(QMouseEvent* e) {
-  // Handle button touch events
-  if (onroad->isVisible()) {
-    if (QUIState::ui_state.scene.autoFollow_btn.ptInRect(e->x(), e->y())) {
-      QUIState::ui_state.scene.autoFollowEnabled = !QUIState::ui_state.scene.autoFollowEnabled;
-      notify_state();
-    } else if (QUIState::ui_state.scene.accEco_img.ptInRect(e->x(), e->y())) {
-      QUIState::ui_state.scene.accEco = QUIState::ui_state.scene.accEco == 2 ? 0 : QUIState::ui_state.scene.accEco + 1;
-      notify_state();
-    } else if (!sidebar->isVisible() || e->x() > sidebar->width()) {
-      // Handle sidebar collapsing
-      sidebar->setVisible(!sidebar->isVisible() && !onroad->isMapVisible());
-    }
+  // Handle sidebar collapsing
+  if (onroad->isVisible() && (!sidebar->isVisible() || e->x() > sidebar->width())) {
+    sidebar->setVisible(!sidebar->isVisible() && !onroad->isMapVisible());
   }
 }
 
