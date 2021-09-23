@@ -1,6 +1,17 @@
-Version jvePilot-0.8.8(v3.5.1)
+Version jvePilot-0.8.9(v3.6)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Fix UI buttons on comma three
+* Fix occasional comma three controls not starting error
+* Use speed from dashboard instead of calculated from wheel rpm
+* 2018 and earlier vehicles can now steer down a little more
+* Update to 0.8.9
+  * Improved fan control on comma three
+  * AGNOS 1.5: improved stability
+  * Honda e 2020 support
+
+Version jvePilot-0.8.8(v3.5.1)
+========================
 * Improved/more acceleration that model was providing
 * Jeep Grand Cherokee Trackhawk 2018 fingerprint thanks to adamrb!
 * Update to version 0.8.8
@@ -12,7 +23,8 @@ Visit http://bit.ly/jvereadme for more information
   * NEOS 18 for comma two: update packages
   * AGNOS 1.3 for comma three: fix display init at high temperatures
   * Improved auto-exposure on comma three
-  * Hyundai Kona Hybrid 2020 support thanks to haram-KONA!
+  * Improved longitudinal control on Honda Nidec cars
+ * Hyundai Kona Hybrid 2020 support thanks to haram-KONA!
   * Hyundai Sonata Hybrid 2021 support thanks to Matt-Wash-Burn!
   * Kia Niro Hybrid 2021 support thanks to tetious!
 

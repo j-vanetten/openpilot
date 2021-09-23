@@ -51,7 +51,7 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
     hasToggle = true;
     description = new QLabel(desc);
     description->setContentsMargins(40, 20, 40, 20);
-    description->setStyleSheet("font-size: 40px; color:grey");
+    description->setStyleSheet("font-size: 40px; color: grey");
     description->setWordWrap(true);
     config_layout->addWidget(description);
   }

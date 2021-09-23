@@ -57,8 +57,6 @@ protected:
   void mousePressEvent(QMouseEvent* e) override;
 
 private:
-  void notify_state();
-
   Sidebar *sidebar;
   OffroadHome *home;
   OnroadWindow *onroad;

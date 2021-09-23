@@ -14,14 +14,12 @@ opParams = opParams()
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
-  def compute_gb(accel, speed):
-    return float(accel) / 3.0
+  def get_pid_accel_limits(CP, current_speed, cruise_speed):
+    return 10., 10.  # high limits
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
-    speed_adjust_ratio = cachedParams.get_float('jvePilot.settings.speedAdjustRatio', 5000)
     min_steer_check = opParams.get('steer.checkMinimum')
-    inverse_speed_adjust_ratio = 2 - speed_adjust_ratio
 
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "chrysler"
@@ -50,10 +48,10 @@ class CarInterface(CarInterfaceBase):
     ret.centerToFront = ret.wheelbase * 0.44
 
     if min_steer_check:
-      ret.minSteerSpeed = 3.8 * inverse_speed_adjust_ratio  # m/s
+      ret.minSteerSpeed = 3.8  # m/s
       if candidate in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
         # TODO allow 2019 cars to steer down to 13 m/s if already engaged.
-        ret.minSteerSpeed = 17.5 * inverse_speed_adjust_ratio  # m/s 17 on the way up, 13 on the way down once engaged.
+        ret.minSteerSpeed = 17.5  # m/s 17 on the way up, 13 on the way down once engaged.
 
     # starting with reasonable value for civic and scaling by mass and wheelbase
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
@@ -62,7 +60,6 @@ class CarInterface(CarInterfaceBase):
     # mass and CG position, so all cars will have approximately similar dyn behaviors
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront)
 
-    ret.gasMaxV = [1.]  # we want full speed
     ret.openpilotLongitudinalControl = True  # kind of...
     ret.pcmCruiseSpeed = False  # Let jvePilot control the pcm cruise speed
 
@@ -89,7 +86,7 @@ class CarInterface(CarInterfaceBase):
 
     if ret.brakePressed and ret.vEgo < GAS_RESUME_SPEED:
       events.add(car.CarEvent.EventName.accBrakeHold)
-    elif ret.vEgo < self.CP.minSteerSpeed:
+    elif not self.CC.moving_fast:
       events.add(car.CarEvent.EventName.belowSteerSpeed)
 
     if self.CS.button_pressed(ButtonType.cancel):

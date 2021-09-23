@@ -55,7 +55,7 @@ typedef struct Alert {
   QString type;
   cereal::ControlsState::AlertSize size;
   AudibleAlert sound;
-  bool equal(Alert a2) {
+  bool equal(const Alert &a2) {
     return text1 == a2.text1 && text2 == a2.text2 && type == a2.type;
   }
 } Alert;
@@ -126,6 +126,9 @@ typedef struct UIScene {
   int accEcoButtonEnabled;
   int autoFollowEnabled;
   int accEco;
+
+  Rect autoFollow_btn;
+  Rect accEco_img;
 } UIScene;
 
 typedef struct UIState {
