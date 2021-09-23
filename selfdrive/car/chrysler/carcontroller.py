@@ -187,8 +187,8 @@ class CarController():
         self.autoFollowDistanceLock = target_follow  # going from close to far, use upperbound
 
         if jvepilot_state.carState.accFollowDistance > target_follow:
-          jvepilot_state.carState.accFollowDistance -= 1
+          CS.dashboard["ACC_DISTANCE_CONFIG_2"] -= 1
           return 'ACC_FOLLOW_DEC'
         else:
-          jvepilot_state.carState.accFollowDistance += 1
+          CS.dashboard["ACC_DISTANCE_CONFIG_2"] += 1
           return 'ACC_FOLLOW_INC'
