@@ -53,10 +53,14 @@ def create_lkas_heartbit(packer, value, lkasHeartbit):
   values["LKAS_DISABLED"] = value
   return packer.make_can_msg("LKAS_HEARTBIT", 0, values)
 
-def create_wheel_buttons_command(cc, packer, counter, button, value):
+def create_wheel_buttons_command(packer, counter, buttons):
   # WHEEL_BUTTONS (571) Message sent
   values = {
-    button: value,
     "COUNTER": counter % 0x10,
   }
+
+  for b in buttons:
+    if b is not None:
+      values[b] = 1
+
   return packer.make_can_msg("WHEEL_BUTTONS", 0, values)
