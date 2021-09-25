@@ -23,6 +23,7 @@ class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.apply_steer_last = 0
     self.ccframe = 0
+    self.prev_frame = -1
     self.prev_lkas_counter = -1
     self.hud_count = 0
     self.car_fingerprint = CP.carFingerprint
@@ -43,18 +44,19 @@ class CarController():
     self.min_steer_check = self.opParams.get("steer.checkMinimum")
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
-    jvepilot_state = c.jvePilotState
-    can_sends = []
+    if self.prev_frame == CS.frame:
+      return []
     self.ccframe += 1
 
     if CS.button_pressed(ButtonType.lkasToggle, False):
-      jvepilot_state.carControl.useLaneLines = not jvepilot_state.carControl.useLaneLines
-      self.params.put("EndToEndToggle", "0" if jvepilot_state.carControl.useLaneLines else "1")
-      jvepilot_state.notifyUi = True
+      c.jvePilotState.carControl.useLaneLines = not c.jvePilotState.carControl.useLaneLines
+      self.params.put("EndToEndToggle", "0" if c.jvePilotState.carControl.useLaneLines else "1")
+      c.jvePilotState.notifyUi = True
 
     #*** control msgs ***
-    self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, jvepilot_state)
-    self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, jvepilot_state, pcm_cancel_cmd)
+    can_sends = []
+    self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
+    self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
 
     return can_sends
 
@@ -105,38 +107,39 @@ class CarController():
 
   def wheel_button_control(self, CS, can_sends, enabled, gas_resume_speed, jvepilot_state, pcm_cancel_cmd):
     button_counter = jvepilot_state.carState.buttonCounter
-    if button_counter != self.last_button_counter:
-      self.last_button_counter = button_counter
+    if button_counter == self.last_button_counter:
+      return
+    self.last_button_counter = button_counter
 
-      buttons_to_press = None
-      if pcm_cancel_cmd:
-        buttons_to_press = ['ACC_CANCEL']
-      elif not CS.button_pressed(ButtonType.cancel):
-        follow_inc_button = CS.button_pressed(ButtonType.followInc)
-        follow_dec_button = CS.button_pressed(ButtonType.followDec)
+    buttons_to_press = None
+    if pcm_cancel_cmd:
+      buttons_to_press = ['ACC_CANCEL']
+    elif not CS.button_pressed(ButtonType.cancel):
+      follow_inc_button = CS.button_pressed(ButtonType.followInc)
+      follow_dec_button = CS.button_pressed(ButtonType.followDec)
 
-        if jvepilot_state.carControl.autoFollow:
-          follow_inc_button = CS.button_pressed(ButtonType.followInc, False)
-          follow_dec_button = CS.button_pressed(ButtonType.followDec, False)
-          if (follow_inc_button and follow_inc_button.pressedFrames < 50) or \
-             (follow_dec_button and follow_dec_button.pressedFrames < 50):
-            jvepilot_state.carControl.autoFollow = False
-            jvepilot_state.notifyUi = True
-        elif (follow_inc_button and follow_inc_button.pressedFrames >= 50) or \
-             (follow_dec_button and follow_dec_button.pressedFrames >= 50):
-          jvepilot_state.carControl.autoFollow = True
+      if jvepilot_state.carControl.autoFollow:
+        follow_inc_button = CS.button_pressed(ButtonType.followInc, False)
+        follow_dec_button = CS.button_pressed(ButtonType.followDec, False)
+        if (follow_inc_button and follow_inc_button.pressedFrames < 50) or \
+           (follow_dec_button and follow_dec_button.pressedFrames < 50):
+          jvepilot_state.carControl.autoFollow = False
           jvepilot_state.notifyUi = True
+      elif (follow_inc_button and follow_inc_button.pressedFrames >= 50) or \
+           (follow_dec_button and follow_dec_button.pressedFrames >= 50):
+        jvepilot_state.carControl.autoFollow = True
+        jvepilot_state.notifyUi = True
 
-        if enabled and not CS.out.brakePressed:
-          if button_counter % 3 == 0:
-            if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
-              buttons_to_press = [self.auto_resume_button(CS, gas_resume_speed)]
-            elif CS.out.cruiseState.enabled:  # Control ACC
-              buttons_to_press = [self.auto_follow_button(CS, jvepilot_state), self.hybrid_acc_button(CS, jvepilot_state)]
+      if enabled and not CS.out.brakePressed:
+        if self.ccframe % 6 <= 1:
+          if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
+            buttons_to_press = [self.auto_resume_button(CS, gas_resume_speed)]
+          elif CS.out.cruiseState.enabled:  # Control ACC
+            buttons_to_press = [self.auto_follow_button(CS, jvepilot_state), self.hybrid_acc_button(CS, jvepilot_state)]
 
-      if buttons_to_press is not None:
-        new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, buttons_to_press)
-        can_sends.append(new_msg)
+    if buttons_to_press is not None:
+      new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, buttons_to_press)
+      can_sends.append(new_msg)
 
   def auto_resume_button(self, CS, gas_resume_speed):
     if self.auto_resume and CS.out.vEgo <= gas_resume_speed:  # Keep trying while under gas_resume_speed
