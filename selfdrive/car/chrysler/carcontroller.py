@@ -83,7 +83,7 @@ class CarController():
         self.gone_fast_yet = True
       elif CS.out.vEgo < (CS.CP.minSteerSpeed - 3.0):
         self.gone_fast_yet = False  # < 14.5m/s stock turns off this bit, but fine down to 13.5
-    moving_fast_flag = self.gone_fast_yet and (enabled or not self.min_steer_check)
+    moving_fast_flag = self.gone_fast_yet and (enabled or self.min_steer_check)
 
     lkas_active = self.moving_fast and enabled
     if not lkas_active:
