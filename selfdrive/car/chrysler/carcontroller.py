@@ -22,14 +22,15 @@ ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.apply_steer_last = 0
-    self.ccframe = 0
     self.prev_frame = -1
+    self.lkas_frame = -1
     self.prev_lkas_counter = -1
     self.hud_count = 0
     self.car_fingerprint = CP.carFingerprint
     self.gone_fast_yet = False
     self.steer_rate_limited = False
     self.last_button_counter = -1
+    self.button_frame = -1
 
     self.packer = CANPacker(dbc_name)
 
@@ -44,11 +45,6 @@ class CarController():
     self.min_steer_check = self.opParams.get("steer.checkMinimum")
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
-    if self.prev_frame == CS.frame:
-      return []
-    self.prev_frame = CS.frame
-    self.ccframe += 1
-
     if CS.button_pressed(ButtonType.lkasToggle, False):
       c.jvePilotState.carControl.useLaneLines = not c.jvePilotState.carControl.useLaneLines
       self.params.put("EndToEndToggle", "0" if c.jvePilotState.carControl.useLaneLines else "1")
@@ -62,6 +58,11 @@ class CarController():
     return can_sends
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
+    if self.prev_frame == CS.frame:
+      return
+    self.prev_frame = CS.frame
+
+    self.lkas_frame += 1
     lkas_counter = CS.lkas_counter
     if self.prev_lkas_counter == lkas_counter:
       lkas_counter = (self.prev_lkas_counter + 1) % 16  # Predict the next frame
@@ -91,12 +92,12 @@ class CarController():
 
     self.apply_steer_last = apply_steer
 
-    if self.ccframe % 10 == 0:  # 0.1s period
+    if self.lkas_frame % 10 == 0:  # 0.1s period
       new_msg = create_lkas_heartbit(self.packer, 0 if jvepilot_state.carControl.useLaneLines else 1, CS.lkasHeartbit)
       can_sends.append(new_msg)
 
-    if (self.ccframe % 25 == 0):  # 0.25s period
-      if (CS.lkas_car_model != -1):
+    if self.lkas_frame % 25 == 0:  # 0.25s period
+      if CS.lkas_car_model != -1:
         new_msg = create_lkas_hud(
           self.packer, CS.out.gearShifter, lkas_active, hud_alert,
           self.hud_count, CS.lkas_car_model)
@@ -112,6 +113,7 @@ class CarController():
       return
     self.last_button_counter = button_counter
 
+    self.button_frame += 1
     buttons_to_press = None
     if pcm_cancel_cmd:
       buttons_to_press = ['ACC_CANCEL']
@@ -132,7 +134,7 @@ class CarController():
         jvepilot_state.notifyUi = True
 
       if enabled and not CS.out.brakePressed:
-        if self.ccframe % 6 <= 1:
+        if self.button_frame % 3 == 0:
           if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
             buttons_to_press = [self.auto_resume_button(CS, gas_resume_speed)]
           elif CS.out.cruiseState.enabled:  # Control ACC
