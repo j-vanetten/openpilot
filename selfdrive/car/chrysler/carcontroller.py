@@ -46,6 +46,7 @@ class CarController():
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
     if self.prev_frame == CS.frame:
       return []
+    self.prev_frame = CS.frame
     self.ccframe += 1
 
     if CS.button_pressed(ButtonType.lkasToggle, False):
