@@ -1,3 +1,8 @@
+Version jvePilot-
+========================
+Visit http://bit.ly/jvereadme for more information
+* Fix for White Panda mod lkas fault when jvePilot is not engaged.
+
 Version jvePilot-0.8.8(v3.5.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
