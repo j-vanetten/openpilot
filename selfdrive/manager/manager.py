@@ -47,6 +47,7 @@ def manager_init():
     ("jvePilot.settings.autoFollow.speed3-4Bars", "65"),
     ("jvePilot.settings.autoResume", "1"),
     ("jvePilot.settings.disableOnGas", "0"),
+    ("jvePilot.settings.audioAlertOnSteeringLoss", "0"),
     ("jvePilot.settings.deviceOffset", "0.00"),
     ("jvePilot.settings.reverseAccSpeedChange", "1"),
     ("jvePilot.settings.slowInCurves", "1"),
