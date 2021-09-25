@@ -10,6 +10,9 @@ class CachedParams:
   def get_float(self, key, ms):
     return float(self.get(key, ms))
 
+  def get_bool(self, key, ms):
+    return self.get(key, ms) == "1"
+
   def get(self, key, ms):
     current_ms = round(time.time() * 1000)
     if key in CACHE:
