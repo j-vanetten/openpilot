@@ -23,6 +23,7 @@ class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.apply_steer_last = 0
     self.ccframe = 0
+    self.prev_frame = -1
     self.prev_lkas_counter = -1
     self.hud_count = 0
     self.car_fingerprint = CP.carFingerprint
@@ -43,6 +44,9 @@ class CarController():
     self.min_steer_check = self.opParams.get("steer.checkMinimum")
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
+    if self.prev_frame == CS.frame:
+      return []
+    self.prev_frame = CS.frame
     self.ccframe += 1
 
     if CS.button_pressed(ButtonType.lkasToggle, False):
