@@ -1,7 +1,9 @@
 Version jvePilot-
 ========================
 Visit http://bit.ly/jvereadme for more information
-* Faster speed changes
+* Add option to alert when steering is lost do to low speeds
+* Fix for White Panda mod lkas fault when jvePilot is not engaged.
+* Faster ACC speed changes
 
 Version jvePilot-0.8.9(v3.6)
 ========================
