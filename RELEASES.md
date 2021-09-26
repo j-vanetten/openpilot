@@ -1,6 +1,10 @@
-Version jvePilot-0.8.9(v3.6)
+Version jvePilot-
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Allow speeding up is curves if Slow in Curves is enabled
+
+Version jvePilot-0.8.9(v3.6)
+========================
 * Fix UI buttons on comma three
 * Fix occasional comma three controls not starting error
 * Use speed from dashboard instead of calculated from wheel rpm
