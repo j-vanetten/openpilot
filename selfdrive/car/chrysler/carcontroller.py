@@ -170,7 +170,7 @@ class CarController():
     target = round(target * self.round_to_unit)
     current = round(CS.out.cruiseState.speed * self.round_to_unit)
 
-    button_press_window = 3 if abs(target - current) <= 3 else 2
+    button_press_window = 4 if abs(target - current) <= 3 else 3
     if self.button_frame % button_press_window == 0:
       if target < current and current > self.minAccSetting:
         CS.dashboard["ACC_SPEED_CONFIG_KPH"] -= (1. / self.round_to_unit) * CV.MS_TO_KPH
