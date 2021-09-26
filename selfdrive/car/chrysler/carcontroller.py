@@ -114,9 +114,9 @@ class CarController():
     self.last_button_counter = button_counter
 
     self.button_frame += 1
-    buttons_to_press = None
+    button_to_press = None
     if pcm_cancel_cmd:
-      buttons_to_press = ['ACC_CANCEL']
+      button_to_press = 'ACC_CANCEL'
     elif not CS.button_pressed(ButtonType.cancel):
       follow_inc_button = CS.button_pressed(ButtonType.followInc)
       follow_dec_button = CS.button_pressed(ButtonType.followDec)
@@ -135,12 +135,12 @@ class CarController():
 
       if enabled and not CS.out.brakePressed:
         if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
-          buttons_to_press = [self.auto_resume_button(CS, gas_resume_speed)]
+          button_to_press = self.auto_resume_button(CS, gas_resume_speed)
         elif CS.out.cruiseState.enabled:  # Control ACC
-          buttons_to_press = [self.auto_follow_button(CS, jvepilot_state), self.hybrid_acc_button(CS, jvepilot_state)]
+          button_to_press = self.auto_follow_button(CS, jvepilot_state) or self.hybrid_acc_button(CS, jvepilot_state)
 
-    if buttons_to_press and (button for button in buttons_to_press if button):
-      new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, buttons_to_press)
+    if button_to_press:
+      new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, button_to_press)
       can_sends.append(new_msg)
 
   def auto_resume_button(self, CS, gas_resume_speed):
@@ -173,14 +173,12 @@ class CarController():
     button_press_window = 4 if abs(target - current) <= 3 else 3
     if self.button_frame % button_press_window == 0:
       if target < current and current > self.minAccSetting:
-        CS.dashboard["ACC_SPEED_CONFIG_KPH"] -= (1. / self.round_to_unit) * CV.MS_TO_KPH
         return 'ACC_SPEED_DEC'
       elif target > current:
-        CS.dashboard["ACC_SPEED_CONFIG_KPH"] += (1. / self.round_to_unit) * CV.MS_TO_KPH
         return 'ACC_SPEED_INC'
 
   def auto_follow_button(self, CS, jvepilot_state):
-    if self.button_frame % 4 == 0:
+    if self.button_frame % 7 == 0:
       if jvepilot_state.carControl.autoFollow:
         crossover = [0,
                      self.cachedParams.get_float('jvePilot.settings.autoFollow.speed1-2Bars', 1000) * CV.MPH_TO_MS,
@@ -203,8 +201,6 @@ class CarController():
           self.autoFollowDistanceLock = target_follow  # going from close to far, use upperbound
 
           if jvepilot_state.carState.accFollowDistance > target_follow:
-            CS.dashboard["ACC_DISTANCE_CONFIG_2"] -= 1
             return 'ACC_FOLLOW_DEC'
           else:
-            CS.dashboard["ACC_DISTANCE_CONFIG_2"] += 1
             return 'ACC_FOLLOW_INC'
