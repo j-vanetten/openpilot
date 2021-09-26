@@ -140,7 +140,7 @@ class CarController():
           elif CS.out.cruiseState.enabled:  # Control ACC
             buttons_to_press = [self.auto_follow_button(CS, jvepilot_state), self.hybrid_acc_button(CS, jvepilot_state)]
 
-    if buttons_to_press is not None:
+    if buttons_to_press and (button for button in buttons_to_press if button):
       new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, buttons_to_press)
       can_sends.append(new_msg)
 
