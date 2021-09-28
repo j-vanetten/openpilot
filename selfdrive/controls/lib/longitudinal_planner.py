@@ -139,7 +139,7 @@ class Planner():
       curvs = list(lateral_planner.mpc_solution.curvature)
       if len(curvs):
         # find the largest curvature in the solution and use that.
-        curv = max(abs(min(curvs)), abs(max(curvs)))
+        curv = curvs[-1]
         if curv != 0:
           self.v_desired = float(min(self.v_desired, self.limit_speed_in_curv(sm, curv)))
 
