@@ -7,6 +7,7 @@ from selfdrive.config import Conversions as CV
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.cached_params import CachedParams
+from common.op_params import opParams
 from common.params import Params
 from cereal import car
 import cereal.messaging as messaging
@@ -34,13 +35,14 @@ class CarController():
     self.packer = CANPacker(dbc_name)
 
     self.params = Params()
+    self.cachedParams = CachedParams()
+    self.opParams = opParams()
     self.auto_resume = self.params.get_bool('jvePilot.settings.autoResume')
     self.minAccSetting = V_CRUISE_MIN_MS if self.params.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
     self.round_to_unit = CV.MS_TO_KPH if self.params.get_bool("IsMetric") else CV.MS_TO_MPH
-
-    self.cachedParams = CachedParams()
     self.autoFollowDistanceLock = None
     self.moving_fast = False
+    self.min_steer_check = self.opParams.get("steer.checkMinimum")
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
     jvepilot_state = c.jvePilotState
@@ -109,6 +111,7 @@ class CarController():
         self.gone_fast_yet = True
       elif CS.out.vEgo < (CS.CP.minSteerSpeed - 3.0):
         self.gone_fast_yet = False  # < 14.5m/s stock turns off this bit, but fine down to 13.5
+    moving_fast_flag = self.gone_fast_yet and (enabled or self.min_steer_check)
 
     lkas_active = self.moving_fast and enabled
     if not lkas_active:
@@ -128,7 +131,7 @@ class CarController():
         can_sends.append(new_msg)
         self.hud_count += 1
 
-    new_msg = create_lkas_command(self.packer, int(apply_steer), self.gone_fast_yet, frame)
+    new_msg = create_lkas_command(self.packer, int(apply_steer), moving_fast_flag, frame)
     can_sends.append(new_msg)
 
     return can_sends

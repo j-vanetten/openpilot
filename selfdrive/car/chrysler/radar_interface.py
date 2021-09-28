@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import math
+from common.numpy_fast import clip
 from opendbc.can.parser import CANParser
 from cereal import car
 from selfdrive.car.interfaces import RadarInterfaceBase
@@ -81,9 +82,9 @@ class RadarInterface(RadarInterfaceBase):
         self.pts[trackId].yvRel = float('nan')
 
       if 'LONG_DIST' in cpt:  # c_* message
-        self.pts[trackId].dRel = cpt['LONG_DIST']  # from front of car
-        self.pts[trackId].yRel = cpt['LAT_ANGLE']  # in car frame's y axis, left is positive
-        self.pts[trackId].yRel = math.tan(self.pts[trackId].yRel) * self.pts[trackId].dRel
+        azimuth = (cpt['LAT_ANGLE'])
+        self.pts[trackId].dRel = math.cos(azimuth) * cpt['LONG_DIST']
+        self.pts[trackId].yRel = -math.sin(azimuth) * cpt['LONG_DIST']
       else:  # d_* message
         self.pts[trackId].vRel = cpt['REL_SPEED']
         self.pts[trackId].measured = bool(cpt['MEASURED'])

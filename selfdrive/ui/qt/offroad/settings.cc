@@ -104,6 +104,13 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
                                   "../assets/jvepilot/settings/icon_gas_pedal.png",
                                   this));
 
+  // disableOnGas
+  toggles.append(new ParamControl("jvePilot.settings.audioAlertOnSteeringLoss",
+                                  "Audio Alert on Steering Loss",
+                                  "When enabled, jvePilot will play an alert when speed it too low to steer.",
+                                  "../assets/jvepilot/settings/alert_steer_loss.png",
+                                  this));
+
   // accEco
   QList<struct ConfigButton> ecoConfigs = {
     { "jvePilot.settings.accEco.speedAheadLevel1",
