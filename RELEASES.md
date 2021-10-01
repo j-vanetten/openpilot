@@ -1,4 +1,4 @@
-Version jvePilot-
+Version jvePilot-0.8.9(v3.6.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
 * Add option to alert when steering is lost do to low speeds
