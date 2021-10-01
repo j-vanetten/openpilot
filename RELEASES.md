@@ -5,6 +5,7 @@ Visit http://bit.ly/jvereadme for more information
 * Fix for White Panda mod lkas fault when jvePilot is not engaged.
 * Radar updates thanks to xps!
 * Code cleanup
+* Slow in Curves tweaks to allow speeding up while existing curve instead of after
 
 Version jvePilot-0.8.9(v3.6)
 ========================
