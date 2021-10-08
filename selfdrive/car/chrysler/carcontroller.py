@@ -27,7 +27,7 @@ class CarController():
     self.prev_lkas_counter = -1
     self.hud_count = 0
     self.car_fingerprint = CP.carFingerprint
-    self.gone_fast_yet = False
+    self.torq_enabled = False
     self.steer_rate_limited = False
     self.last_button_counter = -1
     self.button_frame = -1
@@ -75,16 +75,18 @@ class CarController():
                                                    CS.out.steeringTorqueEps, CarControllerParams)
     self.steer_rate_limited = new_steer != apply_steer
 
-    if self.car_fingerprint in (CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID):
-      self.gone_fast_yet = self.gone_fast_yet or CS.torq_status > 1
+    if not self.min_steer_check:
+      self.moving_fast = True
+      self.torq_enabled = enabled
+    elif self.car_fingerprint in (CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID):
       self.moving_fast = not CS.out.steerError and CS.lkas_active
+      self.torq_enabled = self.torq_enabled or CS.torq_status > 1
     else:
       self.moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed  # for status message
       if CS.out.vEgo > (CS.CP.minSteerSpeed - 0.5):  # for command high bit
-        self.gone_fast_yet = True
+        self.torq_enabled = True
       elif CS.out.vEgo < (CS.CP.minSteerSpeed - 3.0):
-        self.gone_fast_yet = False  # < 14.5m/s stock turns off this bit, but fine down to 13.5
-    moving_fast_flag = self.gone_fast_yet and (enabled or self.min_steer_check)
+        self.torq_enabled = False  # < 14.5m/s stock turns off this bit, but fine down to 13.5
 
     lkas_active = self.moving_fast and enabled
     if not lkas_active:
@@ -104,7 +106,7 @@ class CarController():
         can_sends.append(new_msg)
         self.hud_count += 1
 
-    new_msg = create_lkas_command(self.packer, int(apply_steer), moving_fast_flag, lkas_counter)
+    new_msg = create_lkas_command(self.packer, int(apply_steer), self.torq_enabled, lkas_counter)
     can_sends.append(new_msg)
 
   def wheel_button_control(self, CS, can_sends, enabled, gas_resume_speed, jvepilot_state, pcm_cancel_cmd):
