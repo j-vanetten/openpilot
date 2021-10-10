@@ -93,15 +93,18 @@ class Planner():
     self.v_desired = max(0.0, self.v_desired)
 
     accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
-    accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
+    if not self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
+      accel_limits = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
+
     if force_slow_decel:
       # if required so, force a smooth deceleration
-      accel_limits_turns[1] = min(accel_limits_turns[1], AWARENESS_DECEL)
-      accel_limits_turns[0] = min(accel_limits_turns[0], accel_limits_turns[1])
+      accel_limits[1] = min(accel_limits[1], AWARENESS_DECEL)
+      accel_limits[0] = min(accel_limits[0], accel_limits[1])
     # clip limits, cannot init MPC outside of bounds
-    accel_limits_turns[0] = min(accel_limits_turns[0], self.a_desired)
-    accel_limits_turns[1] = max(accel_limits_turns[1], self.a_desired)
-    self.mpcs['cruise'].set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
+    accel_limits[0] = min(accel_limits[0], self.a_desired)
+    accel_limits[1] = max(accel_limits[1], self.a_desired)
+
+    self.mpcs['cruise'].set_accel_limits(accel_limits[0], accel_limits[1])
 
     next_a = np.inf
     for key in self.mpcs:
@@ -136,7 +139,7 @@ class Planner():
       curvs = list(lateral_planner.mpc_solution.curvature)
       if len(curvs):
         # find the largest curvature in the solution and use that.
-        curv = max(abs(min(curvs)), abs(max(curvs)))
+        curv = curvs[-1]
         if curv != 0:
           self.v_desired = float(min(self.v_desired, self.limit_speed_in_curv(sm, curv)))
 

@@ -1,6 +1,14 @@
-Version jvePilot-0.8.9(v3.6)
+Version jvePilot-0.8.9(v3.6.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Add option to alert when steering is lost do to low speeds
+* Fix for White Panda mod lkas fault when jvePilot is not engaged.
+* Radar updates thanks to xps!
+* Code cleanup related so controls
+* Slow in Curves tweaks to allow speeding up while existing curve instead of after
+
+Version jvePilot-0.8.9(v3.6)
+========================
 * Fix UI buttons on comma three
 * Fix occasional comma three controls not starting error
 * Use speed from dashboard instead of calculated from wheel rpm
