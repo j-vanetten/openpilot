@@ -108,7 +108,9 @@ The easiest way to install jvePilot is to factory reset and use this Custom Soft
 
 ## Branches
 `/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for daily use. Custom Software URL: `https://bit.ly/jvePilot-release`
+
 `/jvePilot-beta` - Sometimes I have people wanting to beta test jvePilot's new features.  Mostly stable, but still can be buggy. Custom Software URL: `https://bit.ly/jvePilot-beta` 
+
 `/feature/*` - These branches are where I'm working on new features.  These are never safe to run as they change all the time.
 
 ---
@@ -196,7 +198,6 @@ Use this setting to adjust ACC Eco level 2 (two green leaves) for maximum eco-ne
 * Min/Max values 1, 100
 
 ## No steer alert 
-When your vehicle 
 When this is enabled, you will hear a chime when your vehicle drops to a certain speed and can no longer be steered.
 * Default: On
 * Vehicle Restart Required: No
