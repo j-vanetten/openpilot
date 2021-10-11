@@ -75,10 +75,11 @@ class CarController():
                                                    CS.out.steeringTorqueEps, CarControllerParams)
     self.steer_rate_limited = new_steer != apply_steer
 
+    low_steer_models = self.car_fingerprint in (CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID)
     if not self.min_steer_check:
       self.moving_fast = True
-      self.torq_enabled = enabled
-    elif self.car_fingerprint in (CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID):
+      self.torq_enabled = enabled or low_steer_models
+    elif low_steer_models:
       self.moving_fast = not CS.out.steerError and CS.lkas_active
       self.torq_enabled = self.torq_enabled or CS.torq_status > 1
     else:
