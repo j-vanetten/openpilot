@@ -408,9 +408,9 @@ class Controls:
     self.v_cruise_kph_last = self.v_cruise_kph
 
     # if stock cruise is completely disabled, then we can use our own set speed logic
-    if not self.CP.pcmCruiseor not self.CP.pcmCruiseSpeed:
-      self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.button_timers, self.enabled,
-                                          self.is_metric, self.reverse_acc_button_change)
+    if not self.CP.pcmCruiseor or not self.CP.pcmCruiseSpeed:
+      self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.button_timers, self.enabled, self.is_metric,
+                                          self.reverse_acc_button_change)
     elif self.CP.pcmCruise and CS.cruiseState.enabled:
       self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
 
