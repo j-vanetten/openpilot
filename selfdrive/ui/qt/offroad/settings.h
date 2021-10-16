@@ -22,7 +22,7 @@ signals:
   void showDriverView();
 };
 
-class JvePilotTogglesPanel : public QWidget {
+class JvePilotTogglesPanel : public ListWidget {
   Q_OBJECT
 public:
   explicit JvePilotTogglesPanel(QWidget *parent = nullptr);
