@@ -1,5 +1,6 @@
-#include "selfdrive/ui/qt/qt_window.h"
 #include "selfdrive/ui/qt/widgets/cameraview.h"
+
+#include "selfdrive/common/swaglog.h"
 
 namespace {
 
@@ -50,9 +51,9 @@ mat4 get_driver_view_transform() {
     // from dmonitoring.cc
     const int full_width_tici = 1928;
     const int full_height_tici = 1208;
-    const int adapt_width_tici = 668;
-    const int crop_x_offset = 32;
-    const int crop_y_offset = -196;
+    const int adapt_width_tici = 954;
+    const int crop_x_offset = -72;
+    const int crop_y_offset = -144;
     const float yscale = full_height_tici * driver_view_ratio / adapt_width_tici;
     const float xscale = yscale*(1080)/(2160)*full_width_tici/full_height_tici;
     transform = (mat4){{
@@ -95,9 +96,7 @@ mat4 get_fit_view_transform(float widget_aspect_ratio, float frame_aspect_ratio)
 CameraViewWidget::CameraViewWidget(VisionStreamType stream_type, bool zoom, QWidget* parent) :
                                    stream_type(stream_type), zoomed_view(zoom), QOpenGLWidget(parent) {
   setAttribute(Qt::WA_OpaquePaintEvent);
-
-  timer = new QTimer(this);
-  connect(timer, &QTimer::timeout, this, &CameraViewWidget::updateFrame);
+  connect(this, &QOpenGLWidget::frameSwapped, this, &CameraViewWidget::updateFrame);
 }
 
 CameraViewWidget::~CameraViewWidget() {
@@ -113,9 +112,15 @@ CameraViewWidget::~CameraViewWidget() {
 void CameraViewWidget::initializeGL() {
   initializeOpenGLFunctions();
 
-  gl_shader = std::make_unique<GLShader>(frame_vertex_shader, frame_fragment_shader);
-  GLint frame_pos_loc = glGetAttribLocation(gl_shader->prog, "aPosition");
-  GLint frame_texcoord_loc = glGetAttribLocation(gl_shader->prog, "aTexCoord");
+  program = new QOpenGLShaderProgram(context());
+  bool ret = program->addShaderFromSourceCode(QOpenGLShader::Vertex, frame_vertex_shader);
+  assert(ret);
+  ret = program->addShaderFromSourceCode(QOpenGLShader::Fragment, frame_fragment_shader);
+  assert(ret);
+
+  program->link();
+  GLint frame_pos_loc = program->attributeLocation("aPosition");
+  GLint frame_texcoord_loc = program->attributeLocation("aTexCoord");
 
   auto [x1, x2, y1, y2] = stream_type == VISION_STREAM_RGB_FRONT ? std::tuple(0.f, 1.f, 1.f, 0.f) : std::tuple(1.f, 0.f, 1.f, 0.f);
   const uint8_t frame_indicies[] = {0, 1, 2, 0, 2, 3};
@@ -143,15 +148,11 @@ void CameraViewWidget::initializeGL() {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 
-  vipc_client = std::make_unique<VisionIpcClient>("camerad", stream_type, true);
+  setStreamType(stream_type);
 }
 
-void CameraViewWidget::showEvent(QShowEvent *event) {
-  timer->start(0);
-}
 
 void CameraViewWidget::hideEvent(QHideEvent *event) {
-  timer->stop();
   vipc_client->connected = false;
   latest_frame = nullptr;
 }
@@ -161,10 +162,18 @@ void CameraViewWidget::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void CameraViewWidget::resizeGL(int w, int h) {
-  if (!vipc_client->connected) {
-    return;
-  }
+  updateFrameMat(w, h);
+}
 
+void CameraViewWidget::setStreamType(VisionStreamType type) {
+  if (!vipc_client || type != stream_type) {
+    stream_type = type;
+    vipc_client.reset(new VisionIpcClient("camerad", stream_type, true));
+    updateFrameMat(width(), height());
+  }
+}
+
+void CameraViewWidget::updateFrameMat(int w, int h) {
   if (zoomed_view) {
     if (stream_type == VISION_STREAM_RGB_FRONT) {
       frame_mat = matmul(device_transform, get_driver_view_transform());
@@ -212,9 +221,9 @@ void CameraViewWidget::paintGL() {
                   0, GL_RGB, GL_UNSIGNED_BYTE, latest_frame->addr);
   }
 
-  glUseProgram(gl_shader->prog);
-  glUniform1i(gl_shader->getUniformLocation("uTexture"), 0);
-  glUniformMatrix4fv(gl_shader->getUniformLocation("uTransform"), 1, GL_TRUE, frame_mat.v);
+  glUseProgram(program->programId());
+  glUniform1i(program->uniformLocation("uTexture"), 0);
+  glUniformMatrix4fv(program->uniformLocation("uTransform"), 1, GL_TRUE, frame_mat.v);
 
   assert(glGetError() == GL_NO_ERROR);
   glEnableVertexAttribArray(0);
@@ -224,27 +233,31 @@ void CameraViewWidget::paintGL() {
 }
 
 void CameraViewWidget::updateFrame() {
-  if (!vipc_client->connected && vipc_client->connect(false)) {
-    // init vision
-    for (int i = 0; i < vipc_client->num_buffers; i++) {
-      texture[i].reset(new EGLImageTexture(&vipc_client->buffers[i]));
+  if (!vipc_client->connected) {
+    makeCurrent();
+    if (vipc_client->connect(false)) {
+      // init vision
+      for (int i = 0; i < vipc_client->num_buffers; i++) {
+        texture[i].reset(new EGLImageTexture(&vipc_client->buffers[i]));
 
-      glBindTexture(GL_TEXTURE_2D, texture[i]->frame_tex);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, texture[i]->frame_tex);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-      // BGR
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_GREEN);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
-      assert(glGetError() == GL_NO_ERROR);
+        // BGR
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_BLUE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_GREEN);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
+        assert(glGetError() == GL_NO_ERROR);
+      }
+      latest_frame = nullptr;
+      resizeGL(width(), height());
     }
-    latest_frame = nullptr;
-    resizeGL(width(), height());
   }
 
+  VisionBuf *buf = nullptr;
   if (vipc_client->connected) {
-    VisionBuf *buf = vipc_client->recv();
+    buf = vipc_client->recv();
     if (buf != nullptr) {
       latest_frame = buf;
       update();
@@ -252,5 +265,9 @@ void CameraViewWidget::updateFrame() {
     } else {
       LOGE("visionIPC receive timeout");
     }
+  }
+  if (buf == nullptr && isVisible()) {
+    // try to connect or recv again
+    QTimer::singleShot(1000. / UI_FREQ, this, &CameraViewWidget::updateFrame);
   }
 }

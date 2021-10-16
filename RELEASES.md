@@ -1,6 +1,32 @@
+Version jvePilot-0.8.10(v3.7)
+========================
+* Fix for White Panda mod on 2017/2018 models
+* Update to 0.8.10
+  * New driving model
+    * Trained on one million minutes!!!
+    * Fixed lead training making lead predictions significantly more accurate
+    * Fixed several localizer dataset bugs and loss function bugs, overall improved accuracy
+  * New driver monitoring model
+    * Trained on latest data from both comma two and comma three
+    * Increased model field of view by 40% on comma three
+    * Improved model stability on masked users
+    * Improved pose prediction with reworked ground-truth stack
+  * Lateral and longitudinal planning MPCs now in ACADOS
+  * Combined longitudinal MPCs
+    * All longitudinal planning now happens in a single MPC system
+    * Fixed instability in MPC problem to prevent sporadic CPU usage
+  * AGNOS 2: minor stability improvements and builder repo open sourced
+  * Moved community-supported cars outside of the Community Features toggle
+  * Honda Freed 2020 support thanks to belm0!
+  * Hyundai Santa Fe 2022 support thanks to sunnyhaibin!
+  * Kia K5 2021 support thanks to sunnyhaibin!
+  * Škoda Kamiq 2021 support thanks to jyoung8607!
+  * Škoda Karoq 2019 support thanks to jyoung8607!
+  * Volkswagen Arteon 2021 support thanks to jyoung8607!
+  * Volkswagen California 2021 support thanks to jyoung8607!
+
 Version jvePilot-0.8.9(v3.6.1)
 ========================
-Visit http://bit.ly/jvereadme for more information
 * Add option to alert when steering is lost do to low speeds
 * Fix for White Panda mod lkas fault when jvePilot is not engaged.
 * Radar updates thanks to xps!
