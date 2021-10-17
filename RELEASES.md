@@ -1,6 +1,10 @@
-Version jvePilot-0.8.9(v3.6.1)
+Version jvePilot-0.8.9(v3.6.2)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Speed turns green when gas applied, red when braking
+
+Version jvePilot-0.8.9(v3.6.1)
+========================
 * Add option to alert when steering is lost do to low speeds
 * Fix for White Panda mod lkas fault when jvePilot is not engaged.
 * Radar updates thanks to xps!

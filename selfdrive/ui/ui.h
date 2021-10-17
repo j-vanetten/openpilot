@@ -31,6 +31,9 @@
 #define COLOR_YELLOW nvgRGBA(218, 202, 37, 255)
 #define COLOR_RED nvgRGBA(201, 34, 49, 255)
 
+#define COLOR_SPEED_GAS_ALPHA(x) nvgRGBA(0, 200, 0, x)
+#define COLOR_SPEED_BRAKE_ALPHA(x) nvgRGBA(200, 0, 0, x)
+
 typedef cereal::CarControl::HUDControl::AudibleAlert AudibleAlert;
 
 // TODO: this is also hardcoded in common/transformations/camera.py

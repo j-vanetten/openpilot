@@ -47,6 +47,7 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 * Pressing the gas does not disengage jvePilot (Can be disabled)
 * Setting to sync jvePilot display speed to vehicle speedometer 
 * Use LKAS button in the dash to disable lane line driving and instead use the new KL driving model. [Read about KL model here](https://blog.comma.ai/end-to-end-lateral-planning).
+* Gas/brake indication using green/red colors on speed indicator
 
 ### Longitudinal control
 This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC).
