@@ -206,7 +206,7 @@ static void ui_draw_button(UIState *s, Rect btn, const char *text, bool enabled)
   int center_x = btn_x + (btn_w / 2);
   int center_y = btn_y + (btn_h / 2);
 
-  nvgBeginPath(s->vg);update_v_cruise
+  nvgBeginPath(s->vg);
   nvgRoundedRect(s->vg, btn_x, btn_y, btn_w, btn_h, 25);
   if (enabled) {  // change outline color based on status of button
     nvgStrokeColor(s->vg, nvgRGBA(55, 184, 104, 255));

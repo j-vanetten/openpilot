@@ -21,7 +21,7 @@ CAR_ROTATION_RADIUS = 0.0
 MAX_CURVATURE_RATES = [0.03762194918267951, 0.003441203371932992]
 MAX_CURVATURE_RATE_SPEEDS = [0, 35]
 
-CRUISE_LONG_PRESS = 50
+CRUISE_LONG_PRESS = 30
 CRUISE_NEAREST_FUNC = {
   car.CarState.ButtonEvent.Type.accelCruise: math.ceil,
   car.CarState.ButtonEvent.Type.decelCruise: math.floor,
@@ -78,8 +78,7 @@ def update_v_cruise(v_cruise_kph, buttonEvents, button_timers, enabled, metric, 
         break
 
   if button_type:
-    change = (5 if long_press else 1)
-    change = (6 - change) if reverse_acc_button_change
+    change = (1 if long_press else 5) if reverse_acc_button_change else (5 if long_press else 1)
     v_cruise_delta = v_cruise_delta * change
     if long_press and v_cruise_kph % v_cruise_delta != 0: # partial interval
       v_cruise_kph = CRUISE_NEAREST_FUNC[button_type](v_cruise_kph / v_cruise_delta) * v_cruise_delta
@@ -87,7 +86,7 @@ def update_v_cruise(v_cruise_kph, buttonEvents, button_timers, enabled, metric, 
       v_cruise_kph += v_cruise_delta * CRUISE_INTERVAL_SIGN[button_type]
     v_cruise_kph = clip(round(v_cruise_kph, 1), V_CRUISE_MIN, V_CRUISE_MAX)
 
-  return max(v_cruise_kph, v_cruise_min)
+  return max(v_cruise_kph, cruise_min(metric))
 
 
 def initialize_v_cruise(v_ego, button_events, v_cruise_last, is_metric):

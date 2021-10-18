@@ -25,9 +25,7 @@
 #include "selfdrive/ui/qt/util.h"
 #include "selfdrive/ui/qt/qt_window.h"
 
-JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
-  QVBoxLayout *toggles_list = new QVBoxLayout();
-
+JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent) {
   QList<AbstractControl*> toggles;
 
   // slowInCurves
@@ -47,7 +45,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
         "\nTo go faster in turns at higher speeds, decrease this value.  To compensate for this change, you may need to increase the Speed Ratio."
     }
   };
-  toggles.append(new ParamControl("jvePilot.settings.slowInCurves",
+  addItem(new ParamControl("jvePilot.settings.slowInCurves",
                                   "Slow in Curves",
                                   "jvePilot will slow in curves so that you don't have to.",
                                   "../assets/jvepilot/settings/icon_slow_in_curves.png",
@@ -74,7 +72,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
         "Use this to change the speed at which Auto Follow will switch between three to four bars."
     }
   };
-  toggles.append(new ParamControl("jvePilot.settings.autoFollow",
+  addItem(new ParamControl("jvePilot.settings.autoFollow",
                                   "Start with Auto Follow Enabled",
                                   "When enabled, jvePilot will enable Auto Follow on the start of every drive.",
                                   "../assets/jvepilot/settings/icon_auto_follow.png",
@@ -82,7 +80,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
                                   &autoFollowConfigs));
 
   // reverseAccSpeedChange
-  toggles.append(new ParamControl("jvePilot.settings.reverseAccSpeedChange",
+  addItem(new ParamControl("jvePilot.settings.reverseAccSpeedChange",
                                   "Reverse ACC +/- Speeds",
                                   "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 increments."
                                   " Hold a little longer to change by 1."
@@ -91,21 +89,21 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
                                   this));
 
   // autoResume
-  toggles.append(new ParamControl("jvePilot.settings.autoResume",
+  addItem(new ParamControl("jvePilot.settings.autoResume",
                                   "Auto Resume",
                                   "When enabled, jvePilot will resume after ACC comes to a stop behind another vehicle.",
                                   "../assets/jvepilot/settings/icon_auto_resume.png",
                                   this));
 
   // disableOnGas
-  toggles.append(new ParamControl("jvePilot.settings.disableOnGas",
+  addItem(new ParamControl("jvePilot.settings.disableOnGas",
                                   "Disable on Gas",
                                   "When enabled, jvePilot will disengage jvePilot when the gas pedal is pressed.",
                                   "../assets/jvepilot/settings/icon_gas_pedal.png",
                                   this));
 
   // disableOnGas
-  toggles.append(new ParamControl("jvePilot.settings.audioAlertOnSteeringLoss",
+  addItem(new ParamControl("jvePilot.settings.audioAlertOnSteeringLoss",
                                   "Audio Alert on Steering Loss",
                                   "When enabled, jvePilot will play an alert when speed it too low to steer.",
                                   "../assets/jvepilot/settings/alert_steer_loss.png",
@@ -126,7 +124,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
         "The higher the number the more acceleration that occurs."
     }
   };
-  toggles.append(new LabelControl("ACC Eco",
+  addItem(new LabelControl("ACC Eco",
                                   "",
                                   "Use these settings to tune how much acceleration occurs by limiting how much ACC is set above your current speed.",
                                   this,
@@ -168,22 +166,12 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
         "At follow level 4, apply this ratio to the radar distance."
     }
   };
-  toggles.append(new LabelControl("jvePilot Control Settings",
+  addItem(new LabelControl("jvePilot Control Settings",
                                   "",
                                   "Use these settings tune some of jvePilot's control settings.",
                                   this,
                                   "../assets/jvepilot/settings/icon_misc.png",
                                   &miscConfigs));
-
-
-  for(AbstractControl *toggle : toggles){
-    if(toggles_list->count() != 0){
-      toggles_list->addWidget(horizontal_line());
-    }
-    toggles_list->addWidget(toggle);
-  }
-
-  setLayout(toggles_list);
 }
 
 TogglesPanel::TogglesPanel(QWidget *parent) : ListWidget(parent) {
@@ -225,7 +213,7 @@ TogglesPanel::TogglesPanel(QWidget *parent) : ListWidget(parent) {
                                                  "Upload data from the driver facing camera and help improve the driver monitoring algorithm.",
                                                  "../assets/offroad/icon_monitoring.png",
                                                  this);
-  toggles.append(record_toggle);
+  addItem(record_toggle);
 
 #ifdef ENABLE_MAPS
   addItem(new ParamControl("NavSettingTime24h",
