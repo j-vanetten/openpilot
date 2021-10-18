@@ -222,4 +222,6 @@ class LateralPlanner():
     plan_send.lateralPlan.laneChangeState = self.lane_change_state
     plan_send.lateralPlan.laneChangeDirection = self.lane_change_direction
 
+    self.lateralPlan = plan_send.lateralPlan
+
     pm.send('lateralPlan', plan_send)
