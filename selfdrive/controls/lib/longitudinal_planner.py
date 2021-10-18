@@ -59,7 +59,7 @@ class Planner():
     self.j_desired_trajectory = np.zeros(CONTROL_N)
 
 
-  def update(self, sm, CP, lateral_planner):
+  def update(self, sm, CP):
     v_ego = sm['carState'].vEgo
     a_ego = sm['carState'].aEgo
 
@@ -109,7 +109,7 @@ class Planner():
     self.v_desired = self.v_desired + DT_MDL * self.a_desired
 
     if self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
-      curvs = list(lateral_planner.mpc_solution.curvature)
+      curvs = list(sm['controlsState'].curvature)
       if len(curvs):
         # find the largest curvature in the solution and use that.
         curv = curvs[-1]
