@@ -21,17 +21,6 @@ CAR_ROTATION_RADIUS = 0.0
 MAX_CURVATURE_RATES = [0.03762194918267951, 0.003441203371932992]
 MAX_CURVATURE_RATE_SPEEDS = [0, 35]
 
-CRUISE_LONG_PRESS = 30
-CRUISE_NEAREST_FUNC = {
-  car.CarState.ButtonEvent.Type.accelCruise: math.ceil,
-  car.CarState.ButtonEvent.Type.decelCruise: math.floor,
-}
-CRUISE_INTERVAL_SIGN = {
-  car.CarState.ButtonEvent.Type.accelCruise: +1,
-  car.CarState.ButtonEvent.Type.decelCruise: -1,
-}
-
-
 class MPC_COST_LAT:
   PATH = 1.0
   HEADING = 1.0
@@ -53,40 +42,36 @@ def get_steer_max(CP, v_ego):
   return interp(v_ego, CP.steerMaxBP, CP.steerMaxV)
 
 
-def update_v_cruise(v_cruise_kph, buttonEvents, button_timers, enabled, metric, reverse_acc_button_change):
+def update_v_cruise(v_cruise_kph, button_events, enabled, reverse_acc_button_change, is_metric):
   # handle button presses. TODO: this should be in state_control, but a decelCruise press
   # would have the effect of both enabling and changing speed is checked after the state transition
-  if not enabled:
-    return v_cruise_kph
+  v_cruise_min = cruise_min(is_metric)
+  if enabled:
+    for b in button_events:
+      short_press = not b.pressed and b.pressedFrames < 30
+      long_press = b.pressed and b.pressedFrames == 30 \
+                   or ((not reverse_acc_button_change) and b.pressedFrames % 50 == 0 and b.pressedFrames > 50)
 
-  long_press = False
-  button_type = None
+      if reverse_acc_button_change:
+        sp = short_press
+        short_press = long_press
+        long_press = sp
 
-  v_cruise_delta = 1 if metric else 1.6
+      if long_press:
+        v_cruise_delta_5 = V_CRUISE_DELTA if is_metric else V_CRUISE_DELTA_IMPERIAL
+        if b.type == car.CarState.ButtonEvent.Type.accelCruise:
+          v_cruise_kph += v_cruise_delta_5 - (v_cruise_kph % v_cruise_delta_5)
+        elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
+          v_cruise_kph -= v_cruise_delta_5 - ((v_cruise_delta_5 - v_cruise_kph) % v_cruise_delta_5)
+        v_cruise_kph = clip(v_cruise_kph, v_cruise_min, V_CRUISE_MAX)
+      elif short_press:
+        v_cruise_delta_1 = 1 if is_metric else CV.MPH_TO_KPH
+        if b.type == car.CarState.ButtonEvent.Type.accelCruise:
+          v_cruise_kph += v_cruise_delta_1
+        elif b.type == car.CarState.ButtonEvent.Type.decelCruise:
+          v_cruise_kph -= v_cruise_delta_1
 
-  for b in buttonEvents:
-    if b.type.raw in button_timers and not b.pressed:
-      if button_timers[b.type.raw] > CRUISE_LONG_PRESS:
-        return v_cruise_kph # end long press
-      button_type = b.type.raw
-      break
-  else:
-    for k in button_timers.keys():
-      if button_timers[k] and button_timers[k] % CRUISE_LONG_PRESS == 0:
-        button_type = k
-        long_press = True
-        break
-
-  if button_type:
-    change = (1 if long_press else 5) if reverse_acc_button_change else (5 if long_press else 1)
-    v_cruise_delta = v_cruise_delta * change
-    if long_press and v_cruise_kph % v_cruise_delta != 0: # partial interval
-      v_cruise_kph = CRUISE_NEAREST_FUNC[button_type](v_cruise_kph / v_cruise_delta) * v_cruise_delta
-    else:
-      v_cruise_kph += v_cruise_delta * CRUISE_INTERVAL_SIGN[button_type]
-    v_cruise_kph = clip(round(v_cruise_kph, 1), V_CRUISE_MIN, V_CRUISE_MAX)
-
-  return max(v_cruise_kph, cruise_min(metric))
+  return max(v_cruise_kph, v_cruise_min)
 
 
 def initialize_v_cruise(v_ego, button_events, v_cruise_last, is_metric):
