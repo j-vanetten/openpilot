@@ -1,6 +1,8 @@
 Version jvePilot-0.8.10(v3.7)
 ========================
+Visit http://bit.ly/jvereadme for more information
 * Fix for White Panda mod on 2017/2018 models
+* Speed turns green when gas applied, red when braking
 * Update to 0.8.10
   * New driving model
     * Trained on one million minutes!!!

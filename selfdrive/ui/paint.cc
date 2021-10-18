@@ -173,9 +173,15 @@ static void ui_draw_vision_maxspeed(UIState *s) {
 
 static void ui_draw_vision_speed(UIState *s) {
   const float speed = std::max(0.0, (*s->sm)["carState"].getCarState().getVEgo() * (s->scene.is_metric ? 3.6 : 2.2369363));
+  const float pedalPressedAmount = (*s->sm)["carState"].getCarState().getJvePilotCarState().getPedalPressedAmount();
   const std::string speed_str = std::to_string((int)std::nearbyint(speed));
   nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BASELINE);
   ui_draw_text(s, s->fb_w/2, 210, speed_str.c_str(), 96 * 2.5, COLOR_WHITE, "sans-bold");
+  if (pedalPressedAmount < 0) {
+    ui_draw_text(s, s->fb_w/2, 210, speed_str.c_str(), 96 * 2.5, COLOR_SPEED_BRAKE_ALPHA(pedalPressedAmount * -256), "sans-bold");
+  } else if (pedalPressedAmount > 0) {
+    ui_draw_text(s, s->fb_w/2, 210, speed_str.c_str(), 96 * 2.5, COLOR_SPEED_GAS_ALPHA(pedalPressedAmount * 256), "sans-bold");
+  }
   ui_draw_text(s, s->fb_w/2, 290, s->scene.is_metric ? "km/h" : "mph", 36 * 2.5, COLOR_WHITE_ALPHA(200), "sans-regular");
 }
 
