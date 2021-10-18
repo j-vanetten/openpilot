@@ -64,6 +64,8 @@ class LateralPlanner():
     self.lat_mpc = LateralMpc()
     self.reset_mpc(np.zeros(6))
 
+    self.lateralPlan = None
+
   def reset_mpc(self, x0=np.zeros(6)):
     self.x0 = x0
     self.lat_mpc.reset(x0=self.x0)
