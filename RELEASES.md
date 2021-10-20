@@ -2,6 +2,7 @@ Version jvePilot-0.8.9(v3.6.2)
 ========================
 Visit http://bit.ly/jvereadme for more information
 * Speed turns green when gas applied, red when braking
+* Fix bug where left turns were not slowing
 
 Version jvePilot-0.8.9(v3.6.1)
 ========================
