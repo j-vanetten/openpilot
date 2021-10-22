@@ -11,10 +11,9 @@ struct JvePilotState {
   carControl @2 :JvePilotState.CarControl;
 
   struct CarState {
-    leadDistanceRadarRatio @0 :Float32;
-    accFollowDistance @1 :UInt8;
-    buttonCounter @2 :UInt8;
-    pedalPressedAmount @3 :Float32;
+    accFollowDistance @0 :UInt8;
+    buttonCounter @1 :UInt8;
+    pedalPressedAmount @2 :Float32;
   }
 
   struct CarControl {

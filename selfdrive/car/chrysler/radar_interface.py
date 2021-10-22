@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 import math
-from common.numpy_fast import clip
 from opendbc.can.parser import CANParser
 from cereal import car
 from selfdrive.car.interfaces import RadarInterfaceBase
 from selfdrive.car.chrysler.values import DBC
+from common.cached_params import CachedParams
 
 RADAR_MSGS_C = list(range(0x2c2, 0x2d4+2, 2))  # c_ messages 706,...,724
 RADAR_MSGS_D = list(range(0x2a2, 0x2b4+2, 2))  # d_ messages
 LAST_MSG = max(RADAR_MSGS_C + RADAR_MSGS_D)
 NUMBER_MSGS = len(RADAR_MSGS_C) + len(RADAR_MSGS_D)
+
+LEAD_RADAR_CONFIG = ['jvePilot.settings.accFollow1RadarRatio',
+                     'jvePilot.settings.accFollow2RadarRatio',
+                     'jvePilot.settings.accFollow3RadarRatio',
+                     'jvePilot.settings.accFollow4RadarRatio']
 
 def _create_radar_can_parser(car_fingerprint):
   msg_n = len(RADAR_MSGS_C)
@@ -57,8 +62,10 @@ class RadarInterface(RadarInterfaceBase):
     self.rcp = _create_radar_can_parser(CP.carFingerprint)
     self.updated_messages = set()
     self.trigger_msg = LAST_MSG
+    self.cachedParams = CachedParams()
 
-  def update(self, can_strings):
+  def update(self, sm, can_strings):
+    lead_ratio = self.cachedParams.get_float(LEAD_RADAR_CONFIG[sm["carState"].jvePilotCarState.accFollowDistance], 1000)
     vls = self.rcp.update_strings(can_strings)
     self.updated_messages.update(vls)
 
@@ -83,7 +90,7 @@ class RadarInterface(RadarInterfaceBase):
 
       if 'LONG_DIST' in cpt:  # c_* message
         azimuth = (cpt['LAT_ANGLE'])
-        self.pts[trackId].dRel = math.cos(azimuth) * cpt['LONG_DIST']
+        self.pts[trackId].dRel = math.cos(azimuth) * cpt['LONG_DIST'] * lead_ratio
         self.pts[trackId].yRel = -math.sin(azimuth) * cpt['LONG_DIST']
       else:  # d_* message
         self.pts[trackId].vRel = cpt['REL_SPEED']

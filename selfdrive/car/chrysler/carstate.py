@@ -10,10 +10,6 @@ import numpy as np
 
 ButtonType = car.CarState.ButtonEvent.Type
 
-LEAD_RADAR_CONFIG = ['jvePilot.settings.accFollow1RadarRatio',
-                     'jvePilot.settings.accFollow2RadarRatio',
-                     'jvePilot.settings.accFollow3RadarRatio',
-                     'jvePilot.settings.accFollow4RadarRatio']
 CHECK_BUTTONS = {ButtonType.cancel: ["WHEEL_BUTTONS", 'ACC_CANCEL'],
                  ButtonType.resumeCruise: ["WHEEL_BUTTONS", 'ACC_RESUME'],
                  ButtonType.accelCruise: ["WHEEL_BUTTONS", 'ACC_SPEED_INC'],
@@ -104,7 +100,6 @@ class CarState(CarStateBase):
       ret.jvePilotCarState.pedalPressedAmount = 0
 
     ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
-    ret.jvePilotCarState.leadDistanceRadarRatio = self.cachedParams.get_float(LEAD_RADAR_CONFIG[ret.jvePilotCarState.accFollowDistance], 1000)
     ret.jvePilotCarState.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
     self.lkasHeartbit = cp_cam.vl["LKAS_HEARTBIT"]
 
