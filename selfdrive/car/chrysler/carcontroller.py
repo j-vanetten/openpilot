@@ -73,7 +73,7 @@ class CarController():
       self.last_gas = 0.
       return
 
-    if not jvepilot_state.carControl.useLaneLines: # TEST CODE *********
+    if jvepilot_state.carControl.useLaneLines: # TEST CODE *********
       return
 
     # Should we slow down?
