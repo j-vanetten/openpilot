@@ -11,6 +11,7 @@ from common.cached_params import CachedParams
 from common.op_params import opParams
 from common.params import Params
 from cereal import car
+from numpy import interp
 import cereal.messaging as messaging
 ButtonType = car.CarState.ButtonEvent.Type
 
@@ -19,6 +20,18 @@ V_CRUISE_MIN_MS = V_CRUISE_MIN * CV.KPH_TO_MS
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
 ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
+
+ACCEL_HYST_GAP = 0.06
+ACCEL_TORQ_MAX = 360
+def accel_hysteresis(accel, accel_steady):
+  # for small accel oscillations within ACCEL_HYST_GAP, don't change the accel command
+  if accel > accel_steady + ACCEL_HYST_GAP:
+    accel_steady = accel - ACCEL_HYST_GAP
+  elif accel < accel_steady - ACCEL_HYST_GAP:
+    accel_steady = accel + ACCEL_HYST_GAP
+  accel = accel_steady
+
+  return accel, accel_steady
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -35,6 +48,7 @@ class CarController():
     self.last_acc_2_counter = 0
     self.last_brake = None
     self.last_gas = 0.
+    self.accel_steady = 0.
 
     self.packer = CANPacker(dbc_name)
 
@@ -58,11 +72,11 @@ class CarController():
     can_sends = []
     self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
     self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
-    self.acc(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
+    self.acc(CS, actuators, can_sends, enabled, c.jvePilotState)
 
     return can_sends
 
-  def acc(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
+  def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
     acc_2_counter = CS.acc_2['COUNTER']
     if acc_2_counter == self.last_acc_2_counter:
       return
@@ -80,9 +94,12 @@ class CarController():
     brake_press = False
     brake_target = 0
     gas = 0
-    if actuators.accel < 0.03:
+
+    pcm_accel_cmd = actuators.accel
+    pcm_accel_cmd, self.accel_steady = accel_hysteresis(pcm_accel_cmd, self.accel_steady)
+    if pcm_accel_cmd < 0:
       brake_press = True
-      brake_target = max(-2, round(actuators.accel, 2))
+      brake_target = max(-2, round(pcm_accel_cmd, 2))
       if CS.acc_2['ACC_DECEL_REQ'] == 1:
         acc = round(CS.acc_2['ACC_DECEL'], 2)
         brake_target = min(brake_target, acc)
@@ -91,8 +108,8 @@ class CarController():
     elif CS.acc_2['ACC_DECEL_REQ'] == 1:
       brake_press = True
       brake_target = round(CS.acc_2['ACC_DECEL'], 2)
-    elif actuators.accel > 0:
-      self.last_gas = max(0, min(1500, self.last_gas + (actuators.accel - CS.out.aEgo)))
+    elif pcm_accel_cmd > 0:
+      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + (pcm_accel_cmd - CS.out.aEgo)))
       gas = round(self.last_gas, 0)
       # print(f"gas ACC={CS.acc_2['ACC_TORQ']}nm, OP={actuators.accel}m/s2, gas jeep={self.last_gas}nm")
 
