@@ -356,8 +356,8 @@ BO_ 500 ACC_2: 8 XXX
  SG_ COLLISION_BRK_PREP : 48|1@1+ (1,0) [0|0] "" XXX
  SG_ ACC_BRK_PREP : 49|1@1+ (1,0) [0|0] "" XXX
  SG_ DISPLAY_REQ : 50|2@1+ (1,0) [0|0] "" XXX
- SG_ COUNTER : 52|4@1+ (1,0) [0|15] "" XXX
- SG_ CHECKSUM : 56|8@1+ (1,0) [0|0] "" XXX
+ SG_ COUNTER : 55|4@0+ (1,0) [0|15] "" XXX
+ SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 625 ACC_1: 8 XXX
  SG_ SPEED : 31|8@0+ (1,0) [0|255] "km/h" XXX

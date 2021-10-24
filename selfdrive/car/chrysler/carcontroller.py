@@ -73,7 +73,7 @@ class CarController():
       self.last_gas = 0.
       return
 
-    if jvepilot_state.carControl.useLaneLines: # TEST CODE *********
+    if jvepilot_state.carControl.useLaneLines:
       return
 
     # Should we slow down?
@@ -95,10 +95,10 @@ class CarController():
       GAS_RATIO = 127
       gas_target = actuators.accel * GAS_RATIO
 
-      if gas_target > self.last_gas:
-        self.last_gas = min(255., gas_target + 1)
-      elif gas_target < self.last_gas:
-        self.last_gas = max(0., gas_target - 2)
+      if actuators.accel > CS.out.aEgo:
+        self.last_gas = min(255., gas_target + 2)
+      elif actuators.accel < CS.out.aEgo:
+        self.last_gas = max(0., gas_target - 4)
 
       gas = round(self.last_gas, 0)
       print(f"gas ACC={CS.acc_2['ACC_ACCEL_CMD']}, gas OP={gas}, gas target={gas_target}")
