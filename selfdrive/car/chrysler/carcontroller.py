@@ -1,6 +1,7 @@
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
-                                               create_wheel_buttons_command, create_lkas_heartbit
+  create_wheel_buttons_command, create_lkas_heartbit, \
+  acc_command
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -31,6 +32,9 @@ class CarController():
     self.steer_rate_limited = False
     self.last_button_counter = -1
     self.button_frame = -1
+    self.last_acc_2_counter = 0
+    self.last_brake = None
+    self.last_gas = 0.
 
     self.packer = CANPacker(dbc_name)
 
@@ -54,8 +58,67 @@ class CarController():
     can_sends = []
     self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
     self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
+    self.acc(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
 
     return can_sends
+
+  def acc(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
+    acc_2_counter = CS.acc_2['COUNTER']
+    if acc_2_counter == self.last_acc_2_counter:
+      return
+    self.last_acc_2_counter = acc_2_counter
+
+    if not enabled:
+      self.last_brake = None
+      self.last_gas = 0.
+      return
+
+    if not jvepilot_state.carControl.useLaneLines: # TEST CODE *********
+      return
+
+    # Should we slow down?
+    brake_press = False
+    brake_target = 0
+    gas = 0
+    if actuators.accel < 0.03:
+      brake_press = True
+      brake_target = max(-2, round(actuators.accel, 2))
+      if CS.acc_2['COMMAND_TYPE'] == 1:
+        acc = round(CS.acc_2['ACC_DECEL_CMD'], 2)
+        brake_target = min(brake_target, acc)
+        if self.last_brake is None:
+          self.last_brake = acc  # start here since ACC was already active
+    elif CS.acc_2['COMMAND_TYPE'] == 1:
+      brake_press = True
+      brake_target = round(CS.acc_2['ACC_DECEL_CMD'], 2)
+    elif actuators.accel > 0:
+      GAS_RATIO = 127
+      gas_target = actuators.accel * GAS_RATIO
+
+      if gas_target > self.last_gas:
+        self.last_gas = min(255., gas_target + 1)
+      elif gas_target < self.last_gas:
+        self.last_gas = max(0., gas_target - 2)
+
+      gas = round(self.last_gas, 0)
+      print(f"gas ACC={CS.acc_2['ACC_ACCEL_CMD']}, gas OP={gas}, gas target={gas_target}")
+
+    else:
+      self.last_gas = 0.
+
+    if brake_press:
+      self.last_gas = 0.
+      if self.last_brake is None:
+        self.last_brake = brake_target
+      elif brake_target < self.last_brake:
+        self.last_brake = round(max(self.last_brake - 0.02, brake_target), 2)
+      elif brake_target > self.last_brake:
+        self.last_brake = round(min(self.last_brake + 0.02, brake_target), 2)
+    else:
+      self.last_brake = None
+
+    brake = self.last_brake if self.last_brake is not None else 4
+    can_sends.append(acc_command(self.packer, acc_2_counter + 1, gas, brake, CS.acc_2))
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
@@ -155,7 +218,7 @@ class CarController():
       return 'ACC_RESUME'
 
   def hybrid_acc_button(self, CS, jvepilot_state):
-    target = jvepilot_state.carControl.vTargetFuture
+    target = jvepilot_state.carControl.vMaxCruise
 
     # Move the adaptive curse control to the target speed
     eco_limit = None

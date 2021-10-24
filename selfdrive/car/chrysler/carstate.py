@@ -36,6 +36,7 @@ class CarState(CarStateBase):
     self.lkasHeartbit = None
     self.dashboard = None
     self.speedRequested = 0
+    self.acc_2 = None
 
   def update(self, cp, cp_cam):
     min_steer_check = self.opParams.get('steer.checkMinimum')
@@ -72,6 +73,7 @@ class CarState(CarStateBase):
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["GEAR"]["PRNDL"], None))
 
     ret.cruiseState.enabled = cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
+    self.acc_2 = cp.vl['ACC_2']
     ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3, 4]  # the comment below says 3 and 4 are ACC mode
     ret.cruiseState.speed = cp.vl["DASHBOARD"]["ACC_SPEED_CONFIG_KPH"] * CV.KPH_TO_MS
     # CRUISE_STATE is a three bit msg, 0 is off, 1 and 2 are Non-ACC mode, 3 and 4 are ACC mode, find if there are other states too
@@ -160,7 +162,6 @@ class CarState(CarStateBase):
       ("STEER_ANGLE", "STEERING", 0),
       ("STEERING_RATE", "STEERING", 0),
       ("TURN_SIGNALS", "STEERING_LEVERS", 0),
-      ("ACC_ENABLED", "ACC_2", 0),
       ("HIGH_BEAM_FLASH", "STEERING_LEVERS", 0),
       ("ACC_SPEED_CONFIG_KPH", "DASHBOARD", 0),
       ("CRUISE_STATE", "DASHBOARD", 0),
@@ -186,6 +187,23 @@ class CarState(CarStateBase):
       ("VEHICLE_SPEED_KPH", "BRAKE_1", 0),
       ("BRAKE_VAL_TOTAL", "BRAKE_1", 0),
       ("ACCEL", "ACCEL_RELATED_120", 0),
+
+      ("ACC_STOP", "ACC_2", 0),
+      ("ACC_GO", "ACC_2", 0),
+      ("ACC_TORQ", "ACC_2", 0),
+      ("ACC_TORQ_REQ", "ACC_2", 0),
+      ("ACC_DECEL", "ACC_2", 0),
+      ("ACC_DECEL_REQ", "ACC_2", 0),
+      ("ACC_AVAILABLE", "ACC_2", 0),
+      ("ACC_ENABLED", "ACC_2", 0),
+      ("DISABLE_FUEL_SHUTOFF", "ACC_2", 0),
+      ("GR_MAX_REQ", "ACC_2", 0),
+      ("STS", "ACC_2", 0),
+      ("COLLISION_BRK_PREP", "ACC_2", 0),
+      ("ACC_BRK_PREP", "ACC_2", 0),
+      ("DISPLAY_REQ", "ACC_2", 0),
+      ("COUNTER", "ACC_2", 0),
+      ("CHECKSUM", "ACC_2", 0),
     ]
 
     checks = [

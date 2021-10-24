@@ -19,8 +19,9 @@ from selfdrive.swaglog import cloudlog
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2     # car smoothly decel at .2m/s^2 when user is distracted
-A_CRUISE_MIN = -10.
-A_CRUISE_MAX = 10.
+A_CRUISE_MIN = -1.2
+A_CRUISE_MAX_VALS = [1.2, 1.2, 0.8, 0.6]
+A_CRUISE_MAX_BP = [0., 15., 25., 40.]
 
 # Lookup table for turns
 _A_TOTAL_MAX_V = [1.7, 3.2]
@@ -28,7 +29,7 @@ _A_TOTAL_MAX_BP = [20., 40.]
 
 
 def get_max_accel(v_ego):
-  return A_CRUISE_MAX
+  return interp(v_ego, A_CRUISE_MAX_BP, A_CRUISE_MAX_VALS)
 
 
 def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
@@ -55,8 +56,6 @@ class Planner():
     self.fcw = False
     self.fcw_checker = FCWChecker()
 
-    self.cachedParams = CachedParams()
-
     self.v_desired = 0.0
     self.a_desired = 0.0
     self.longitudinalPlanSource = 'cruise'
@@ -68,7 +67,7 @@ class Planner():
     self.a_desired_trajectory = np.zeros(CONTROL_N)
 
 
-  def update(self, sm, CP, lateral_planner):
+  def update(self, sm, CP):
     cur_time = sec_since_boot()
     v_ego = sm['carState'].vEgo
     a_ego = sm['carState'].aEgo
@@ -133,7 +132,7 @@ class Planner():
     # Interpolate 0.05 seconds and save as starting point for next iteration
     a_prev = self.a_desired
     self.a_desired = float(interp(DT_MDL, T_IDXS[:CONTROL_N], self.a_desired_trajectory))
-    self.v_desired = self.v_desired + DT_MDL * self.a_desired
+    self.v_desired = self.v_desired + DT_MDL * (self.a_desired + a_prev)/2.0
 
     if self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
       curvs = list(lateral_planner.mpc_solution.curvature)
