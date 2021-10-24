@@ -56,6 +56,8 @@ class Planner():
     self.fcw = False
     self.fcw_checker = FCWChecker()
 
+    self.cachedParams = CachedParams()
+
     self.v_desired = 0.0
     self.a_desired = 0.0
     self.longitudinalPlanSource = 'cruise'

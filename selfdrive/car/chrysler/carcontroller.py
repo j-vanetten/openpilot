@@ -83,31 +83,24 @@ class CarController():
     if actuators.accel < 0.03:
       brake_press = True
       brake_target = max(-2, round(actuators.accel, 2))
-      if CS.acc_2['COMMAND_TYPE'] == 1:
-        acc = round(CS.acc_2['ACC_DECEL_CMD'], 2)
+      if CS.acc_2['ACC_DECEL_REQ'] == 1:
+        acc = round(CS.acc_2['ACC_DECEL'], 2)
         brake_target = min(brake_target, acc)
         if self.last_brake is None:
           self.last_brake = acc  # start here since ACC was already active
-    elif CS.acc_2['COMMAND_TYPE'] == 1:
+    elif CS.acc_2['ACC_DECEL_REQ'] == 1:
       brake_press = True
-      brake_target = round(CS.acc_2['ACC_DECEL_CMD'], 2)
+      brake_target = round(CS.acc_2['ACC_DECEL'], 2)
     elif actuators.accel > 0:
-      GAS_RATIO = 127
-      gas_target = actuators.accel * GAS_RATIO
-
-      if actuators.accel > CS.out.aEgo:
-        self.last_gas = min(220., gas_target + 2)
-      elif actuators.accel < CS.out.aEgo:
-        self.last_gas = max(0., gas_target - 4)
-
+      self.last_gas = max(0, min(1500, self.last_gas + (actuators.accel - CS.out.aEgo)))
       gas = round(self.last_gas, 0)
-      print(f"gas ACC={CS.acc_2['ACC_ACCEL_CMD']}, gas OP={gas}, gas target={gas_target}")
+      # print(f"gas ACC={CS.acc_2['ACC_TORQ']}nm, OP={actuators.accel}m/s2, gas jeep={self.last_gas}nm")
 
     else:
-      self.last_gas = 0.
+      self.last_gas = 0
 
     if brake_press:
-      self.last_gas = 0.
+      self.last_gas = 0
       if self.last_brake is None:
         self.last_brake = brake_target
       elif brake_target < self.last_brake:
@@ -118,6 +111,11 @@ class CarController():
       self.last_brake = None
 
     brake = self.last_brake if self.last_brake is not None else 4
+
+    if CS.out.gasPressed or CS.out.brakePressed:  # stop sending ACC requests
+      gas = 0
+      brake = 4
+
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, gas, brake, CS.acc_2))
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
