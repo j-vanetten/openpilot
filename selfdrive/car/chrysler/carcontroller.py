@@ -96,7 +96,7 @@ class CarController():
       gas_target = actuators.accel * GAS_RATIO
 
       if actuators.accel > CS.out.aEgo:
-        self.last_gas = min(255., gas_target + 2)
+        self.last_gas = min(220., gas_target + 2)
       elif actuators.accel < CS.out.aEgo:
         self.last_gas = max(0., gas_target - 4)
 

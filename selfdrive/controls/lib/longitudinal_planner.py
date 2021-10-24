@@ -67,7 +67,7 @@ class Planner():
     self.a_desired_trajectory = np.zeros(CONTROL_N)
 
 
-  def update(self, sm, CP):
+  def update(self, sm, CP, lateral_planner):
     cur_time = sec_since_boot()
     v_ego = sm['carState'].vEgo
     a_ego = sm['carState'].aEgo
