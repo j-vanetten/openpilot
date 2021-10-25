@@ -54,6 +54,10 @@ def manager_init():
     ("jvePilot.settings.slowInCurves.speedRatio", "1.0"),
     ("jvePilot.settings.slowInCurves.speedDropOff", "2.0"),
     ("jvePilot.settings.slowInCurves.speedDropOffAngle", "0.0"),
+    ("jvePilot.settings.longControl", "1"),
+    ("jvePilot.settings.longControl.maxAccelTorq", "360"),
+    ("jvePilot.settings.longControl.torqChangeRatio", "1.0"),
+    ("jvePilot.settings.longControl.hystGap", "0.6"),
 
     ("CompletedTrainingVersion", "0"),
     ("HasAcceptedTerms", "0"),

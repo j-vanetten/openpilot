@@ -21,18 +21,6 @@ AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
 ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 
-ACCEL_HYST_GAP = 0.06
-ACCEL_TORQ_MAX = 360
-def accel_hysteresis(accel, accel_steady):
-  # for small accel oscillations within ACCEL_HYST_GAP, don't change the accel command
-  if accel > accel_steady + ACCEL_HYST_GAP:
-    accel_steady = accel - ACCEL_HYST_GAP
-  elif accel < accel_steady - ACCEL_HYST_GAP:
-    accel_steady = accel + ACCEL_HYST_GAP
-  accel = accel_steady
-
-  return accel, accel_steady
-
 class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.apply_steer_last = 0
@@ -77,6 +65,9 @@ class CarController():
     return can_sends
 
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
+    ACCEL_TORQ_MAX = self.cachedParams.get_float('jvePilot.settings.longControl.maxAccelTorq', 500)
+    ACCEL_TORQ_CHANGE_RATIO = self.cachedParams.get_float('jvePilot.settings.longControl.torqChangeRatio', 500)
+
     acc_2_counter = CS.acc_2['COUNTER']
     if acc_2_counter == self.last_acc_2_counter:
       return
@@ -96,7 +87,7 @@ class CarController():
     gas = 0
 
     pcm_accel_cmd = actuators.accel
-    pcm_accel_cmd, self.accel_steady = accel_hysteresis(pcm_accel_cmd, self.accel_steady)
+    pcm_accel_cmd, self.accel_steady = self.accel_hysteresis(pcm_accel_cmd, self.accel_steady)
     if pcm_accel_cmd < 0:
       brake_press = True
       brake_target = max(-2, round(pcm_accel_cmd, 2))
@@ -109,7 +100,7 @@ class CarController():
       brake_press = True
       brake_target = round(CS.acc_2['ACC_DECEL'], 2)
     elif pcm_accel_cmd > 0:
-      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + (pcm_accel_cmd - CS.out.aEgo)))
+      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + (pcm_accel_cmd - CS.out.aEgo) * ACCEL_TORQ_CHANGE_RATIO))
       gas = round(self.last_gas, 0)
       # print(f"gas ACC={CS.acc_2['ACC_TORQ']}nm, OP={actuators.accel}m/s2, gas jeep={self.last_gas}nm")
 
@@ -285,3 +276,14 @@ class CarController():
           return 'ACC_FOLLOW_DEC'
         else:
           return 'ACC_FOLLOW_INC'
+
+  def accel_hysteresis(self, accel, accel_steady):
+    ACCEL_HYST_GAP = self.cachedParams.get_float('jvePilot.settings.longControl.hystGap', 500)
+    # for small accel oscillations within ACCEL_HYST_GAP, don't change the accel command
+    if accel > accel_steady + ACCEL_HYST_GAP:
+      accel_steady = accel - ACCEL_HYST_GAP
+    elif accel < accel_steady - ACCEL_HYST_GAP:
+      accel_steady = accel + ACCEL_HYST_GAP
+    accel = accel_steady
+
+    return accel, accel_steady

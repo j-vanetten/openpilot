@@ -53,6 +53,31 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
                                   "../assets/jvepilot/settings/icon_slow_in_curves.png",
                                   this,
                                   &slowInCurvesConfigs));
+
+  QList<struct ConfigButton> accConfigs = {
+    { "jvePilot.settings.longControl.maxAccelTorq",
+      0, 1500,
+      "Max torque given for acceleration",
+      "Default: 360"
+    }
+    ,{ "jvePilot.settings.longControl.torqChangeRatio",
+      0, 100,
+      "Ratio change when applying m/s2 difference for changing torq",
+      "Default: 1.0"
+    }
+    ,{ "jvePilot.settings.longControl.hystGap",
+      0, 5,
+      "Ignore acceleration wobble",
+      "Default: 0.06"
+    }
+  };
+  toggles.append(new ParamControl("jvePilot.settings.longControl",
+                                  "OP Long Control",
+                                  "jvePilot spoof ACC commands to control gas and brakes.",
+                                  "",
+                                  this,
+                                  &accConfigs));
+
   // autoFollow
   QList<struct ConfigButton> autoFollowConfigs = {
     { "jvePilot.settings.autoFollow.speed1-2Bars",
