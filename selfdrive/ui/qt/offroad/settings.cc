@@ -70,11 +70,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
       "Ignore acceleration wobble",
       "Default: 0.06"
     }
-    ,{ "jvePilot.settings.longControl.torqFutureFrames",
-      0, 5000,
-      "Ignore acceleration wobble",
-      "Default: 50"
-    }
   };
   toggles.append(new ParamControl("jvePilot.settings.longControl",
                                   "OP Long Control",

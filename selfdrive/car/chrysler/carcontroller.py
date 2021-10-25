@@ -93,7 +93,6 @@ class CarController():
     gas = 0
 
     target_accel = actuators.accel
-    target_accel, self.accel_steady = self.accel_hysteresis(target_accel, self.accel_steady)
     if target_accel < 0:
       brake_press = True
       brake_target = max(-2, round(target_accel, 2))
@@ -106,19 +105,14 @@ class CarController():
       brake_press = True
       brake_target = round(CS.acc_2['ACC_DECEL'], 2)
     elif target_accel > 0:
-      FUTURE_FRAMES = self.cachedParams.get_float('jvePilot.settings.longControl.torqFutureFrames', 1000)
-      aFutureEgo = CS.out.aEgo + (aEgoChange * FUTURE_FRAMES)
-      change = False
-      if CS.out.aEgo < target_accel:
-        change = aFutureEgo < target_accel
-      elif CS.out.aEgo > target_accel:
-        change = aFutureEgo > target_accel
+      vFutureEgo = CS.out.vEgo + CS.out.aEgo + aEgoChange * 50
+      vTarget = jvepilot_state.carControl.vTargetFuture
 
-      if change:
-        self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + (target_accel - CS.out.aEgo) * ACCEL_TORQ_CHANGE_RATIO))
+      aTarget, self.accel_steady = self.accel_hysteresis(max(0., min(target_accel, vTarget - vFutureEgo)), self.accel_steady)
+      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + (aTarget - CS.out.aEgo) * ACCEL_TORQ_CHANGE_RATIO))
 
       gas = round(self.last_gas, 0)
-      # print(f"gas ACC={CS.acc_2['ACC_TORQ']}nm, OP={actuators.accel}m/s2, gas jeep={self.last_gas}nm")
+      print(f"target_accel={target_accel}m/s2, aEgo={CS.out.aEgo}m/s2, aTarget={aTarget}m/s2 torq={self.last_gas}")
 
     else:
       self.last_gas = 28
