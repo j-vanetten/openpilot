@@ -146,6 +146,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"jvePilot.settings.longControl.maxAccelTorq", PERSISTENT},
     {"jvePilot.settings.longControl.torqChangeRatio", PERSISTENT},
     {"jvePilot.settings.longControl.hystGap", PERSISTENT},
+    {"jvePilot.settings.longControl.torqFutureFrames", PERSISTENT},
 
     {"AccessToken", CLEAR_ON_MANAGER_START | DONT_LOG},
     {"ApiCache_DriveStats", PERSISTENT},

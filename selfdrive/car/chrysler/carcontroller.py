@@ -37,6 +37,7 @@ class CarController():
     self.last_brake = None
     self.last_gas = 0.
     self.accel_steady = 0.
+    self.last_aEgo = None
 
     self.packer = CANPacker(dbc_name)
 
@@ -56,6 +57,9 @@ class CarController():
       self.params.put("EndToEndToggle", "0" if c.jvePilotState.carControl.useLaneLines else "1")
       c.jvePilotState.notifyUi = True
 
+    if self.last_aEgo is None:
+      self.last_aEgo = CS.out.aEgo
+
     #*** control msgs ***
     can_sends = []
     self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
@@ -73,6 +77,9 @@ class CarController():
       return
     self.last_acc_2_counter = acc_2_counter
 
+    aEgoChange = CS.out.aEgo - self.last_aEgo
+    self.last_aEgo = CS.out.aEgo
+
     if not enabled:
       self.last_brake = None
       self.last_gas = 0.
@@ -81,16 +88,15 @@ class CarController():
     if jvepilot_state.carControl.useLaneLines:
       return
 
-    # Should we slow down?
     brake_press = False
     brake_target = 0
     gas = 0
 
-    pcm_accel_cmd = actuators.accel
-    pcm_accel_cmd, self.accel_steady = self.accel_hysteresis(pcm_accel_cmd, self.accel_steady)
-    if pcm_accel_cmd < 0:
+    target_accel = actuators.accel
+    target_accel, self.accel_steady = self.accel_hysteresis(target_accel, self.accel_steady)
+    if target_accel < 0:
       brake_press = True
-      brake_target = max(-2, round(pcm_accel_cmd, 2))
+      brake_target = max(-2, round(target_accel, 2))
       if CS.acc_2['ACC_DECEL_REQ'] == 1:
         acc = round(CS.acc_2['ACC_DECEL'], 2)
         brake_target = min(brake_target, acc)
@@ -99,16 +105,26 @@ class CarController():
     elif CS.acc_2['ACC_DECEL_REQ'] == 1:
       brake_press = True
       brake_target = round(CS.acc_2['ACC_DECEL'], 2)
-    elif pcm_accel_cmd > 0:
-      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + (pcm_accel_cmd - CS.out.aEgo) * ACCEL_TORQ_CHANGE_RATIO))
+    elif target_accel > 0:
+      FUTURE_FRAMES = self.cachedParams.get_float('jvePilot.settings.longControl.torqFutureFrames', 1000)
+      aFutureEgo = CS.out.aEgo + (aEgoChange * FUTURE_FRAMES)
+      change = False
+      if CS.out.aEgo < target_accel:
+        change = aFutureEgo < target_accel
+      elif CS.out.aEgo > target_accel:
+        change = aFutureEgo > target_accel
+
+      if change:
+        self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + (target_accel - CS.out.aEgo) * ACCEL_TORQ_CHANGE_RATIO))
+
       gas = round(self.last_gas, 0)
       # print(f"gas ACC={CS.acc_2['ACC_TORQ']}nm, OP={actuators.accel}m/s2, gas jeep={self.last_gas}nm")
 
     else:
-      self.last_gas = 0
+      self.last_gas = 28
 
     if brake_press:
-      self.last_gas = 0
+      self.last_gas = 28
       if self.last_brake is None:
         self.last_brake = brake_target
       elif brake_target < self.last_brake:
