@@ -71,6 +71,7 @@ class CarController():
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
     ACCEL_TORQ_MAX = self.cachedParams.get_float('jvePilot.settings.longControl.maxAccelTorq', 500)
     ACCEL_TORQ_CHANGE_RATIO = self.cachedParams.get_float('jvePilot.settings.longControl.torqChangeRatio', 500)
+    ACCEL_TORQ_START = self.cachedParams.get_float('jvePilot.settings.longControl.torqStart', 500)
 
     acc_2_counter = CS.acc_2['COUNTER']
     if acc_2_counter == self.last_acc_2_counter:
@@ -82,7 +83,7 @@ class CarController():
 
     if not enabled:
       self.last_brake = None
-      self.last_gas = 0.
+      self.last_gas = ACCEL_TORQ_START
       return
 
     if jvepilot_state.carControl.useLaneLines:
@@ -115,10 +116,10 @@ class CarController():
       print(f"target_accel={target_accel}m/s2, aEgo={CS.out.aEgo}m/s2, aTarget={aTarget}m/s2 torq={self.last_gas}")
 
     else:
-      self.last_gas = 28
+      self.last_gas = ACCEL_TORQ_START
 
     if brake_press:
-      self.last_gas = 28
+      self.last_gas = ACCEL_TORQ_START
       if self.last_brake is None:
         self.last_brake = brake_target
       elif brake_target < self.last_brake:
