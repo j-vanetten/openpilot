@@ -57,23 +57,27 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
   QList<struct ConfigButton> accConfigs = {
     { "jvePilot.settings.longControl.maxAccelTorq",
       0, 1500,
-      "Max torque given for acceleration",
+      "maxAccelTorq",
       "Default: 360"
     }
     ,{ "jvePilot.settings.longControl.torqChangeRatio",
       0, 100,
-      "Ratio change when applying m/s2 difference for changing torq",
+      "torqChangeRatio",
       "Default: 1.0"
     }
     ,{ "jvePilot.settings.longControl.hystGap",
       0, 5,
-      "Ignore acceleration wobble",
+      "hystGap",
       "Default: 0.06"
     }
-  };
+    ,{ "jvePilot.settings.longControl.torqStart",
+      0, 5,
+      "torqStart",
+      "Default: 80"
+    }  };
   toggles.append(new ParamControl("jvePilot.settings.longControl",
                                   "OP Long Control",
-                                  "jvePilot spoof ACC commands to control gas and brakes.",
+                                  "Ignored for now...",
                                   "",
                                   this,
                                   &accConfigs));
