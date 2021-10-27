@@ -91,9 +91,9 @@ class CarController():
       return
 
     # ECO
-    if CS.jvepilot_state.carControl.accEco == 1:
+    if jvepilot_state.carControl.accEco == 1:
       ACCEL_TORQ_CHANGE_RATIO *= .75
-    elif CS.jvepilot_state.carControl.accEco == 2:
+    elif jvepilot_state.carControl.accEco == 2:
       ACCEL_TORQ_CHANGE_RATIO *= .5
 
     vTarget = jvepilot_state.carControl.vTargetFuture
@@ -258,9 +258,9 @@ class CarController():
     #   eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)
     # elif jvepilot_state.carControl.accEco == 2:  # if eco mode
     #   eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
-
-    if eco_limit:
-      target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
+    #
+    # if eco_limit:
+    #   target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
 
     # ACC Braking
     diff = CS.out.vEgo - target
