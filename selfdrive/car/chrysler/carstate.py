@@ -37,6 +37,7 @@ class CarState(CarStateBase):
     self.dashboard = None
     self.speedRequested = 0
     self.acc_2 = None
+    self.aEgoRaw = None
 
   def update(self, cp, cp_cam):
     min_steer_check = self.opParams.get('steer.checkMinimum')
@@ -64,6 +65,7 @@ class CarState(CarStateBase):
     ret.wheelSpeeds.fr = cp.vl["WHEEL_SPEEDS"]["WHEEL_SPEED_FR"]
     ret.vEgoRaw = cp.vl["BRAKE_1"]["VEHICLE_SPEED_KPH"] * CV.KPH_TO_MS
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
+    self.aEgoRaw = cp.vl["SENSORS"]["ACCELERATION"]
     ret.standstill = ret.vEgoRaw <= 0.1
 
     ret.leftBlinker = cp.vl["STEERING_LEVERS"]["TURN_SIGNALS"] == 1
@@ -204,6 +206,8 @@ class CarState(CarStateBase):
       ("DISPLAY_REQ", "ACC_2", 0),
       ("COUNTER", "ACC_2", 0),
       ("CHECKSUM", "ACC_2", 0),
+
+      ("ACCELERATION", "SENSORS", 0),
     ]
 
     checks = [
@@ -224,7 +228,8 @@ class CarState(CarStateBase):
       ("WHEEL_BUTTONS", 50),
       ("BLIND_SPOT_WARNINGS", 2),
       ("BRAKE_1", 100),
-      ("ACCEL_RELATED_120", 50)
+      ("ACCEL_RELATED_120", 50),
+      ("SENSORS", 50)
     ]
 
     if CP.enableBsm:

@@ -78,8 +78,8 @@ class CarController():
       return
     self.last_acc_2_counter = acc_2_counter
 
-    aEgoChange = CS.out.aEgo - self.last_aEgo
-    self.last_aEgo = CS.out.aEgo
+    aEgoChange = CS.aEgoRaw - self.last_aEgo
+    self.last_aEgo = CS.aEgoRaw
 
     if not enabled:
       self.last_brake = None
@@ -106,14 +106,14 @@ class CarController():
       brake_press = True
       brake_target = round(CS.acc_2['ACC_DECEL'], 2)
     elif target_accel > 0:
-      vFutureEgo = CS.out.vEgo + CS.out.aEgo + aEgoChange * 50
+      vFutureEgo = CS.out.vEgo + CS.aEgoRaw + aEgoChange * 50
       vTarget = jvepilot_state.carControl.vTargetFuture
 
       aTarget, self.accel_steady = self.accel_hysteresis(max(0., min(target_accel, vTarget - vFutureEgo)), self.accel_steady)
-      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + (aTarget - CS.out.aEgo) * ACCEL_TORQ_CHANGE_RATIO))
+      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + (aTarget - CS.aEgoRaw) * ACCEL_TORQ_CHANGE_RATIO))
 
       gas = round(self.last_gas, 0)
-      print(f"target_accel={target_accel}m/s2, aEgo={CS.out.aEgo}m/s2, aTarget={aTarget}m/s2 torq={self.last_gas}")
+      print(f"target_accel={target_accel}m/s2, aEgoRaw={CS.aEgoRaw}m/s2, aTarget={aTarget}m/s2 torq={self.last_gas}")
 
     else:
       self.last_gas = ACCEL_TORQ_START
