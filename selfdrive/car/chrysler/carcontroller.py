@@ -73,6 +73,7 @@ class CarController():
     ACCEL_TORQ_CHANGE_RATIO = self.cachedParams.get_float('jvePilot.settings.longControl.torqChangeRatio', 500)
     ACCEL_TORQ_START = self.cachedParams.get_float('jvePilot.settings.longControl.torqStart', 500)
 
+
     acc_2_counter = CS.acc_2['COUNTER']
     if acc_2_counter == self.last_acc_2_counter:
       return
@@ -89,14 +90,26 @@ class CarController():
     if jvepilot_state.carControl.useLaneLines:
       return
 
+    # ECO
+    if CS.jvepilot_state.carControl.accEco == 1:
+      ACCEL_TORQ_CHANGE_RATIO *= .75
+    elif CS.jvepilot_state.carControl.accEco == 2:
+      ACCEL_TORQ_CHANGE_RATIO *= .5
+
+    vTarget = jvepilot_state.carControl.vTargetFuture
+    aTarget = actuators.accel
+
+    COAST_WINDOW = CV.MPH_TO_MS * 3
+    was_accelerating = self.last_gas is not None
+    not_slowing_fast_enough = aTarget < CS.aEgoRaw + aEgoChange * 50 * 2  # not going to get there within 2 seconds
+    speed_to_far_off = CS.out.vEgo - vTarget >= COAST_WINDOW  # speed gap is large, start braking
+
     brake_press = False
     brake_target = 0
     gas = 0
-
-    target_accel = actuators.accel
-    if target_accel < 0:
+    if aTarget < 0 and (not was_accelerating or vTarget <= COAST_WINDOW or (speed_to_far_off and not_slowing_fast_enough)):
       brake_press = True
-      brake_target = max(-2, round(target_accel, 2))
+      brake_target = max(-2, round(aTarget, 2))
       if CS.acc_2['ACC_DECEL_REQ'] == 1:
         acc = round(CS.acc_2['ACC_DECEL'], 2)
         brake_target = min(brake_target, acc)
@@ -105,21 +118,23 @@ class CarController():
     elif CS.acc_2['ACC_DECEL_REQ'] == 1:
       brake_press = True
       brake_target = round(CS.acc_2['ACC_DECEL'], 2)
-    elif target_accel > 0:
-      vFutureEgo = CS.out.vEgo + CS.aEgoRaw + aEgoChange * 50
-      vTarget = jvepilot_state.carControl.vTargetFuture
+    else:
+      if self.last_gas is None:
+        self.last_gas = ACCEL_TORQ_START # TODO start someplace reasonable
+      if aTarget > 0 and CS.out.vEgo < CV.MPH_TO_MS * 5:
+        self.last_gas = max(self.last_gas, ACCEL_TORQ_START)
 
-      aTarget, self.accel_steady = self.accel_hysteresis(max(0., min(target_accel, vTarget - vFutureEgo)), self.accel_steady)
-      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + (aTarget - CS.aEgoRaw) * ACCEL_TORQ_CHANGE_RATIO))
+      vFutureEgo = CS.out.vEgo + CS.aEgoRaw + aEgoChange * 50
+
+      aTarget, self.accel_steady = self.accel_hysteresis(max(0., min(aTarget, vTarget - vFutureEgo)), self.accel_steady)
+      aChange = (aTarget - CS.aEgoRaw) * ACCEL_TORQ_CHANGE_RATIO
+      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + aChange))
 
       gas = round(self.last_gas, 0)
-      print(f"target_accel={target_accel}m/s2, aEgoRaw={CS.aEgoRaw}m/s2, aTarget={aTarget}m/s2 torq={self.last_gas}")
-
-    else:
-      self.last_gas = ACCEL_TORQ_START
+      print(f"aTarget={aTarget}m/s2, aEgoRaw={CS.aEgoRaw}m/s2, aTarget={aTarget}m/s2 torq={self.last_gas}")
 
     if brake_press:
-      self.last_gas = ACCEL_TORQ_START
+      self.last_gas = None
       if self.last_brake is None:
         self.last_brake = brake_target
       elif brake_target < self.last_brake:
@@ -237,12 +252,12 @@ class CarController():
   def hybrid_acc_button(self, CS, jvepilot_state):
     target = jvepilot_state.carControl.vMaxCruise
 
-    # Move the adaptive curse control to the target speed
-    eco_limit = None
-    if jvepilot_state.carControl.accEco == 1:  # if eco mode
-      eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)
-    elif jvepilot_state.carControl.accEco == 2:  # if eco mode
-      eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
+    # # Move the adaptive curse control to the target speed
+    # eco_limit = None
+    # if jvepilot_state.carControl.accEco == 1:  # if eco mode
+    #   eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)
+    # elif jvepilot_state.carControl.accEco == 2:  # if eco mode
+    #   eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
 
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
