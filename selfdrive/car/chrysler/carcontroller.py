@@ -107,7 +107,13 @@ class CarController():
     brake_press = False
     brake_target = 0
     gas = 0
-    if aTarget < 0 and (not was_accelerating or vTarget <= COAST_WINDOW or (speed_to_far_off and not_slowing_fast_enough)):
+
+    spoof_brake = aTarget < 0 and (not was_accelerating or vTarget <= COAST_WINDOW or (speed_to_far_off and not_slowing_fast_enough))
+    if CS.acc_2['ACC_DECEL_REQ'] == 1 and (CS.acc_2['ACC_DECEL'] < aTarget or not spoof_brake):
+      brake_press = True
+      brake_target = CS.acc_2['ACC_DECEL']
+    elif spoof_brake:
+      # todo: stay stopped
       brake_press = True
       brake_target = max(-2, round(aTarget, 2))
       if CS.acc_2['ACC_DECEL_REQ'] == 1:
@@ -115,9 +121,6 @@ class CarController():
         brake_target = min(brake_target, acc)
         if self.last_brake is None:
           self.last_brake = acc  # start here since ACC was already active
-    elif CS.acc_2['ACC_DECEL_REQ'] == 1:
-      brake_press = True
-      brake_target = round(CS.acc_2['ACC_DECEL'], 2)
     else:
       if self.last_gas is None:
         self.last_gas = ACCEL_TORQ_START # TODO start someplace reasonable
@@ -127,11 +130,16 @@ class CarController():
       vFutureEgo = CS.out.vEgo + CS.aEgoRaw + aEgoChange * 50
 
       aTarget, self.accel_steady = self.accel_hysteresis(max(0., min(aTarget, vTarget - vFutureEgo)), self.accel_steady)
-      aChange = (aTarget - CS.aEgoRaw) * ACCEL_TORQ_CHANGE_RATIO
-      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + aChange))
+      tChange = (aTarget - CS.aEgoRaw) * ACCEL_TORQ_CHANGE_RATIO
+      if tChange > 0:
+        tChange *= ACCEL_TORQ_CHANGE_RATIO
+      if (aTarget > CS.out.aEgo and aEgoChange < 0) or (aTarget < CS.out.aEgo and aEgoChange > 0):
+        tChange += (aEgoChange * 50)
+
+      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + tChange))
 
       gas = round(self.last_gas, 0)
-      print(f"aTarget={aTarget}m/s2, aEgoRaw={CS.aEgoRaw}m/s2, aTarget={aTarget}m/s2 torq={self.last_gas}")
+      print(f"torq={self.last_gas}, tChange={tChange}, aEgoRaw={CS.aEgoRaw}m/s2, aTarget={aTarget}m/s2, aEgoChange={aEgoChange * 50}, vEgo={CS.out.vEgo}, vTarget={vTarget}, vFutureEgo={vFutureEgo}")
 
     if brake_press:
       self.last_gas = None

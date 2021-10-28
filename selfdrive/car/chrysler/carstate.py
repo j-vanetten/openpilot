@@ -65,7 +65,7 @@ class CarState(CarStateBase):
     ret.wheelSpeeds.fr = cp.vl["WHEEL_SPEEDS"]["WHEEL_SPEED_FR"]
     ret.vEgoRaw = cp.vl["BRAKE_1"]["VEHICLE_SPEED_KPH"] * CV.KPH_TO_MS
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
-    self.aEgoRaw = cp.vl["SENSORS"]["ACCELERATION"]
+    self.aEgoRaw = ret.aEgo # cp.vl["SENSORS"]["ACCELERATION"]
     ret.standstill = ret.vEgoRaw <= 0.1
 
     ret.leftBlinker = cp.vl["STEERING_LEVERS"]["TURN_SIGNALS"] == 1

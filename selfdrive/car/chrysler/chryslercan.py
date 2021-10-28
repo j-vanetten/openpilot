@@ -69,8 +69,7 @@ def create_wheel_buttons_command(packer, counter, buttons):
 def acc_command(packer, counter, gas, brake, acc_2):
   values = acc_2.copy()  # forward what we parsed
   values['COUNTER'] = counter % 0x10
-  values['ACC_STOP'] = 0
-  values['ACC_GO'] = 0
+
   if brake != 4:
     values['ACC_DECEL_REQ'] = 1
     values['ACC_DECEL'] = brake
