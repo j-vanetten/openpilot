@@ -73,7 +73,6 @@ class CarController():
     ACCEL_TORQ_CHANGE_RATIO = self.cachedParams.get_float('jvePilot.settings.longControl.torqChangeRatio', 500)
     ACCEL_TORQ_START = self.cachedParams.get_float('jvePilot.settings.longControl.torqStart', 500)
 
-
     acc_2_counter = CS.acc_2['COUNTER']
     if acc_2_counter == self.last_acc_2_counter:
       return
@@ -258,17 +257,20 @@ class CarController():
       return 'ACC_RESUME'
 
   def hybrid_acc_button(self, CS, jvepilot_state):
-    target = jvepilot_state.carControl.vMaxCruise
+    if jvepilot_state.carControl.useLaneLines:
+      target = jvepilot_state.carControl.vTargetFuture
 
-    # # Move the adaptive curse control to the target speed
-    # eco_limit = None
-    # if jvepilot_state.carControl.accEco == 1:  # if eco mode
-    #   eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)
-    # elif jvepilot_state.carControl.accEco == 2:  # if eco mode
-    #   eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
-    #
-    # if eco_limit:
-    #   target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
+      # Move the adaptive curse control to the target speed
+      eco_limit = None
+      if jvepilot_state.carControl.accEco == 1:  # if eco mode
+        eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)
+      elif jvepilot_state.carControl.accEco == 2:  # if eco mode
+        eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
+
+      if eco_limit:
+        target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
+    else:
+      target = jvepilot_state.carControl.vMaxCruise
 
     # ACC Braking
     diff = CS.out.vEgo - target
