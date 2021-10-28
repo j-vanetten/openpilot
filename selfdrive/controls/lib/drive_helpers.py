@@ -85,7 +85,7 @@ def initialize_v_cruise(v_ego, button_events, v_cruise_last, is_metric):
 
 
 def cruise_min(is_metric):
-  return 30 if is_metric else int(20 * CV.MPH_TO_KPH)
+  return 10 if is_metric else int(5 * CV.MPH_TO_KPH)
 
 
 def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates):
