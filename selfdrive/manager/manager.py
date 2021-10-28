@@ -57,7 +57,7 @@ def manager_init():
     ("jvePilot.settings.longControl", "1"),
     ("jvePilot.settings.longControl.maxAccelTorq", "360"),
     ("jvePilot.settings.longControl.torqChangeRatio", "1.0"),
-    ("jvePilot.settings.longControl.hystGap", "0.6"),
+    ("jvePilot.settings.longControl.hystGap", "0.3"),
     ("jvePilot.settings.longControl.torqStart", "80"),
 
     ("CompletedTrainingVersion", "0"),

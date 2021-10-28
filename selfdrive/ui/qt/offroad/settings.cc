@@ -68,7 +68,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
     ,{ "jvePilot.settings.longControl.hystGap",
       0, 5,
       "hystGap",
-      "Default: 0.06"
+      "Default: 0.03"
     }
     ,{ "jvePilot.settings.longControl.torqStart",
       0, 5,
