@@ -14,8 +14,13 @@ opParams = opParams()
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed):
-    return -2, 2.  # high limits
+  def get_pid_accel_limits(CP, current_speed, cruise_speed, CS):
+    eco_limit = 2.
+    if CS.jvepilot_state.carControl.accEco == 1:
+      eco_limit = 1.5
+    elif CS.jvepilot_state.carControl.accEco == 2:
+      eco_limit = 1.
+    return -2, eco_limit
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):

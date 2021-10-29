@@ -68,10 +68,12 @@ class CarController():
 
     return can_sends
 
+  # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
     ACCEL_TORQ_MAX = self.cachedParams.get_float('jvePilot.settings.longControl.maxAccelTorq', 500)
     ACCEL_TORQ_CHANGE_RATIO = self.cachedParams.get_float('jvePilot.settings.longControl.torqChangeRatio', 500)
     ACCEL_TORQ_START = self.cachedParams.get_float('jvePilot.settings.longControl.torqStart', 500)
+    VEHICLE_MASS = 2268  # kg
 
     acc_2_counter = CS.acc_2['COUNTER']
     if acc_2_counter == self.last_acc_2_counter:
@@ -121,24 +123,25 @@ class CarController():
         if self.last_brake is None:
           self.last_brake = acc  # start here since ACC was already active
     else:
-      if self.last_gas is None:
-        self.last_gas = ACCEL_TORQ_START # TODO start someplace reasonable
-      if aTarget > 0 and CS.out.vEgo < CV.MPH_TO_MS * 5:
-        self.last_gas = max(self.last_gas, ACCEL_TORQ_START)
+      # if self.last_gas is None:
+      #   self.last_gas = ACCEL_TORQ_START # TODO start someplace reasonable
+      # if aTarget > 0 and CS.out.vEgo < CV.MPH_TO_MS * 5:
+      #   self.last_gas = max(self.last_gas, ACCEL_TORQ_START)
 
       vFutureEgo = CS.out.vEgo + CS.aEgoRaw + aEgoChange * 50
 
-      aTarget, self.accel_steady = self.accel_hysteresis(max(0., min(aTarget, vTarget - vFutureEgo)), self.accel_steady)
-      tChange = (aTarget - CS.aEgoRaw) * ACCEL_TORQ_CHANGE_RATIO
-      if tChange > 0:
-        tChange *= ACCEL_TORQ_CHANGE_RATIO
-      if (aTarget > CS.out.aEgo and aEgoChange < 0) or (aTarget < CS.out.aEgo and aEgoChange > 0):
-        tChange += (aEgoChange * 50)
+      # aTarget, self.accel_steady = self.accel_hysteresis(max(0., min(aTarget, vTarget - vFutureEgo)), self.accel_steady)
+      # tChange = (aTarget - CS.aEgoRaw) * ACCEL_TORQ_CHANGE_RATIO
+      # if tChange > 0:
+      #   tChange *= ACCEL_TORQ_CHANGE_RATIO
+      # if (aTarget > CS.out.aEgo and aEgoChange < 0) or (aTarget < CS.out.aEgo and aEgoChange > 0):
+      #   tChange += (aEgoChange * 50)
+      # self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + tChange))
 
-      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + tChange))
+      self.last_gas = max(0, min(ACCEL_TORQ_MAX, (VEHICLE_MASS * aTarget * CS.out.vEgo * 1000) / (.105 * CS.gasRpm)))
 
       gas = round(self.last_gas, 0)
-      print(f"torq={self.last_gas}, tChange={tChange}, aEgoRaw={CS.aEgoRaw}m/s2, aTarget={aTarget}m/s2, aEgoChange={aEgoChange * 50}, vEgo={CS.out.vEgo}, vTarget={vTarget}, vFutureEgo={vFutureEgo}")
+      print(f"torq={self.last_gas}, aEgoRaw={CS.aEgoRaw}m/s2, aTarget={aTarget}m/s2, aEgoChange={aEgoChange * 50}, vEgo={CS.out.vEgo}, vTarget={vTarget}, vFutureEgo={vFutureEgo}")
 
     if brake_press:
       self.last_gas = None
