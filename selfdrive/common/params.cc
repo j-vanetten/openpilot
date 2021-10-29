@@ -148,6 +148,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"jvePilot.settings.longControl.hystGap", PERSISTENT},
     {"jvePilot.settings.longControl.torqFutureFrames", PERSISTENT},
     {"jvePilot.settings.longControl.torqStart", PERSISTENT},
+    {"jvePilot.settings.longControl.torqCalcMultiplier", PERSISTENT},
 
     {"AccessToken", CLEAR_ON_MANAGER_START | DONT_LOG},
     {"ApiCache_DriveStats", PERSISTENT},

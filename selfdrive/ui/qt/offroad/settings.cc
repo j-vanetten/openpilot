@@ -74,7 +74,13 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
       0, 5,
       "torqStart",
       "Default: 80"
-    }  };
+    }
+    ,{ "jvePilot.settings.longControl.torqCalcMultiplier",
+      0, 2000,
+      "torqCalcMultiplier",
+      "Default: 1000"
+    }
+  };
   toggles.append(new ParamControl("jvePilot.settings.longControl",
                                   "OP Long Control",
                                   "Ignored for now...",
