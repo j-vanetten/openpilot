@@ -15,10 +15,11 @@ opParams = opParams()
 class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
+    # accEco = int(cachedParams.get_float('jvePilot.carState.accEco', 500))
     eco_limit = 2.
-    # if CC.jvePilotState.carControl.accEco == 1:
+    # if accEco == 1:
     #   eco_limit = 1.5
-    # elif CC.jvePilotState.carControl.accEco == 2:
+    # elif accEco == 2:
     #   eco_limit = 1.
     return -2, eco_limit
 

@@ -60,10 +60,10 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
       "maxAccelTorq",
       "Default: 360"
     }
-    ,{ "jvePilot.settings.longControl.torqChangeRatio",
-      0, 100,
+    ,{ "jvePilot.settings.longControl.maxAccelDiff",
+      0, 2,
       "torqChangeRatio",
-      "Default: 1.0"
+      "Default: 0.03"
     }
     ,{ "jvePilot.settings.longControl.hystGap",
       0, 5,
