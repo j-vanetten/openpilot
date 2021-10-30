@@ -140,30 +140,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
         "Compensate for mounting your device off-center in the windshield."
         "\nFor example, 0.04 if your device is 4cm left of center."
         "\nNOTE: This is not how far the CAMERA is off-center, but how far the MOUNT/DEVICE is off-center."
-    },
-    { "jvePilot.settings.accFollow1RadarRatio",
-      0.5, 4,
-      "Ratio at Follow Level 1",
-      "Default: 2.6, Min: 0.5, Max: 4.0\n"
-        "At follow level 1, apply this ratio to the radar distance."
-    },
-    { "jvePilot.settings.accFollow2RadarRatio",
-      0.5, 4,
-      "Ratio at Follow Level 2",
-      "Default: 2.1, Min: 0.5, Max: 4.0\n"
-        "At follow level 2, apply this ratio to the radar distance."
-    },
-    { "jvePilot.settings.accFollow3RadarRatio",
-      0.5, 4,
-      "Ratio at Follow Level 3",
-      "Default: 1.5, Min: 0.5, Max: 4.0\n"
-        "At follow level 3, apply this ratio to the radar distance."
-    },
-    { "jvePilot.settings.accFollow4RadarRatio",
-      0.5, 4,
-      "Ratio at Follow Level 4",
-      "Default: 1.1, Min: 0.5, Max: 4.0\n"
-        "At follow level 4, apply this ratio to the radar distance."
     }
   };
   addItem(new LabelControl("jvePilot Control Settings",
