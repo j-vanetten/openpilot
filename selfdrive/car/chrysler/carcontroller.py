@@ -1,7 +1,7 @@
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_wheel_buttons_command, create_lkas_heartbit, \
-  acc_command
+  acc_command, acc_log
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -37,6 +37,7 @@ class CarController():
     self.last_brake = None
     self.last_gas = 0.
     self.accel_steady = 0.
+    self.last_aTarget = 0.
     self.last_aEgo = None
 
     self.packer = CANPacker(dbc_name)
@@ -84,12 +85,10 @@ class CarController():
     aEgoChange = CS.aEgoRaw - self.last_aEgo
     self.last_aEgo = CS.aEgoRaw
 
-    if not enabled:
+    if not enabled or jvepilot_state.carControl.useLaneLines:
       self.last_brake = None
       self.last_gas = ACCEL_TORQ_START
-      return
-
-    if jvepilot_state.carControl.useLaneLines:
+      self.last_aTarget = CS.aEgoRaw
       return
 
     vTarget = jvepilot_state.carControl.vTargetFuture
@@ -98,13 +97,13 @@ class CarController():
     if jvepilot_state.carControl.accEco == 1:
       ACCEL_ACCEL_CHANGE *= .75
     elif jvepilot_state.carControl.accEco == 2:
-       ACCEL_ACCEL_CHANGE *= .5
-    aTarget = min(actuators.accel, self.accel_steady + ACCEL_ACCEL_CHANGE)  # limit accel changes when going up
-    aTarget, self.accel_steady = self.accel_hysteresis(aTarget, self.accel_steady)
+      ACCEL_ACCEL_CHANGE *= .5
+    aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
+    self.last_aTarget = max(0, min(aTarget, self.last_aTarget + ACCEL_ACCEL_CHANGE))  # limit accel changes when going up
 
-    COAST_WINDOW = CV.MPH_TO_MS * 3
     was_accelerating = self.last_gas is not None
-    not_slowing_fast_enough = aTarget < CS.aEgoRaw + aEgoChange * 50 * 2  # not going to get there within 2 seconds
+    COAST_WINDOW = CV.MPH_TO_MS * 3
+    not_slowing_fast_enough = vTarget < CS.out.vEgo + CS.aEgoRaw * 2  # not going to get there within 2 seconds, start braking
     speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large, start braking
 
     brake_press = False
@@ -152,6 +151,8 @@ class CarController():
     if CS.out.gasPressed or CS.out.brakePressed:  # stop sending ACC requests
       gas = 0
       brake = 4
+
+    can_sends.append(acc_log(self.packer, actuators.accel * 4000 + 8000, vTarget * 1400))
 
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, gas, brake, CS.acc_2))
 
