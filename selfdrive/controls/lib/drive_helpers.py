@@ -21,6 +21,17 @@ CAR_ROTATION_RADIUS = 0.0
 MAX_CURVATURE_RATES = [0.03762194918267951, 0.003441203371932992]
 MAX_CURVATURE_RATE_SPEEDS = [0, 35]
 
+CRUISE_LONG_PRESS = 50
+CRUISE_NEAREST_FUNC = {
+  car.CarState.ButtonEvent.Type.accelCruise: math.ceil,
+  car.CarState.ButtonEvent.Type.decelCruise: math.floor,
+}
+CRUISE_INTERVAL_SIGN = {
+  car.CarState.ButtonEvent.Type.accelCruise: +1,
+  car.CarState.ButtonEvent.Type.decelCruise: -1,
+}
+
+
 class MPC_COST_LAT:
   PATH = 1.0
   HEADING = 1.0

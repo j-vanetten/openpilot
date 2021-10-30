@@ -218,6 +218,7 @@ static void update_status(UIState *s) {
     if (s->scene.started) {
       s->status = STATUS_DISENGAGED;
       s->scene.started_frame = s->sm->frame;
+      s->scene.end_to_end = Params().getBool("EndToEndToggle");
       s->wide_camera = Hardware::TICI() ? Params().getBool("EnableWideCamera") : false;
     }
     // Invisible until we receive a calibration message.

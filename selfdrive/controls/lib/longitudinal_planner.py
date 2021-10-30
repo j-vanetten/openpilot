@@ -90,7 +90,6 @@ class Planner():
     # clip limits, cannot init MPC outside of bounds
     accel_limits[0] = min(accel_limits[0], self.a_desired + 0.05)
     accel_limits[1] = max(accel_limits[1], self.a_desired - 0.05)
-
     self.mpc.set_accel_limits(accel_limits[0], accel_limits[1])
     self.mpc.set_cur_state(self.v_desired, self.a_desired)
     self.mpc.update(sm['carState'], sm['radarState'], v_cruise)
@@ -98,7 +97,7 @@ class Planner():
     self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)
     self.j_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC[:-1], self.mpc.j_solution)
 
-    #TODO counter is only needed because radar is glitchy, remove once radar is gone
+    # TODO counter is only needed because radar is glitchy, remove once radar is gone
     self.fcw = self.mpc.crash_cnt > 5
     if self.fcw:
       cloudlog.info("FCW triggered")
@@ -106,7 +105,7 @@ class Planner():
     # Interpolate 0.05 seconds and save as starting point for next iteration
     a_prev = self.a_desired
     self.a_desired = float(interp(DT_MDL, T_IDXS[:CONTROL_N], self.a_desired_trajectory))
-    self.v_desired = self.v_desired + DT_MDL * self.a_desired
+    self.v_desired = self.v_desired + DT_MDL * (self.a_desired + a_prev) / 2.0
 
     if lateral_planner.lateralPlan and self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
       curvs = list(lateral_planner.lateralPlan.curvatures)

@@ -39,8 +39,8 @@ DESIRES = {
 
 
 class LateralPlanner():
-  def __init__(self, CP, wide_camera=False):
-    # self.use_lanelines = use_lanelines
+  def __init__(self, CP, use_lanelines=True, wide_camera=False):
+    self.use_lanelines = use_lanelines
     self.LP = LanePlanner(wide_camera)
 
     self.last_cloudlog_t = 0
@@ -64,8 +64,6 @@ class LateralPlanner():
     self.lat_mpc = LateralMpc()
     self.reset_mpc(np.zeros(6))
 
-    self.lateralPlan = None
-
   def reset_mpc(self, x0=np.zeros(6)):
     self.x0 = x0
     self.lat_mpc.reset(x0=self.x0)
@@ -85,7 +83,7 @@ class LateralPlanner():
       self.path_xyz = np.column_stack([md.position.x, md.position.y, md.position.z])
       self.t_idxs = np.array(md.position.t)
       self.plan_yaw = list(md.orientation.z)
-    if len(md.orientation.xStd) == TRAJECTORY_SIZE:
+    if len(md.position.xStd) == TRAJECTORY_SIZE:
       self.path_xyz_stds = np.column_stack([md.position.xStd, md.position.yStd, md.position.zStd])
 
     # Lane change logic
@@ -112,7 +110,7 @@ class LateralPlanner():
           self.lane_change_direction = LaneChangeDirection.none
 
         torque_applied = sm['carState'].steeringPressed and \
-                         ((sm['carState'].steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left) or
+                        ((sm['carState'].steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left) or
                           (sm['carState'].steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.right))
 
         blindspot_detected = ((sm['carState'].leftBlindspot and self.lane_change_direction == LaneChangeDirection.left) or
@@ -165,7 +163,7 @@ class LateralPlanner():
     if self.desire == log.LateralPlan.Desire.laneChangeRight or self.desire == log.LateralPlan.Desire.laneChangeLeft:
       self.LP.lll_prob *= self.lane_change_ll_prob
       self.LP.rll_prob *= self.lane_change_ll_prob
-    if sm['carControl'].jvePilotState.carControl.useLaneLines:
+    if self.use_lanelines:
       d_path_xyz = self.LP.get_d_path(v_ego, self.t_idxs, self.path_xyz)
       self.lat_mpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, CP.steerRateCost)
     else:
@@ -221,9 +219,8 @@ class LateralPlanner():
     plan_send.lateralPlan.mpcSolutionValid = bool(plan_solution_valid)
 
     plan_send.lateralPlan.desire = self.desire
+    plan_send.lateralPlan.useLaneLines = self.use_lanelines
     plan_send.lateralPlan.laneChangeState = self.lane_change_state
     plan_send.lateralPlan.laneChangeDirection = self.lane_change_direction
-
-    self.lateralPlan = plan_send.lateralPlan
 
     pm.send('lateralPlan', plan_send)
