@@ -155,7 +155,7 @@ class CarController():
       return 'ACC_RESUME'
 
   def hybrid_acc_button(self, CS, jvepilot_state):
-    target = jvepilot_state.carControl.vTargetFuture
+    target = jvepilot_state.carControl.vTargetFuture + 3 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
 
     # Move the adaptive curse control to the target speed
     eco_limit = None
@@ -173,7 +173,7 @@ class CarController():
       target -= diff
 
     # round to nearest unit
-    target = round(target * self.round_to_unit)
+    target = round(min(jvepilot_state.carControl.vMaxCruise, target) * self.round_to_unit)
     current = round(CS.out.cruiseState.speed * self.round_to_unit)
 
     if target < current and current > self.minAccSetting:
