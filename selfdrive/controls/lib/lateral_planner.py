@@ -64,6 +64,8 @@ class LateralPlanner():
     self.lat_mpc = LateralMpc()
     self.reset_mpc(np.zeros(6))
 
+    self.lateralPlan = None
+
   def reset_mpc(self, x0=np.zeros(6)):
     self.x0 = x0
     self.lat_mpc.reset(x0=self.x0)
@@ -223,4 +225,6 @@ class LateralPlanner():
     plan_send.lateralPlan.laneChangeState = self.lane_change_state
     plan_send.lateralPlan.laneChangeDirection = self.lane_change_direction
 
+    self.lateralPlan = plan_send.lateralPlan
+    
     pm.send('lateralPlan', plan_send)
