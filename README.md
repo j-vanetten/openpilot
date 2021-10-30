@@ -45,7 +45,7 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 * Auto follow feature to adjust the follow distance based on speed (Speeds are configurable)
 * ACC Eco to limit the throttle when accelerating  
 * Pressing the gas does not disengage jvePilot (Can be disabled)
-* Setting to sync jvePilot display speed to vehicle speedometer 
+* Syncs jvePilot display speed with the vehicle speedometer 
 * Use LKAS button in the dash to disable lane line driving and instead use the new KL driving model. [Read about KL model here](https://blog.comma.ai/end-to-end-lateral-planning).
 * Gas/brake indication using green/red colors on speed indicator
 
@@ -212,37 +212,6 @@ Use positive values if your device is to the left of center and negative if it's
 * Units: Meters
 * Vehicle Restart Required: No
 * Min/Max values -1, 1
-### Lead Distance Ratio
-The lead distance ratios are the ratio to adjust the distance jvePilot follows based on the follow distance selected.
-This is done by adjusting the reported radar distance to the lead car.
-Having a ratio set to 2.6 causes jvePilot to report to the modal that the lead car as being 2.6 times further away that it actually is.
-Causing jvePilot to move closer to that car.  
-NOTE: It's impossible to get closer than what ACC will allow.
-The default values are what worked for me to get jvePilot to be close to the ACC distance while still allowing ACC be the limiting factor to the distance.
-#### Ratio at Follow Level 1
-Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 1 bar
-* Default: 2.6
-* Units: Ratio
-* Vehicle Restart Required: No
-* Min/Max values 0.5, 4
-#### Ratio at Follow Level 2
-Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 2 bar
-* Default: 2.1
-* Units: Ratio
-* Vehicle Restart Required: No
-* Min/Max values 0.5, 4
-#### Ratio at Follow Level 3
-Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 3 bar
-* Default: 1.5
-* Units: Ratio
-* Vehicle Restart Required: No
-* Min/Max values 0.5, 4
-#### Ratio at Follow Level 4
-Ratio to adjust jvePilot's default model distance when ACC follow distance is set to 4 bar
-* Default: 1.1
-* Units: Ratio
-* Vehicle Restart Required: No
-* Min/Max values 0.5, 4
 
 
 # Advanced settings

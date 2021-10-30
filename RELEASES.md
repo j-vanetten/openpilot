@@ -1,14 +1,17 @@
 Version jvePilot-0.8.10(v3.7)
 ========================
 Visit http://bit.ly/jvereadme for more information
-* Fix for White Panda mod on 2017/2018 models
+* Crude replacement to continue to support stock ACC follow distance profiles
+  * OP removed the use of radar to track lead car.  This broke how I was supporting distance profiles.
+  * So, to fix, always do +3 mph over OP targeted speed to force stock ACC to keep the distance
 * Speed turns green when gas applied, red when braking
+* Fix for White Panda mod on 2017/2018 models
 * Fix bug where left turns were not slowing
 * Update to 0.8.10
-* New driving model
-  * Trained on one million minutes!!!
-  * Fixed lead training making lead predictions significantly more accurate
-  * Fixed several localizer dataset bugs and loss function bugs, overall improved accuracy
+  * New driving model
+    * Trained on one million minutes!!!
+    * Fixed lead training making lead predictions significantly more accurate
+    * Fixed several localizer dataset bugs and loss function bugs, overall improved accuracy
   * New driver monitoring model
     * Trained on latest data from both comma two and comma three
     * Increased model field of view by 40% on comma three
