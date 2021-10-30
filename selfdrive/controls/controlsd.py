@@ -9,7 +9,6 @@ from common.realtime import sec_since_boot, config_realtime_process, Priority, R
 from common.profiler import Profiler
 from common.params import Params, put_nonblocking
 from common.cached_params import CachedParams
-import numpy as np
 import cereal.messaging as messaging
 from selfdrive.config import Conversions as CV
 from selfdrive.swaglog import cloudlog
@@ -156,6 +155,7 @@ class Controls:
     self.current_alert_types = [ET.PERMANENT]
     self.logged_comm_issue = False
 
+    self.v_target = 0.
     self.buttonPressTimes = {}
     self.cachedParams = CachedParams()
     self.reverse_acc_button_change = self.cachedParams.get('jvePilot.settings.reverseAccSpeedChange', 0) == "1"
@@ -592,12 +592,10 @@ class Controls:
     # target the future speed
     v_max_speed = float(self.v_cruise_kph * CV.KPH_TO_MS)
     CC.jvePilotState.carControl.vMaxCruise = v_max_speed
-
     v_target_future = self.v_target
     speeds = self.sm['longitudinalPlan'].speeds
     if len(speeds) > 0:
       v_target_future = min(speeds) if actuators.accel < 0 else max(speeds)
-
     CC.jvePilotState.carControl.vTargetFuture = min(v_max_speed, v_target_future)
 
     CC.hudControl.setSpeed = float(self.v_cruise_kph * CV.KPH_TO_MS)

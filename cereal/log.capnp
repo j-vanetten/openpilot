@@ -1477,6 +1477,5 @@ struct Event {
     gpsLocationDEPRECATED @21 :GpsLocationData;
     jvePilotUIState @57 :JvePilotUIState; # repurposed for jvePilot;
     pandaStateDEPRECATED @12 :PandaState;
-    pandaStateDEPRECATED @12 :PandaState;
   }
 }
