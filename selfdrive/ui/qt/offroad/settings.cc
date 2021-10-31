@@ -26,8 +26,6 @@
 #include "selfdrive/ui/qt/qt_window.h"
 
 JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent) {
-  QList<AbstractControl*> toggles;
-
   // slowInCurves
   QList<struct ConfigButton> slowInCurvesConfigs = {
     { "jvePilot.settings.slowInCurves.speedRatio",
@@ -79,7 +77,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
       "Default: 1000"
     }
   };
-  toggles.append(new ParamControl("jvePilot.settings.longControl",
+  addItem(new ParamControl("jvePilot.settings.longControl",
                                   "OP Long Control",
                                   "Ignored for now...",
                                   "",
