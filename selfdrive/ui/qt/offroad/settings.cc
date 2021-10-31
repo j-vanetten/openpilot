@@ -67,7 +67,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
       "Default: 0.03"
     }
     ,{ "jvePilot.settings.longControl.torqStart",
-      0, 5,
+      0, 100,
       "torqStart",
       "Default: 80"
     }
