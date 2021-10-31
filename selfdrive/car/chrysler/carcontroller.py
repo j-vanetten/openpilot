@@ -152,7 +152,7 @@ class CarController():
       gas = 0
       brake = 4
 
-    can_sends.append(acc_log(self.packer, actuators.accel))
+    can_sends.append(acc_log(self.packer, actuators.accel, vTarget))
 
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, gas, brake, CS.acc_2))
 
