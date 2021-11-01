@@ -135,8 +135,8 @@ class CarInterfaceBase():
     if cs_out.vEgo > MAX_CTRL_SPEED:
       events.add(EventName.speedTooHigh)
 
-    # if cs_out.cruiseState.nonAdaptive:
-    #   events.add(EventName.wrongCruiseMode)
+    if cs_out.cruiseState.nonAdaptive:
+      events.add(EventName.wrongCruiseMode)
     if not cs_out.cruiseState.available:
       events.add(EventName.wrongCarMode)
 

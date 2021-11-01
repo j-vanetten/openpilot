@@ -79,7 +79,7 @@ class CarController():
       return
     self.last_acc_2_counter = acc_2_counter
 
-    if not enabled or not CS.out.nonAdaptive:
+    if not enabled or jvepilot_state.carControl.useLaneLines:
       self.last_brake = None
       self.last_gas = ACCEL_TORQ_START
       self.last_aTarget = CS.aEgoRaw
