@@ -112,7 +112,7 @@ class CarController():
     if spoof_brake:
       # todo: stay stopped
       brake_press = True
-      brake_target = max(-2, round(aTarget, 2))
+      brake_target = max(-2.5, round(aTarget, 2))
       # if CS.acc_2['ACC_DECEL_REQ'] == 1:
       #   acc = round(CS.acc_2['ACC_DECEL'], 2)
       #   brake_target = min(brake_target, acc)
