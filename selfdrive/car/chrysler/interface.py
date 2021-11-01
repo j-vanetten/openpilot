@@ -3,25 +3,17 @@ from cereal import car
 from selfdrive.car.chrysler.values import CAR
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
-from common.cached_params import CachedParams
 from common.op_params import opParams
 
 ButtonType = car.CarState.ButtonEvent.Type
 
 GAS_RESUME_SPEED = 2.
-cachedParams = CachedParams()
 opParams = opParams()
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
-    # accEco = int(cachedParams.get_float('jvePilot.carState.accEco', 500))
-    eco_limit = 2.
-    # if accEco == 1:
-    #   eco_limit = 1.5
-    # elif accEco == 2:
-    #   eco_limit = 1.
-    return -2, eco_limit
+    return -2, 2.
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
