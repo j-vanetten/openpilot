@@ -83,6 +83,8 @@ class CarController():
       self.last_brake = None
       self.last_gas = ACCEL_TORQ_START
       self.last_aTarget = CS.aEgoRaw
+      if CS.acc_2['ACC_DECEL_REQ'] == 1:
+        self.last_brake = round(CS.acc_2['ACC_DECEL'], 2)  # start here since ACC was already active
       return
 
     vTarget = jvepilot_state.carControl.vTargetFuture
@@ -111,11 +113,11 @@ class CarController():
       # todo: stay stopped
       brake_press = True
       brake_target = max(-2, round(aTarget, 2))
-      if CS.acc_2['ACC_DECEL_REQ'] == 1:
-        acc = round(CS.acc_2['ACC_DECEL'], 2)
-        brake_target = min(brake_target, acc)
-        if self.last_brake is None:
-          self.last_brake = acc  # start here since ACC was already active
+      # if CS.acc_2['ACC_DECEL_REQ'] == 1:
+      #   acc = round(CS.acc_2['ACC_DECEL'], 2)
+      #   brake_target = min(brake_target, acc)
+      #   if self.last_brake is None:
+      #     self.last_brake = acc  # start here since ACC was already active
     else:
       vSmoothTarget = (vTarget + CS.out.vEgo) / 2
       accelerating = vTarget - COAST_WINDOW * CV.MS_TO_MPH > CS.out.vEgo and aTarget > 0 and CS.aEgoRaw > 0 and CS.aEgoRaw > self.last_aTarget
@@ -159,8 +161,8 @@ class CarController():
       brake = 4
 
     self.last_aTarget = CS.aEgoRaw
-    can_sends.append(acc_log(self.packer, actuators.accel, vTarget))
 
+    can_sends.append(acc_log(self.packer, actuators.accel, vTarget))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, gas, brake, CS.acc_2))
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
