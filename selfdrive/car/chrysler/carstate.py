@@ -32,6 +32,7 @@ class CarState(CarStateBase):
     self.lkasHeartbit = None
     self.dashboard = None
     self.speedRequested = 0
+    self.acc_1 = None
     self.acc_2 = None
     self.aEgoRaw = None
     self.gasRpm = None
@@ -72,7 +73,6 @@ class CarState(CarStateBase):
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["GEAR"]["PRNDL"], None))
 
     ret.cruiseState.enabled = cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
-    self.acc_2 = cp.vl['ACC_2']
     ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3, 4]  # the comment below says 3 and 4 are ACC mode
     ret.cruiseState.speed = cp.vl["DASHBOARD"]["ACC_SPEED_CONFIG_KPH"] * CV.KPH_TO_MS
     # CRUISE_STATE is a three bit msg, 0 is off, 1 and 2 are Non-ACC mode, 3 and 4 are ACC mode, find if there are other states too
@@ -95,6 +95,8 @@ class CarState(CarStateBase):
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]["CAR_MODEL"]
     self.torq_status = cp.vl["EPS_STATUS"]["TORQ_STATUS"]
     self.gasRpm = cp.vl["ACCEL_PEDAL_MSG"]["ENGINE_RPM"]
+    self.acc_1 = cp.vl['ACC_1']
+    self.acc_2 = cp.vl['ACC_2']
 
     brake = cp.vl["BRAKE_1"]["BRAKE_VAL_TOTAL"]
     gas = cp.vl["ACCEL_RELATED_120"]["ACCEL"]
@@ -204,6 +206,10 @@ class CarState(CarStateBase):
       ("COUNTER", "ACC_2", 0),
       ("CHECKSUM", "ACC_2", 0),
 
+      ("FORWARD_1", "ACC_1", 0),
+      ("FORWARD_2", "ACC_1", 0),
+      ("FORWARD_3", "ACC_1", 0),
+
       ("ACCELERATION", "SENSORS", 0),
       ("ENGINE_RPM", "ACCEL_PEDAL_MSG", 0),
     ]
@@ -228,7 +234,8 @@ class CarState(CarStateBase):
       ("BRAKE_1", 100),
       ("ACCEL_RELATED_120", 50),
       ("SENSORS", 50),
-      ("ACCEL_PEDAL_MSG", 50)
+      ("ACCEL_PEDAL_MSG", 50),
+      ("ACC_1", 50),
     ]
 
     if CP.enableBsm:

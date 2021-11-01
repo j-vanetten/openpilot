@@ -92,10 +92,9 @@ def acc_command(packer, counter, gas, brake, acc_2):
 
   return packer.make_can_msg("ACC_2", 0, values)
 
-def acc_hybrid_command(packer, counter, gas):
-  values = {
-    'COUNTER': counter % 0x10
-  }
+def acc_hybrid_command(packer, counter, gas, acc_1):
+  values = acc_1.copy()  # forward what we parsed
+  values['COUNTER'] = counter % 0x10
 
   if gas != 0:
     values['ACC_TORQ_REQ'] = 1

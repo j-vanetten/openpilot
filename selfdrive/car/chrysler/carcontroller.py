@@ -142,14 +142,16 @@ class CarController():
     if brake_press:
       self.last_gas = None
       if self.last_brake is None:
-        self.last_brake = brake_target / 2
+        self.last_brake = min(0., brake_target - 0.2)
       else:
         lBrake = math.floor(self.last_brake * 100) / 100
         tBrake = math.floor(brake_target * 100) / 100
-        if tBrake < lBrake:
-          self.last_brake = max(self.last_brake - 0.02, tBrake)
-        elif tBrake > lBrake:
-          self.last_brake = min(self.last_brake + 0.02, tBrake)
+        # if tBrake < lBrake:
+        #   self.last_brake = max(self.last_brake - 0.02, tBrake)
+        # elif tBrake > lBrake:
+        #   self.last_brake = min(self.last_brake + 0.02, tBrake)
+
+        self.last_brake = (lBrake + tBrake) / 2
       print(f"last_brake={self.last_brake}, brake_target={brake_target}")
     else:
       self.last_brake = None
@@ -164,7 +166,7 @@ class CarController():
 
     can_sends.append(acc_log(self.packer, actuators.accel, vTarget))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, gas, brake, CS.acc_2))
-    can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, 0))
+    can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, 0, CS.acc_1))
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
