@@ -1,7 +1,7 @@
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_wheel_buttons_command, create_lkas_heartbit, \
-  acc_command, acc_log
+  acc_command, acc_hybrid_command, acc_log
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -164,6 +164,7 @@ class CarController():
 
     can_sends.append(acc_log(self.packer, actuators.accel, vTarget))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, gas, brake, CS.acc_2))
+    can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, 0))
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:

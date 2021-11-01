@@ -91,3 +91,17 @@ def acc_command(packer, counter, gas, brake, acc_2):
     values['ACC_TORQ'] = 0
 
   return packer.make_can_msg("ACC_2", 0, values)
+
+def acc_hybrid_command(packer, counter, gas):
+  values = {
+    'COUNTER': counter % 0x10
+  }
+
+  if gas != 0:
+    values['ACC_TORQ_REQ'] = 1
+    values['ACC_TORQ'] = gas
+  else:
+    values['ACC_TORQ_REQ'] = 0
+    values['ACC_TORQ'] = 0
+
+  return packer.make_can_msg("ACC_1", 0, values)
