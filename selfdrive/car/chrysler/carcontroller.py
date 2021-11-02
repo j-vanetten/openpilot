@@ -97,9 +97,10 @@ class CarController():
     aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
 
     COAST_WINDOW = CV.MPH_TO_MS * 3
+    LOW_WINDOW = CV.MPH_TO_MS * 3
     not_slowing_fast_enough = self.last_brake is None and vTarget < CS.out.vEgo + CS.aEgoRaw * 2  # not going to get there within 2 seconds, start braking
     speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large, start braking
-    slow_speed_brake = aTarget < 0 and CS.out.vEgo < 3 * CV.MS_TO_MPH
+    slow_speed_brake = aTarget <= 0 and CS.out.vEgo < LOW_WINDOW
 
     brake_press = False
     brake_target = 0
@@ -126,7 +127,9 @@ class CarController():
       else:
         aSmoothTarget = aTarget
 
-      if CS.out.vEgo < 20 * CV.MPH_TO_MS:
+      if CS.out.vEgo < LOW_WINDOW:
+        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget * ACCEL_TORQ_MULTIPLIER) / (.105 * CS.gasRpm)
+      elif CS.out.vEgo < 20 * CV.MPH_TO_MS:
         cruise = (VEHICLE_MASS * aTarget * vTarget * ACCEL_TORQ_MULTIPLIER) / (.105 * CS.gasRpm)
       else:
         cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget * ACCEL_TORQ_MULTIPLIER) / (.105 * CS.gasRpm)
