@@ -98,15 +98,16 @@ class CarController():
 
     COAST_WINDOW = CV.MPH_TO_MS * 3
     LOW_WINDOW = CV.MPH_TO_MS * 3
-    not_slowing_fast_enough = self.last_brake is None and vTarget < CS.out.vEgo + CS.aEgoRaw * 2  # not going to get there within 2 seconds, start braking
+    not_slowing_fast_enough = vTarget < CS.out.vEgo + CS.aEgoRaw * 2  # not going to get there within 2 seconds, start braking
     speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large, start braking
     slow_speed_brake = aTarget <= 0 and CS.out.vEgo < LOW_WINDOW
+    already_braking = aTarget <= 0 and self.last_brake is not None
 
     brake_press = False
     brake_target = 0
     gas = 0
 
-    spoof_brake = slow_speed_brake or (speed_to_far_off and not_slowing_fast_enough)
+    spoof_brake = already_braking or slow_speed_brake or (speed_to_far_off and not_slowing_fast_enough)
     # if CS.acc_2['ACC_DECEL_REQ'] == 1 and (CS.acc_2['ACC_DECEL'] < aTarget or not spoof_brake):
     #   brake_press = True
     #   brake_target = CS.acc_2['ACC_DECEL']
