@@ -1,5 +1,4 @@
 #include "selfdrive/ui/qt/home.h"
-#include "selfdrive/ui/paint.h"
 
 #include <QDateTime>
 #include <QHBoxLayout>

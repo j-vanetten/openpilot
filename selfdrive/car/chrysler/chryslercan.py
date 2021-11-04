@@ -65,6 +65,12 @@ def create_wheel_buttons_command(packer, counter, buttons):
 
   return packer.make_can_msg("WHEEL_BUTTONS", 0, values)
 
+def acc_log(packer, aTarget, vTarget):
+  values = {
+    'OP_A_TARGET': round((aTarget + 4) * 8000),
+    'OP_V_TARGET': round(vTarget * 1400),
+  }
+  return packer.make_can_msg("ACC_LOG", 0, values)
 
 def acc_command(packer, counter, gas, brake, acc_2):
   values = acc_2.copy()  # forward what we parsed
@@ -85,3 +91,16 @@ def acc_command(packer, counter, gas, brake, acc_2):
     values['ACC_TORQ'] = 0
 
   return packer.make_can_msg("ACC_2", 0, values)
+
+def acc_hybrid_command(packer, counter, gas, acc_1):
+  values = acc_1.copy()  # forward what we parsed
+  values['COUNTER'] = counter % 0x10
+
+  if gas != 0:
+    values['ACC_TORQ_REQ'] = 1
+    values['ACC_TORQ'] = gas
+  else:
+    values['ACC_TORQ_REQ'] = 0
+    values['ACC_TORQ'] = 0
+
+  return packer.make_can_msg("ACC_1", 0, values)

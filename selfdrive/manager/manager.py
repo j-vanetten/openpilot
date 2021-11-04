@@ -37,10 +37,6 @@ def manager_init():
     ("jvePilot.carState.accEco", "1"),
     ("jvePilot.settings.accEco.speedAheadLevel1", "7"),
     ("jvePilot.settings.accEco.speedAheadLevel2", "5"),
-    ("jvePilot.settings.accFollow1RadarRatio", "2.6"),
-    ("jvePilot.settings.accFollow2RadarRatio", "2.1"),
-    ("jvePilot.settings.accFollow3RadarRatio", "1.5"),
-    ("jvePilot.settings.accFollow4RadarRatio", "1.1"),
     ("jvePilot.settings.autoFollow", "1"),
     ("jvePilot.settings.autoFollow.speed1-2Bars", "15"),
     ("jvePilot.settings.autoFollow.speed2-3Bars", "30"),
@@ -56,9 +52,10 @@ def manager_init():
     ("jvePilot.settings.slowInCurves.speedDropOffAngle", "0.0"),
     ("jvePilot.settings.longControl", "1"),
     ("jvePilot.settings.longControl.maxAccelTorq", "360"),
-    ("jvePilot.settings.longControl.torqChangeRatio", "1.0"),
+    ("jvePilot.settings.longControl.maxAccelDiff", "0.03"),
     ("jvePilot.settings.longControl.hystGap", "0.3"),
     ("jvePilot.settings.longControl.torqStart", "80"),
+    ("jvePilot.settings.longControl.torqCalcMultiplier", "0"),
 
     ("CompletedTrainingVersion", "0"),
     ("HasAcceptedTerms", "0"),
@@ -69,6 +66,9 @@ def manager_init():
 
   if params.get_bool("RecordFrontLock"):
     params.put_bool("RecordFront", True)
+
+  if not params.get_bool("DisableRadar_Allow"):
+    params.delete("DisableRadar")
 
   # set unset params
   for k, v in default_params:

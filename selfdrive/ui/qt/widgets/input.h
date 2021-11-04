@@ -15,7 +15,9 @@ class QDialogBase : public QDialog {
 
 protected:
   QDialogBase(QWidget *parent);
-  bool eventFilter(QObject *o, QEvent *e) override;public slots:
+  bool eventFilter(QObject *o, QEvent *e) override;
+
+public slots:
   int exec() override;
 };
 

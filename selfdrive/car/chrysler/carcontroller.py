@@ -1,7 +1,7 @@
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_wheel_buttons_command, create_lkas_heartbit, \
-  acc_command
+  acc_command, acc_hybrid_command, acc_log
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -11,6 +11,7 @@ from common.cached_params import CachedParams
 from common.op_params import opParams
 from common.params import Params
 from cereal import car
+import math
 from numpy import interp
 import cereal.messaging as messaging
 ButtonType = car.CarState.ButtonEvent.Type
@@ -37,7 +38,7 @@ class CarController():
     self.last_brake = None
     self.last_gas = 0.
     self.accel_steady = 0.
-    self.last_aEgo = None
+    self.last_aTarget = 0.
 
     self.packer = CANPacker(dbc_name)
 
@@ -57,9 +58,6 @@ class CarController():
       self.params.put("EndToEndToggle", "0" if c.jvePilotState.carControl.useLaneLines else "1")
       c.jvePilotState.notifyUi = True
 
-    if self.last_aEgo is None:
-      self.last_aEgo = CS.out.aEgo
-
     #*** control msgs ***
     can_sends = []
     self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
@@ -68,96 +66,111 @@ class CarController():
 
     return can_sends
 
+  # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
     ACCEL_TORQ_MAX = self.cachedParams.get_float('jvePilot.settings.longControl.maxAccelTorq', 500)
-    ACCEL_TORQ_CHANGE_RATIO = self.cachedParams.get_float('jvePilot.settings.longControl.torqChangeRatio', 500)
+    ACCEL_ACCEL_CHANGE = self.cachedParams.get_float('jvePilot.settings.longControl.maxAccelDiff', 500)
     ACCEL_TORQ_START = self.cachedParams.get_float('jvePilot.settings.longControl.torqStart', 500)
+    ACCEL_TORQ_MULTIPLIER = self.cachedParams.get_float('jvePilot.settings.longControl.torqCalcMultiplier', 500)
+    VEHICLE_MASS = 2268  # kg
 
     acc_2_counter = CS.acc_2['COUNTER']
     if acc_2_counter == self.last_acc_2_counter:
       return
     self.last_acc_2_counter = acc_2_counter
 
-    aEgoChange = CS.aEgoRaw - self.last_aEgo
-    self.last_aEgo = CS.aEgoRaw
-
-    if not enabled:
+    if not enabled or jvepilot_state.carControl.useLaneLines:
       self.last_brake = None
       self.last_gas = ACCEL_TORQ_START
+      self.last_aTarget = CS.aEgoRaw
+      if CS.acc_2['ACC_DECEL_REQ'] == 1:
+        self.last_brake = round(CS.acc_2['ACC_DECEL'], 2)  # start here since ACC was already active
       return
 
-    if jvepilot_state.carControl.useLaneLines:
-      return
+    vTarget = jvepilot_state.carControl.vTargetFuture
 
     # ECO
     if jvepilot_state.carControl.accEco == 1:
-      ACCEL_TORQ_CHANGE_RATIO *= .75
+      ACCEL_ACCEL_CHANGE *= .75
     elif jvepilot_state.carControl.accEco == 2:
-      ACCEL_TORQ_CHANGE_RATIO *= .5
-
-    vTarget = jvepilot_state.carControl.vTargetFuture
-    aTarget = actuators.accel
+      ACCEL_ACCEL_CHANGE *= .5
+    aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
 
     COAST_WINDOW = CV.MPH_TO_MS * 3
-    was_accelerating = self.last_gas is not None
-    not_slowing_fast_enough = aTarget < CS.aEgoRaw + aEgoChange * 50 * 2  # not going to get there within 2 seconds
-    speed_to_far_off = CS.out.vEgo - vTarget >= COAST_WINDOW  # speed gap is large, start braking
+    LOW_WINDOW = CV.MPH_TO_MS * 3
+    not_slowing_fast_enough = vTarget < CS.out.vEgo + CS.aEgoRaw * 2  # not going to get there within 2 seconds, start braking
+    speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large, start braking
+    slow_speed_brake = aTarget <= 0 and CS.out.vEgo < LOW_WINDOW
+    already_braking = aTarget <= 0 and self.last_brake is not None
 
     brake_press = False
     brake_target = 0
     gas = 0
 
-    spoof_brake = aTarget < 0 and (not was_accelerating or vTarget <= COAST_WINDOW or (speed_to_far_off and not_slowing_fast_enough))
-    if CS.acc_2['ACC_DECEL_REQ'] == 1 and (CS.acc_2['ACC_DECEL'] < aTarget or not spoof_brake):
-      brake_press = True
-      brake_target = CS.acc_2['ACC_DECEL']
-    elif spoof_brake:
+    spoof_brake = already_braking or slow_speed_brake or (speed_to_far_off and not_slowing_fast_enough)
+    # if CS.acc_2['ACC_DECEL_REQ'] == 1 and (CS.acc_2['ACC_DECEL'] < aTarget or not spoof_brake):
+    #   brake_press = True
+    #   brake_target = CS.acc_2['ACC_DECEL']
+    if spoof_brake:
       # todo: stay stopped
       brake_press = True
-      brake_target = max(-2, round(aTarget, 2))
-      if CS.acc_2['ACC_DECEL_REQ'] == 1:
-        acc = round(CS.acc_2['ACC_DECEL'], 2)
-        brake_target = min(brake_target, acc)
-        if self.last_brake is None:
-          self.last_brake = acc  # start here since ACC was already active
+      brake_target = max(-2.5, round(aTarget, 2))
+      # if CS.acc_2['ACC_DECEL_REQ'] == 1:
+      #   acc = round(CS.acc_2['ACC_DECEL'], 2)
+      #   brake_target = min(brake_target, acc)
+      #   if self.last_brake is None:
+      #     self.last_brake = acc  # start here since ACC was already active
     else:
-      if self.last_gas is None:
-        self.last_gas = ACCEL_TORQ_START # TODO start someplace reasonable
-      if aTarget > 0 and CS.out.vEgo < CV.MPH_TO_MS * 5:
-        self.last_gas = max(self.last_gas, ACCEL_TORQ_START)
+      vSmoothTarget = (vTarget + CS.out.vEgo) / 2
+      accelerating = vTarget - COAST_WINDOW * CV.MS_TO_MPH > CS.out.vEgo and aTarget > 0 and CS.aEgoRaw > 0 and CS.aEgoRaw > self.last_aTarget
+      if accelerating:
+        aSmoothTarget = (aTarget + CS.aEgoRaw) / 2
+      else:
+        aSmoothTarget = aTarget
 
-      vFutureEgo = CS.out.vEgo + CS.aEgoRaw + aEgoChange * 50
+      if CS.out.vEgo < LOW_WINDOW:
+        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget * ACCEL_TORQ_MULTIPLIER) / (.105 * CS.gasRpm)
+      elif CS.out.vEgo < 20 * CV.MPH_TO_MS:
+        cruise = (VEHICLE_MASS * aTarget * vTarget * ACCEL_TORQ_MULTIPLIER) / (.105 * CS.gasRpm)
+      else:
+        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget * ACCEL_TORQ_MULTIPLIER) / (.105 * CS.gasRpm)
 
-      aTarget, self.accel_steady = self.accel_hysteresis(max(0., min(aTarget, vTarget - vFutureEgo)), self.accel_steady)
-      tChange = (aTarget - CS.aEgoRaw) * ACCEL_TORQ_CHANGE_RATIO
-      if tChange > 0:
-        tChange *= ACCEL_TORQ_CHANGE_RATIO
-      if (aTarget > CS.out.aEgo and aEgoChange < 0) or (aTarget < CS.out.aEgo and aEgoChange > 0):
-        tChange += (aEgoChange * 50)
+      if aTarget > 0 and CS.out.vEgo < CV.MPH_TO_MS * 3:
+        cruise = max(cruise, ACCEL_TORQ_START)
 
-      self.last_gas = max(0, min(ACCEL_TORQ_MAX, self.last_gas + tChange))
+      self.last_gas = max(0, min(ACCEL_TORQ_MAX, cruise))
 
       gas = round(self.last_gas, 0)
-      print(f"torq={self.last_gas}, tChange={tChange}, aEgoRaw={CS.aEgoRaw}m/s2, aTarget={aTarget}m/s2, aEgoChange={aEgoChange * 50}, vEgo={CS.out.vEgo}, vTarget={vTarget}, vFutureEgo={vFutureEgo}")
+      print(f"torq={self.last_gas}, rpm={CS.gasRpm}. aEgoRaw={CS.aEgoRaw}, aTarget={aTarget}, aSmoothTarget={aSmoothTarget}, vEgo={CS.out.vEgo}, vTarget={vTarget}")
 
     if brake_press:
       self.last_gas = None
       if self.last_brake is None:
-        self.last_brake = brake_target
-      elif brake_target < self.last_brake:
-        self.last_brake = round(max(self.last_brake - 0.02, brake_target), 2)
-      elif brake_target > self.last_brake:
-        self.last_brake = round(min(self.last_brake + 0.02, brake_target), 2)
+        self.last_brake = min(0., brake_target - 0.2)
+      else:
+        # lBrake = math.floor(self.last_brake * 100) / 100
+        # tBrake = math.floor(brake_target * 100) / 100
+        # if tBrake < lBrake:
+        #   self.last_brake = max(self.last_brake - 0.02, tBrake)
+        # elif tBrake > lBrake:
+        #   self.last_brake = min(self.last_brake + 0.02, tBrake)
+
+        self.last_brake = (self.last_brake + brake_target) / 2
+      print(f"last_brake={self.last_brake}, brake_target={brake_target}")
     else:
       self.last_brake = None
 
-    brake = self.last_brake if self.last_brake is not None else 4
+    brake = math.floor(self.last_brake * 100) / 100 if self.last_brake is not None else 4
 
     if CS.out.gasPressed or CS.out.brakePressed:  # stop sending ACC requests
       gas = 0
       brake = 4
 
+    self.last_aTarget = CS.aEgoRaw
+
+    can_sends.append(acc_log(self.packer, actuators.accel, vTarget))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, gas, brake, CS.acc_2))
+    can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, 0, CS.acc_1))
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
@@ -258,7 +271,7 @@ class CarController():
 
   def hybrid_acc_button(self, CS, jvepilot_state):
     if jvepilot_state.carControl.useLaneLines:
-      target = jvepilot_state.carControl.vTargetFuture
+      target = jvepilot_state.carControl.vTargetFuture + 3 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
 
       # Move the adaptive curse control to the target speed
       eco_limit = None
@@ -278,7 +291,7 @@ class CarController():
       target -= diff
 
     # round to nearest unit
-    target = round(target * self.round_to_unit)
+    target = round(min(jvepilot_state.carControl.vMaxCruise, target) * self.round_to_unit)
     current = round(CS.out.cruiseState.speed * self.round_to_unit)
 
     if target < current and current > self.minAccSetting:

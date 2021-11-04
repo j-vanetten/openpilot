@@ -10,10 +10,6 @@ import numpy as np
 
 ButtonType = car.CarState.ButtonEvent.Type
 
-LEAD_RADAR_CONFIG = ['jvePilot.settings.accFollow1RadarRatio',
-                     'jvePilot.settings.accFollow2RadarRatio',
-                     'jvePilot.settings.accFollow3RadarRatio',
-                     'jvePilot.settings.accFollow4RadarRatio']
 CHECK_BUTTONS = {ButtonType.cancel: ["WHEEL_BUTTONS", 'ACC_CANCEL'],
                  ButtonType.resumeCruise: ["WHEEL_BUTTONS", 'ACC_RESUME'],
                  ButtonType.accelCruise: ["WHEEL_BUTTONS", 'ACC_SPEED_INC'],
@@ -36,8 +32,10 @@ class CarState(CarStateBase):
     self.lkasHeartbit = None
     self.dashboard = None
     self.speedRequested = 0
+    self.acc_1 = None
     self.acc_2 = None
     self.aEgoRaw = None
+    self.gasRpm = None
 
   def update(self, cp, cp_cam):
     min_steer_check = self.opParams.get('steer.checkMinimum')
@@ -75,7 +73,6 @@ class CarState(CarStateBase):
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["GEAR"]["PRNDL"], None))
 
     ret.cruiseState.enabled = cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
-    self.acc_2 = cp.vl['ACC_2']
     ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3, 4]  # the comment below says 3 and 4 are ACC mode
     ret.cruiseState.speed = cp.vl["DASHBOARD"]["ACC_SPEED_CONFIG_KPH"] * CV.KPH_TO_MS
     # CRUISE_STATE is a three bit msg, 0 is off, 1 and 2 are Non-ACC mode, 3 and 4 are ACC mode, find if there are other states too
@@ -97,6 +94,9 @@ class CarState(CarStateBase):
     self.lkas_counter = cp_cam.vl["LKAS_COMMAND"]["COUNTER"]
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]["CAR_MODEL"]
     self.torq_status = cp.vl["EPS_STATUS"]["TORQ_STATUS"]
+    self.gasRpm = cp.vl["ACCEL_PEDAL_MSG"]["ENGINE_RPM"]
+    self.acc_1 = cp.vl['ACC_1']
+    self.acc_2 = cp.vl['ACC_2']
 
     brake = cp.vl["BRAKE_1"]["BRAKE_VAL_TOTAL"]
     gas = cp.vl["ACCEL_RELATED_120"]["ACCEL"]
@@ -108,7 +108,6 @@ class CarState(CarStateBase):
       ret.jvePilotCarState.pedalPressedAmount = 0
 
     ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
-    ret.jvePilotCarState.leadDistanceRadarRatio = self.cachedParams.get_float(LEAD_RADAR_CONFIG[ret.jvePilotCarState.accFollowDistance], 1000)
     ret.jvePilotCarState.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
     self.lkasHeartbit = cp_cam.vl["LKAS_HEARTBIT"]
 
@@ -207,7 +206,12 @@ class CarState(CarStateBase):
       ("COUNTER", "ACC_2", 0),
       ("CHECKSUM", "ACC_2", 0),
 
+      ("FORWARD_1", "ACC_1", 0),
+      ("FORWARD_2", "ACC_1", 0),
+      ("FORWARD_3", "ACC_1", 0),
+
       ("ACCELERATION", "SENSORS", 0),
+      ("ENGINE_RPM", "ACCEL_PEDAL_MSG", 0),
     ]
 
     checks = [
@@ -229,7 +233,9 @@ class CarState(CarStateBase):
       ("BLIND_SPOT_WARNINGS", 2),
       ("BRAKE_1", 100),
       ("ACCEL_RELATED_120", 50),
-      ("SENSORS", 50)
+      ("SENSORS", 50),
+      ("ACCEL_PEDAL_MSG", 50),
+      ("ACC_1", 50),
     ]
 
     if CP.enableBsm:
