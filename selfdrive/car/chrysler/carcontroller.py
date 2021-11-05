@@ -148,14 +148,14 @@ class CarController():
       if self.last_brake is None:
         self.last_brake = min(0., brake_target - 0.2)
       else:
-        # lBrake = math.floor(self.last_brake * 100) / 100
-        # tBrake = math.floor(brake_target * 100) / 100
-        # if tBrake < lBrake:
-        #   self.last_brake = max(self.last_brake - 0.02, tBrake)
-        # elif tBrake > lBrake:
-        #   self.last_brake = min(self.last_brake + 0.02, tBrake)
+        lBrake = math.floor(self.last_brake * 100) / 100
+        tBrake = math.floor(brake_target * 100) / 100
+        if tBrake < lBrake:
+          self.last_brake = max(self.last_brake - 0.1, tBrake)
+        elif tBrake > lBrake:
+          self.last_brake = min(self.last_brake + 0.1, tBrake)
 
-        self.last_brake = (self.last_brake + brake_target) / 2
+        # self.last_brake = (self.last_brake + brake_target) / 2
       print(f"last_brake={self.last_brake}, brake_target={brake_target}")
     else:
       self.last_brake = None
