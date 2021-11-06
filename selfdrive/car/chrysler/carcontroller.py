@@ -1,7 +1,7 @@
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_wheel_buttons_command, create_lkas_heartbit, \
-  acc_command, acc_hybrid_command, acc_log
+  acc_command, acc_command_v2, acc_log
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -37,7 +37,7 @@ class CarController():
     self.button_frame = -1
     self.last_acc_2_counter = 0
     self.last_brake = None
-    self.last_gas = 0.
+    self.last_torque = 0.
     self.accel_steady = 0.
     self.last_aTarget = 0.
 
@@ -69,7 +69,13 @@ class CarController():
 
   # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
-    ACCEL_TORQ_MAX = self.cachedParams.get_float('jvePilot.settings.longControl.maxAccelTorq', 500)
+    if CS.hybrid:
+      ACCEL_TORQ_MIN = CS.axle["AXLE_TORQ_MIN"]
+      ACCEL_TORQ_MAX = CS.axle["AXLE_TORQ_MAX"]
+    else:
+      ACCEL_TORQ_MIN = 40
+      ACCEL_TORQ_MAX = self.cachedParams.get_float('jvePilot.settings.longControl.maxAccelTorq', 500)
+
     VEHICLE_MASS = self.cachedParams.get_float('jvePilot.settings.longControl.vehicleMass', 500)
     ACCEL_TORQ_START = self.cachedParams.get_float('jvePilot.settings.longControl.torqStart', 500)
 
@@ -80,7 +86,7 @@ class CarController():
 
     if not enabled or jvepilot_state.carControl.useLaneLines:
       self.last_brake = None
-      self.last_gas = ACCEL_TORQ_START
+      self.last_torque = ACCEL_TORQ_START
       self.last_aTarget = CS.aEgoRaw
       if CS.acc_2['ACC_DECEL_REQ'] == 1:
         self.last_brake = round(CS.acc_2['ACC_DECEL'], 2)  # start here since ACC was already active
@@ -96,7 +102,7 @@ class CarController():
 
     brake_press = False
     brake_target = 0
-    gas = 0
+    torque = 0
 
     long_starting = actuators.longControlState == LongCtrlState.starting
     go_req = long_starting and CS.out.standstill
@@ -124,22 +130,23 @@ class CarController():
       else:
         aSmoothTarget = aTarget
 
+      rpm = (VEHICLE_MASS * CS.aEgoRaw * CS.out.vEgo) / (.105 * CS.axle["AXLE_TORQ"]) if CS.hybrid else CS.gasRpm
       if CS.out.vEgo < LOW_WINDOW:
-        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * CS.gasRpm)
+        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
         if aTarget > 0.5:
           cruise = max(cruise, ACCEL_TORQ_START)  # give it some oomph
       elif CS.out.vEgo < 20 * CV.MPH_TO_MS:
-        cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * CS.gasRpm)
+        cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
       else:
-        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * CS.gasRpm)
+        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
 
-      self.last_gas = max(0, min(ACCEL_TORQ_MAX, cruise))
+      self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, cruise))
 
-      gas = round(self.last_gas, 0)
-      print(f"torq={self.last_gas}, rpm={CS.gasRpm}. aEgoRaw={CS.aEgoRaw}, aTarget={aTarget}, aSmoothTarget={aSmoothTarget}, vEgo={CS.out.vEgo}, vTarget={vTarget}")
+      torque = round(self.last_torque, 0)
+      print(f"torq={self.last_torque}, rpm={rpm}. aEgoRaw={CS.aEgoRaw}, aTarget={aTarget}, aSmoothTarget={aSmoothTarget}, vEgo={CS.out.vEgo}, vTarget={vTarget}")
 
     if brake_press:
-      self.last_gas = None
+      self.last_torque = None
       if self.last_brake is None:
         self.last_brake = min(0., brake_target / 2)
       else:
@@ -157,14 +164,14 @@ class CarController():
     brake = math.floor(self.last_brake * 100) / 100 if self.last_brake is not None else 4
 
     if CS.out.gasPressed or CS.out.brakePressed:  # stop sending ACC requests
-      gas = 0
+      torque = 0
       brake = 4
 
     self.last_aTarget = CS.aEgoRaw
 
     can_sends.append(acc_log(self.packer, actuators.accel, vTarget))
-    can_sends.append(acc_command(self.packer, acc_2_counter + 1, go_req, gas, stop_req, brake, CS.acc_2))
-    can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, 0, CS.acc_1))
+    can_sends.append(acc_command(self.packer, acc_2_counter + 1, go_req, torque, stop_req, brake, CS.acc_2))
+    can_sends.append(acc_command_v2(self.packer, acc_2_counter + 1, torque, CS.acc_1))
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
