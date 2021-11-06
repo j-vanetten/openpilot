@@ -130,13 +130,12 @@ class CarController():
 
       if CS.out.vEgo < LOW_WINDOW:
         cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget * ACCEL_TORQ_MULTIPLIER) / (.105 * CS.gasRpm)
+        if aTarget > 0.5:
+          cruise = max(cruise, ACCEL_TORQ_START)  # give it some oomph
       elif CS.out.vEgo < 20 * CV.MPH_TO_MS:
         cruise = (VEHICLE_MASS * aTarget * vTarget * ACCEL_TORQ_MULTIPLIER) / (.105 * CS.gasRpm)
       else:
         cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget * ACCEL_TORQ_MULTIPLIER) / (.105 * CS.gasRpm)
-
-      if aTarget > 0 and CS.out.vEgo < CV.MPH_TO_MS * 3:
-        cruise = max(cruise, ACCEL_TORQ_START)
 
       self.last_gas = max(0, min(ACCEL_TORQ_MAX, cruise))
 
