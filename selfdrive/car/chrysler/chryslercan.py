@@ -72,9 +72,11 @@ def acc_log(packer, aTarget, vTarget):
   }
   return packer.make_can_msg("ACC_LOG", 0, values)
 
-def acc_command(packer, counter, gas, brake, acc_2):
+def acc_command(packer, counter, go, gas, stop, brake, acc_2):
   values = acc_2.copy()  # forward what we parsed
   values['COUNTER'] = counter % 0x10
+  values['ACC_GO'] = go
+  values['ACC_STOP'] = stop
 
   if brake != 4:
     values['ACC_DECEL_REQ'] = 1

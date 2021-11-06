@@ -140,11 +140,10 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"jvePilot.settings.slowInCurves.speedDropOffAngle", PERSISTENT},
     {"jvePilot.settings.longControl", PERSISTENT},
     {"jvePilot.settings.longControl.maxAccelTorq", PERSISTENT},
-    {"jvePilot.settings.longControl.maxAccelDiff", PERSISTENT},
+    {"jvePilot.settings.longControl.vehicleMass", PERSISTENT},
     {"jvePilot.settings.longControl.hystGap", PERSISTENT},
     {"jvePilot.settings.longControl.torqFutureFrames", PERSISTENT},
     {"jvePilot.settings.longControl.torqStart", PERSISTENT},
-    {"jvePilot.settings.longControl.torqCalcMultiplier", PERSISTENT},
 
     {"AccessToken", CLEAR_ON_MANAGER_START | DONT_LOG},
     {"AthenadPid", PERSISTENT},
