@@ -110,7 +110,6 @@ class CarController():
     long_stopping = actuators.longControlState == LongCtrlState.stopping
     stop_req = long_stopping or (CS.out.standstill and aTarget == 0 and not go_req)
 
-    conflict = aTarget < 0 and vTarget > CS.out.vEgo
     speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large, start braking
     not_slowing_fast_enough = speed_to_far_off and vTarget < CS.out.vEgo + CS.aEgoRaw * 2  # not going to get there within 2 seconds, start braking
     slow_speed_brake = aTarget <= 0 and CS.out.vEgo < LOW_WINDOW
