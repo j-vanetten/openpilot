@@ -153,9 +153,9 @@ class CarController():
         lBrake = self.last_brake
         tBrake = brake_target
         if tBrake < lBrake:
-          self.last_brake = max(self.last_brake - 0.05, tBrake)
+          self.last_brake = max(self.last_brake - 0.02, tBrake)
         elif tBrake > lBrake:
-          self.last_brake = min(self.last_brake + 0.05, tBrake)
+          self.last_brake = min(self.last_brake + 0.02, tBrake)
 
       print(f"last_brake={self.last_brake}, brake_target={brake_target}")
     else:
