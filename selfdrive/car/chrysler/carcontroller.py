@@ -12,8 +12,8 @@ from common.op_params import opParams
 from common.params import Params
 from cereal import car
 import math
-from numpy import interp
-import cereal.messaging as messaging
+from random import randrange
+
 ButtonType = car.CarState.ButtonEvent.Type
 LongCtrlState = car.CarControl.Actuators.LongControlState
 
@@ -73,7 +73,7 @@ class CarController():
       ACCEL_TORQ_MIN = CS.axle["AXLE_TORQ_MIN"]
       ACCEL_TORQ_MAX = CS.axle["AXLE_TORQ_MAX"]
     else:
-      ACCEL_TORQ_MIN = 50
+      ACCEL_TORQ_MIN = 20
       ACCEL_TORQ_MAX = self.cachedParams.get_float('jvePilot.settings.longControl.maxAccelTorq', 500)
 
     VEHICLE_MASS = self.cachedParams.get_float('jvePilot.settings.longControl.vehicleMass', 500)
@@ -142,7 +142,8 @@ class CarController():
 
       self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, cruise))
 
-      torque = round(self.last_torque, 0)
+      variation = randrange(3)
+      torque = round(self.last_torque + variation, 0) if cruise > ACCEL_TORQ_MIN else 0
       print(f"torq={self.last_torque}, rpm={rpm}. aEgoRaw={CS.aEgoRaw}, aTarget={aTarget}, aSmoothTarget={aSmoothTarget}, vEgo={CS.out.vEgo}, vTarget={vTarget}")
 
     if brake_press:
@@ -153,9 +154,9 @@ class CarController():
         lBrake = self.last_brake
         tBrake = brake_target
         if tBrake < lBrake:
-          self.last_brake = max(self.last_brake - 0.02, tBrake)
+          self.last_brake = max(self.last_brake - 0.1, tBrake)
         elif tBrake > lBrake:
-          self.last_brake = min(self.last_brake + 0.02, tBrake)
+          self.last_brake = min(self.last_brake + 0.1, tBrake)
 
       print(f"last_brake={self.last_brake}, brake_target={brake_target}")
     else:
