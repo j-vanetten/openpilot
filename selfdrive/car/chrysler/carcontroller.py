@@ -73,7 +73,7 @@ class CarController():
       ACCEL_TORQ_MIN = CS.axle["AXLE_TORQ_MIN"]
       ACCEL_TORQ_MAX = CS.axle["AXLE_TORQ_MAX"]
     else:
-      ACCEL_TORQ_MIN = 40
+      ACCEL_TORQ_MIN = 50
       ACCEL_TORQ_MAX = self.cachedParams.get_float('jvePilot.settings.longControl.maxAccelTorq', 500)
 
     VEHICLE_MASS = self.cachedParams.get_float('jvePilot.settings.longControl.vehicleMass', 500)
@@ -110,6 +110,7 @@ class CarController():
     long_stopping = actuators.longControlState == LongCtrlState.stopping
     stop_req = long_stopping or (CS.out.standstill and aTarget == 0 and not go_req)
 
+    conflict = aTarget < 0 and vTarget > CS.out.vEgo
     speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large, start braking
     not_slowing_fast_enough = speed_to_far_off and vTarget < CS.out.vEgo + CS.aEgoRaw * 2  # not going to get there within 2 seconds, start braking
     slow_speed_brake = aTarget <= 0 and CS.out.vEgo < LOW_WINDOW
@@ -150,8 +151,8 @@ class CarController():
       if self.last_brake is None:
         self.last_brake = min(0., brake_target / 2)
       else:
-        lBrake = math.floor(self.last_brake * 100) / 100
-        tBrake = math.floor(brake_target * 100) / 100
+        lBrake = self.last_brake
+        tBrake = brake_target
         if tBrake < lBrake:
           self.last_brake = max(self.last_brake - 0.05, tBrake)
         elif tBrake > lBrake:
@@ -169,7 +170,7 @@ class CarController():
 
     self.last_aTarget = CS.aEgoRaw
 
-    can_sends.append(acc_log(self.packer, actuators.accel, vTarget))
+    can_sends.append(acc_log(self.packer, actuators.accel, vTarget, long_starting, long_stopping))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, go_req, torque, stop_req, brake, CS.acc_2))
     can_sends.append(acc_command_v2(self.packer, acc_2_counter + 1, torque, CS.acc_1))
 
