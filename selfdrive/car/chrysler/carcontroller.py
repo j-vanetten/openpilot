@@ -121,7 +121,7 @@ class CarController():
       if stop_req and CS.out.standstill:
         brake_target = -2.
       else:
-        brake_target = max(-2.5, round(aTarget, 2))
+        brake_target = max(-4., round(aTarget, 2))
     else:
       vSmoothTarget = (vTarget + CS.out.vEgo) / 2
       accelerating = vTarget - COAST_WINDOW * CV.MS_TO_MPH > CS.out.vEgo and aTarget > 0 and CS.aEgoRaw > 0 and CS.aEgoRaw > self.last_aTarget
