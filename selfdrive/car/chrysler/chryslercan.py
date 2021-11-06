@@ -67,8 +67,8 @@ def create_wheel_buttons_command(packer, counter, buttons):
 
 def acc_log(packer, aTarget, vTarget):
   values = {
-    'OP_A_TARGET': round((aTarget + 4) * 8000),
-    'OP_V_TARGET': round(vTarget * 1400),
+    'OP_A_TARGET': aTarget,
+    'OP_V_TARGET': vTarget,
   }
   return packer.make_can_msg("ACC_LOG", 0, values)
 
