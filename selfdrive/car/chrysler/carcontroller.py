@@ -116,12 +116,20 @@ class CarController():
     already_braking = aTarget <= 0 and self.last_brake is not None
 
     spoof_brake = long_stopping or already_braking or slow_speed_brake or not_slowing_fast_enough
-    if spoof_brake or stop_req:
+    if CS.acc_2['ACC_DECEL_REQ'] == 1 and (CS.acc_2['ACC_DECEL'] < aTarget or not spoof_brake):
+       brake_press = True
+       brake_target = CS.acc_2['ACC_DECEL']
+    elif spoof_brake or stop_req:
       brake_press = True
       if stop_req and CS.out.standstill:
         brake_target = -2.
       else:
         brake_target = max(-4., round(aTarget, 2))
+        if CS.acc_2['ACC_DECEL_REQ'] == 1:
+          acc = CS.acc_2['ACC_DECEL']
+          brake_target = min(brake_target, acc)
+          if self.last_brake is None:
+            self.last_brake = acc  # start here since ACC was already active
     else:
       vSmoothTarget = (vTarget + CS.out.vEgo) / 2
       accelerating = vTarget - COAST_WINDOW * CV.MS_TO_MPH > CS.out.vEgo and aTarget > 0 and CS.aEgoRaw > 0 and CS.aEgoRaw > self.last_aTarget
@@ -141,9 +149,7 @@ class CarController():
         cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
 
       self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, cruise))
-
-      variation = randrange(3)
-      torque = round(self.last_torque + variation, 0) if cruise > ACCEL_TORQ_MIN else 0
+      torque = math.floor(self.last_torque * 100) / 100 if cruise > ACCEL_TORQ_MIN else 0.
       print(f"torq={self.last_torque}, rpm={rpm}. aEgoRaw={CS.aEgoRaw}, aTarget={aTarget}, aSmoothTarget={aSmoothTarget}, vEgo={CS.out.vEgo}, vTarget={vTarget}")
 
     if brake_press:
@@ -154,9 +160,9 @@ class CarController():
         lBrake = self.last_brake
         tBrake = brake_target
         if tBrake < lBrake:
-          self.last_brake = max(self.last_brake - 0.1, tBrake)
+          self.last_brake = max(self.last_brake - 0.2, tBrake)
         elif tBrake > lBrake:
-          self.last_brake = min(self.last_brake + 0.1, tBrake)
+          self.last_brake = min(self.last_brake + 0.2, tBrake)
 
       print(f"last_brake={self.last_brake}, brake_target={brake_target}")
     else:
