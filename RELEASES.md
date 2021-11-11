@@ -1,6 +1,44 @@
-Version jvePilot-0.8.9(v3.6.1)
+Version jvePilot-0.8.10(v3.7)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Crude replacement to continue to support stock ACC follow distance profiles
+  * OP removed the use of radar to track lead car.  This broke how I was supporting distance profiles.
+  * So, to fix, always do +3 mph over OP targeted speed to force stock ACC to keep the distance
+* Speed turns green when gas applied, red when braking
+* Fix for White Panda mod on 2017/2018 models
+* Fix bug where left turns were not slowing
+* Update to 0.8.10
+  * New driving model
+    * Trained on one million minutes!!!
+    * Fixed lead training making lead predictions significantly more accurate
+    * Fixed several localizer dataset bugs and loss function bugs, overall improved accuracy
+  * New driver monitoring model
+    * Trained on latest data from both comma two and comma three
+    * Increased model field of view by 40% on comma three
+    * Improved model stability on masked users
+    * Improved pose prediction with reworked ground-truth stack
+  * Lateral and longitudinal planning MPCs now in ACADOS
+  * Combined longitudinal MPCs
+    * All longitudinal planning now happens in a single MPC system
+    * Fixed instability in MPC problem to prevent sporadic CPU usage
+  * AGNOS 2: minor stability improvements and builder repo open sourced
+  * tools: new and improved replay thanks to deanlee!
+  * Moved community-supported cars outside of the Community Features toggle
+  * Improved FW fingerprinting reliability for Hyundai/Kia/Genesis
+  * Added prerequisites for longitudinal control on Hyundai/Kia/Genesis and Honda Bosch
+  * Audi S3 2015 support thanks to jyoung8607!
+  * Honda Freed 2020 support thanks to belm0!
+  * Hyundai Ioniq Hybrid 2020-2022 support thanks to sunnyhaibin!
+  * Hyundai Santa Fe 2022 support thanks to sunnyhaibin!
+  * Kia K5 2021 support thanks to sunnyhaibin!
+  * Škoda Kamiq 2021 support thanks to jyoung8607!
+  * Škoda Karoq 2019 support thanks to jyoung8607!
+  * Volkswagen Arteon 2021 support thanks to jyoung8607!
+  * Volkswagen California 2021 support thanks to jyoung8607!
+  * Volkswagen Taos 2022 support thanks to jyoung8607!
+
+* Version jvePilot-0.8.9(v3.6.1)
+========================
 * Add option to alert when steering is lost do to low speeds
 * Fix for White Panda mod lkas fault when jvePilot is not engaged.
 * Radar updates thanks to xps!

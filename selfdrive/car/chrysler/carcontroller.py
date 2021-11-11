@@ -75,10 +75,11 @@ class CarController():
                                                    CS.out.steeringTorqueEps, CarControllerParams)
     self.steer_rate_limited = new_steer != apply_steer
 
+    low_steer_models = self.car_fingerprint in (CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID)
     if not self.min_steer_check:
       self.moving_fast = True
-      self.torq_enabled = enabled
-    elif self.car_fingerprint in (CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID):
+      self.torq_enabled = enabled or low_steer_models
+    elif low_steer_models:
       self.moving_fast = not CS.out.steerError and CS.lkas_active
       self.torq_enabled = self.torq_enabled or CS.torq_status > 1
     else:
@@ -154,7 +155,7 @@ class CarController():
       return 'ACC_RESUME'
 
   def hybrid_acc_button(self, CS, jvepilot_state):
-    target = jvepilot_state.carControl.vTargetFuture
+    target = jvepilot_state.carControl.vTargetFuture + 3 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
 
     # Move the adaptive curse control to the target speed
     eco_limit = None
@@ -172,7 +173,7 @@ class CarController():
       target -= diff
 
     # round to nearest unit
-    target = round(target * self.round_to_unit)
+    target = round(min(jvepilot_state.carControl.vMaxCruise, target) * self.round_to_unit)
     current = round(CS.out.cruiseState.speed * self.round_to_unit)
 
     if target < current and current > self.minAccSetting:

@@ -1,10 +1,6 @@
 using Cxx = import "./include/c++.capnp";
 $Cxx.namespace("cereal");
 
-using Java = import "./include/java.capnp";
-$Java.package("ai.comma.openpilot.cereal");
-$Java.outerClassname("Car");
-
 @0x8e2af1e708af8b8d;
 
 # ******* events causing controls state machine transition *******
@@ -15,9 +11,9 @@ struct JvePilotState {
   carControl @2 :JvePilotState.CarControl;
 
   struct CarState {
-    leadDistanceRadarRatio @0 :Float32;
-    accFollowDistance @1 :UInt8;
-    buttonCounter @2 :UInt8;
+    accFollowDistance @0 :UInt8;
+    buttonCounter @1 :UInt8;
+    pedalPressedAmount @2 :Float32;
   }
 
   struct CarControl {
@@ -108,7 +104,6 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     startupNoCar @76;
     startupNoControl @77;
     startupMaster @78;
-    startupFuzzyFingerprint @97;
     startupNoFw @104;
     fcw @79;
     steerSaturated @80;
@@ -150,6 +145,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     neosUpdateRequiredDEPRECATED @88;
     modelLagWarningDEPRECATED @93;
     accBrakeHold @82; # repurposed for jvePilot
+    startupFuzzyFingerprintDEPRECATED @97;
   }
 }
 
@@ -168,7 +164,7 @@ struct CarState {
   wheelSpeeds @2 :WheelSpeeds;
 
   # gas pedal, 0.0-1.0
-  gas @3 :Float32;        # this is user + computer
+  gas @3 :Float32;        # this is user pedal only
   gasPressed @4 :Bool;    # this is user pedal only
 
   # brake pedal, 0.0-1.0
@@ -403,14 +399,11 @@ struct CarParams {
   enableDsu @5 :Bool;        # driving support unit
   enableApgs @6 :Bool;       # advanced parking guidance system
   enableBsm @56 :Bool;       # blind spot monitoring
-  hasStockCamera @57 :Bool;  # factory LKAS/LDW camera is present
 
   minEnableSpeed @7 :Float32;
   minSteerSpeed @8 :Float32;
   maxSteeringAngleDeg @54 :Float32;
-  safetyModel @9 :SafetyModel;
-  safetyModelPassive @42 :SafetyModel = silent;
-  safetyParam @10 :Int16;
+  safetyConfigs @62 :List(SafetyConfig);
 
   steerMaxBP @11 :List(Float32);
   steerMaxV @12 :List(Float32);
@@ -443,9 +436,11 @@ struct CarParams {
   steerLimitTimer @47 :Float32;  # time before steerLimitAlert is issued
 
   vEgoStopping @29 :Float32; # Speed at which the car goes into stopping state
+  vEgoStarting @59 :Float32; # Speed at which the car goes into starting state
   directAccelControl @30 :Bool; # Does the car have direct accel control or just gas/brake
   stoppingControl @31 :Bool; # Does the car allows full control even at lows speeds when stopping
   startAccel @32 :Float32; # Required acceleraton to overcome creep braking
+  stopAccel @60 :Float32; # Required acceleraton to keep vehicle stationary
   steerRateCost @33 :Float32; # Lateral MPC cost on steering rate
   steerControlType @34 :SteerControlType;
   radarOffCan @35 :Bool; # True when radar objects aren't visible on CAN
@@ -454,7 +449,8 @@ struct CarParams {
   startingAccelRate @53 :Float32; # m/s^2/s while trying to start
 
   steerActuatorDelay @36 :Float32; # Steering wheel actuator delay in seconds
-  longitudinalActuatorDelay @58 :Float32; # Gas/Brake actuator delay in seconds
+  longitudinalActuatorDelayLowerBound @61 :Float32; # Gas/Brake actuator delay in seconds, lower bound
+  longitudinalActuatorDelayUpperBound @58 :Float32; # Gas/Brake actuator delay in seconds, upper bound
   openpilotLongitudinalControl @37 :Bool; # is openpilot doing the longitudinal control?
   carVin @38 :Text; # VIN number queried during fingerprinting
   dashcamOnly @41: Bool;
@@ -465,6 +461,11 @@ struct CarParams {
   communityFeature @46: Bool;  # true if a community maintained feature is detected
   fingerprintSource @49: FingerprintSource;
   networkLocation @50 :NetworkLocation;  # Where Panda/C2 is integrated into the car's CAN network
+
+  struct SafetyConfig {
+    safetyModel @0 :SafetyModel;
+    safetyParam @1 :Int16;
+  }
 
   struct LateralParams {
     torqueBP @0 :List(Int32);
@@ -544,6 +545,7 @@ struct CarParams {
     subaruLegacy @22;  # pre-Global platform
     hyundaiLegacy @23;
     hyundaiCommunity @24;
+    stellantis @25;
   }
 
   enum SteerControlType {
@@ -603,4 +605,8 @@ struct CarParams {
 
   enableCameraDEPRECATED @4 :Bool;
   pcmCruiseSpeed @39: Bool; # repurposed for jvePilot
+  hasStockCameraDEPRECATED @57 :Bool;
+  safetyParamDEPRECATED @10 :Int16;
+  safetyModelDEPRECATED @9 :SafetyModel;
+  safetyModelPassiveDEPRECATED @42 :SafetyModel = silent;
 }

@@ -25,9 +25,7 @@
 #include "selfdrive/ui/qt/util.h"
 #include "selfdrive/ui/qt/qt_window.h"
 
-JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
-  QVBoxLayout *toggles_list = new QVBoxLayout();
-
+JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent) {
   QList<AbstractControl*> toggles;
 
   // slowInCurves
@@ -47,7 +45,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
         "\nTo go faster in turns at higher speeds, decrease this value.  To compensate for this change, you may need to increase the Speed Ratio."
     }
   };
-  toggles.append(new ParamControl("jvePilot.settings.slowInCurves",
+  addItem(new ParamControl("jvePilot.settings.slowInCurves",
                                   "Slow in Curves",
                                   "jvePilot will slow in curves so that you don't have to.",
                                   "../assets/jvepilot/settings/icon_slow_in_curves.png",
@@ -74,7 +72,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
         "Use this to change the speed at which Auto Follow will switch between three to four bars."
     }
   };
-  toggles.append(new ParamControl("jvePilot.settings.autoFollow",
+  addItem(new ParamControl("jvePilot.settings.autoFollow",
                                   "Start with Auto Follow Enabled",
                                   "When enabled, jvePilot will enable Auto Follow on the start of every drive.",
                                   "../assets/jvepilot/settings/icon_auto_follow.png",
@@ -82,7 +80,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
                                   &autoFollowConfigs));
 
   // reverseAccSpeedChange
-  toggles.append(new ParamControl("jvePilot.settings.reverseAccSpeedChange",
+  addItem(new ParamControl("jvePilot.settings.reverseAccSpeedChange",
                                   "Reverse ACC +/- Speeds",
                                   "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 increments."
                                   " Hold a little longer to change by 1."
@@ -91,21 +89,21 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
                                   this));
 
   // autoResume
-  toggles.append(new ParamControl("jvePilot.settings.autoResume",
+  addItem(new ParamControl("jvePilot.settings.autoResume",
                                   "Auto Resume",
                                   "When enabled, jvePilot will resume after ACC comes to a stop behind another vehicle.",
                                   "../assets/jvepilot/settings/icon_auto_resume.png",
                                   this));
 
   // disableOnGas
-  toggles.append(new ParamControl("jvePilot.settings.disableOnGas",
+  addItem(new ParamControl("jvePilot.settings.disableOnGas",
                                   "Disable on Gas",
                                   "When enabled, jvePilot will disengage jvePilot when the gas pedal is pressed.",
                                   "../assets/jvepilot/settings/icon_gas_pedal.png",
                                   this));
 
   // disableOnGas
-  toggles.append(new ParamControl("jvePilot.settings.audioAlertOnSteeringLoss",
+  addItem(new ParamControl("jvePilot.settings.audioAlertOnSteeringLoss",
                                   "Audio Alert on Steering Loss",
                                   "When enabled, jvePilot will play an alert when speed it too low to steer.",
                                   "../assets/jvepilot/settings/alert_steer_loss.png",
@@ -126,7 +124,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
         "The higher the number the more acceleration that occurs."
     }
   };
-  toggles.append(new LabelControl("ACC Eco",
+  addItem(new LabelControl("ACC Eco",
                                   "",
                                   "Use these settings to tune how much acceleration occurs by limiting how much ACC is set above your current speed.",
                                   this,
@@ -142,84 +140,47 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : QWidget(parent) {
         "Compensate for mounting your device off-center in the windshield."
         "\nFor example, 0.04 if your device is 4cm left of center."
         "\nNOTE: This is not how far the CAMERA is off-center, but how far the MOUNT/DEVICE is off-center."
-    },
-    { "jvePilot.settings.accFollow1RadarRatio",
-      0.5, 4,
-      "Ratio at Follow Level 1",
-      "Default: 2.6, Min: 0.5, Max: 4.0\n"
-        "At follow level 1, apply this ratio to the radar distance."
-    },
-    { "jvePilot.settings.accFollow2RadarRatio",
-      0.5, 4,
-      "Ratio at Follow Level 2",
-      "Default: 2.1, Min: 0.5, Max: 4.0\n"
-        "At follow level 2, apply this ratio to the radar distance."
-    },
-    { "jvePilot.settings.accFollow3RadarRatio",
-      0.5, 4,
-      "Ratio at Follow Level 3",
-      "Default: 1.5, Min: 0.5, Max: 4.0\n"
-        "At follow level 3, apply this ratio to the radar distance."
-    },
-    { "jvePilot.settings.accFollow4RadarRatio",
-      0.5, 4,
-      "Ratio at Follow Level 4",
-      "Default: 1.1, Min: 0.5, Max: 4.0\n"
-        "At follow level 4, apply this ratio to the radar distance."
     }
   };
-  toggles.append(new LabelControl("jvePilot Control Settings",
+  addItem(new LabelControl("jvePilot Control Settings",
                                   "",
                                   "Use these settings tune some of jvePilot's control settings.",
                                   this,
                                   "../assets/jvepilot/settings/icon_misc.png",
                                   &miscConfigs));
-
-
-  for(AbstractControl *toggle : toggles){
-    if(toggles_list->count() != 0){
-      toggles_list->addWidget(horizontal_line());
-    }
-    toggles_list->addWidget(toggle);
-  }
-
-  setLayout(toggles_list);
 }
 
-TogglesPanel::TogglesPanel(QWidget *parent) : QWidget(parent) {
-  QVBoxLayout *main_layout = new QVBoxLayout(this);
-
-  QList<ParamControl*> toggles;
-
-  toggles.append(new ParamControl("OpenpilotEnabledToggle",
+TogglesPanel::TogglesPanel(QWidget *parent) : ListWidget(parent) {
+  auto params = Params();
+  addItem(new ParamControl("OpenpilotEnabledToggle",
                                   "Enable openpilot",
                                   "Use the openpilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature. Changing this setting takes effect when the car is powered off.",
                                   "../assets/offroad/icon_openpilot.png",
                                   this));
-  toggles.append(new ParamControl("IsLdwEnabled",
+  addItem(new ParamControl("IsLdwEnabled",
                                   "Enable Lane Departure Warnings",
                                   "Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31mph (50kph).",
                                   "../assets/offroad/icon_warning.png",
                                   this));
-  toggles.append(new ParamControl("IsRHD",
+  addItem(new ParamControl("IsRHD",
                                   "Enable Right-Hand Drive",
                                   "Allow openpilot to obey left-hand traffic conventions and perform driver monitoring on right driver seat.",
                                   "../assets/offroad/icon_openpilot_mirrored.png",
                                   this));
-  toggles.append(new ParamControl("IsMetric",
+  addItem(new ParamControl("IsMetric",
                                   "Use Metric System",
-                                  "Display speed in km/h instead of mp/h.",
+                                  "Display speed in km/h instead of mph.",
                                   "../assets/offroad/icon_metric.png",
                                   this));
-  toggles.append(new ParamControl("CommunityFeaturesToggle",
+  addItem(new ParamControl("CommunityFeaturesToggle",
                                   "Enable Community Features",
-                                  "Use features from the open source community that are not maintained or supported by comma.ai and have not been confirmed to meet the standard safety model. These features include community supported cars and community supported hardware. Be extra cautious when using these features",
+                                  "Use features, such as community supported hardware, from the open source community that are not maintained or supported by comma.ai and have not been confirmed to meet the standard safety model. Be extra cautious when using these features",
                                   "../assets/offroad/icon_shell.png",
                                   this));
 
-  toggles.append(new ParamControl("UploadRaw",
+  addItem(new ParamControl("UploadRaw",
                                   "Upload Raw Logs",
-                                  "Upload full logs and full resolution video by default while on WiFi. If not enabled, individual logs can be marked for upload at my.comma.ai/useradmin.",
+                                  "Upload full logs and full resolution video by default while on Wi-Fi. If not enabled, individual logs can be marked for upload at useradmin.comma.ai.",
                                   "../assets/offroad/icon_network.png",
                                   this));
 
@@ -228,35 +189,35 @@ TogglesPanel::TogglesPanel(QWidget *parent) : QWidget(parent) {
                                                  "Upload data from the driver facing camera and help improve the driver monitoring algorithm.",
                                                  "../assets/offroad/icon_monitoring.png",
                                                  this);
-  toggles.append(record_toggle);
+  addItem(record_toggle);
 
 #ifdef ENABLE_MAPS
-  toggles.append(new ParamControl("NavSettingTime24h",
+  addItem(new ParamControl("NavSettingTime24h",
                                   "Show ETA in 24h format",
                                   "Use 24h format instead of am/pm",
                                   "../assets/offroad/icon_metric.png",
                                   this));
 #endif
+  if (params.getBool("DisableRadar_Allow")) {
+    addItem(new ParamControl("DisableRadar",
+                             "openpilot Longitudinal Control",
+                             "openpilot will disable the car's radar and will take over control of gas and brakes. Warning: this disables AEB!",
+                             "../assets/offroad/icon_speed_limit.png",
+                             this));
 
-  bool record_lock = Params().getBool("RecordFrontLock");
-  record_toggle->setEnabled(!record_lock);
-
-  for(ParamControl *toggle : toggles) {
-    if(main_layout->count() != 0) {
-      main_layout->addWidget(horizontal_line());
-    }
-    main_layout->addWidget(toggle);
   }
+
+  bool record_lock = params.getBool("RecordFrontLock");
+  record_toggle->setEnabled(!record_lock);
 }
 
-DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
-  QVBoxLayout *main_layout = new QVBoxLayout(this);
+DevicePanel::DevicePanel(QWidget* parent) : ListWidget(parent) {
+  setSpacing(50);
   Params params = Params();
-  main_layout->addWidget(new LabelControl("Dongle ID", getDongleId().value_or("N/A")));
-  main_layout->addWidget(horizontal_line());
+  addItem(new LabelControl("Dongle ID", getDongleId().value_or("N/A")));
 
   QString serial = QString::fromStdString(params.get("HardwareSerial", false));
-  main_layout->addWidget(new LabelControl("Serial", serial));
+  addItem(new LabelControl("Serial", serial));
 
   // offroad-only buttons
 
@@ -298,7 +259,6 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
     retrainingBtn = new ButtonControl("Review Training Guide", "REVIEW", "Review the rules, features, and limitations of openpilot");
     connect(retrainingBtn, &ButtonControl::clicked, [=]() {
       if (ConfirmationDialog::confirm("Are you sure you want to review the training guide?", this)) {
-        Params().remove("CompletedTrainingVersion");
         emit reviewTrainingGuide();
       }
     });
@@ -308,16 +268,15 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
   if (Hardware::TICI()) {
     regulatoryBtn = new ButtonControl("Regulatory", "VIEW", "");
     connect(regulatoryBtn, &ButtonControl::clicked, [=]() {
-      const std::string txt = util::read_file(ASSET_PATH.toStdString() + "/offroad/fcc.html");
+      const std::string txt = util::read_file("../assets/offroad/fcc.html");
       RichTextDialog::alert(QString::fromStdString(txt), this);
     });
   }
 
   for (auto btn : {dcamBtn, resetCalibBtn, retrainingBtn, regulatoryBtn}) {
     if (btn) {
-      main_layout->addWidget(horizontal_line());
       connect(parent, SIGNAL(offroadTransition(bool)), btn, SLOT(setEnabled(bool)));
-      main_layout->addWidget(btn);
+      addItem(btn);
     }
   }
 
@@ -353,10 +312,10 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
     #poweroff_btn { background-color: #E22C2C; }
     #poweroff_btn:pressed { background-color: #FF2424; }
   )");
-  main_layout->addLayout(power_layout);
+  addItem(power_layout);
 }
 
-SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
+SoftwarePanel::SoftwarePanel(QWidget* parent) : ListWidget(parent) {
   gitBranchLbl = new LabelControl("Git Branch");
   gitCommitLbl = new LabelControl("Git Commit");
   osVersionLbl = new LabelControl("OS Version");
@@ -373,12 +332,6 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
     std::system("pkill -1 -f selfdrive.updated");
   });
 
-  QVBoxLayout *main_layout = new QVBoxLayout(this);
-  QWidget *widgets[] = {versionLbl, lastUpdateLbl, updateBtn, gitBranchLbl, gitCommitLbl, osVersionLbl};
-  for (int i = 0; i < std::size(widgets); ++i) {
-    main_layout->addWidget(widgets[i]);
-    main_layout->addWidget(horizontal_line());
-  }
 
   auto uninstallBtn = new ButtonControl("Uninstall " + getBrand(), "UNINSTALL");
   connect(uninstallBtn, &ButtonControl::clicked, [=]() {
@@ -387,7 +340,11 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
     }
   });
   connect(parent, SIGNAL(offroadTransition(bool)), uninstallBtn, SLOT(setEnabled(bool)));
-  main_layout->addWidget(uninstallBtn);
+
+  QWidget *widgets[] = {versionLbl, lastUpdateLbl, updateBtn, gitBranchLbl, gitCommitLbl, osVersionLbl, uninstallBtn};
+  for (QWidget* w : widgets) {
+    addItem(w);
+  }
 
   fs_watch = new QFileSystemWatcher(this);
   QObject::connect(fs_watch, &QFileSystemWatcher::fileChanged, [=](const QString path) {
@@ -426,24 +383,24 @@ QWidget * network_panel(QWidget * parent) {
 #ifdef QCOM
   QWidget *w = new QWidget(parent);
   QVBoxLayout *layout = new QVBoxLayout(w);
-  layout->setSpacing(30);
+  layout->setContentsMargins(50, 0, 50, 0);
 
+  ListWidget *list = new ListWidget();
+  list->setSpacing(30);
   // wifi + tethering buttons
-  auto wifiBtn = new ButtonControl("WiFi Settings", "OPEN");
+  auto wifiBtn = new ButtonControl("Wi-Fi Settings", "OPEN");
   QObject::connect(wifiBtn, &ButtonControl::clicked, [=]() { HardwareEon::launch_wifi(); });
-  layout->addWidget(wifiBtn);
-  layout->addWidget(horizontal_line());
+  list->addItem(wifiBtn);
 
   auto tetheringBtn = new ButtonControl("Tethering Settings", "OPEN");
   QObject::connect(tetheringBtn, &ButtonControl::clicked, [=]() { HardwareEon::launch_tethering(); });
-  layout->addWidget(tetheringBtn);
-  layout->addWidget(horizontal_line());
+  list->addItem(tetheringBtn);
 
   // SSH key management
-  layout->addWidget(new SshToggle());
-  layout->addWidget(horizontal_line());
-  layout->addWidget(new SshControl());
+  list->addItem(new SshToggle());
+  list->addItem(new SshControl());
 
+  layout->addWidget(list);
   layout->addStretch(1);
 #else
   Networking *w = new Networking(parent);
