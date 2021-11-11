@@ -56,10 +56,10 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
       "maxAccelTorq",
       "Default: 360"
     }
-    ,{ "jvePilot.settings.longControl.maxAccelDiff",
-      0, 2,
-      "torqChangeRatio",
-      "Default: 0.03"
+    ,{ "jvePilot.settings.longControl.vehicleMass",
+      0, 10000,
+      "vehicleMass in kg",
+      "Default: 2268 kg"
     }
     ,{ "jvePilot.settings.longControl.hystGap",
       0, 5,
@@ -70,11 +70,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
       0, 100,
       "torqStart",
       "Default: 80"
-    }
-    ,{ "jvePilot.settings.longControl.torqCalcMultiplier",
-      0, 2000,
-      "torqCalcMultiplier",
-      "Default: 1000"
     }
   };
   addItem(new ParamControl("jvePilot.settings.longControl",

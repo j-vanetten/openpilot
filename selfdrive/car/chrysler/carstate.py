@@ -6,6 +6,7 @@ from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD
 from common.cached_params import CachedParams
 from common.op_params import opParams
+from selfdrive.car.chrysler.values import CAR
 import numpy as np
 
 ButtonType = car.CarState.ButtonEvent.Type
@@ -36,6 +37,8 @@ class CarState(CarStateBase):
     self.acc_2 = None
     self.aEgoRaw = None
     self.gasRpm = None
+    self.hybridAxle = None
+    self.hybrid = CP.carFingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
 
   def update(self, cp, cp_cam):
     min_steer_check = self.opParams.get('steer.checkMinimum')
@@ -97,6 +100,7 @@ class CarState(CarStateBase):
     self.gasRpm = cp.vl["ACCEL_PEDAL_MSG"]["ENGINE_RPM"]
     self.acc_1 = cp.vl['ACC_1']
     self.acc_2 = cp.vl['ACC_2']
+    self.hybridAxle = cp.vl['AXLE_TORQ']
 
     brake = cp.vl["BRAKE_1"]["BRAKE_VAL_TOTAL"]
     gas = cp.vl["ACCEL_RELATED_120"]["ACCEL"]
@@ -237,6 +241,14 @@ class CarState(CarStateBase):
       ("ACCEL_PEDAL_MSG", 50),
       ("ACC_1", 50),
     ]
+
+    if CP.carFingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID):
+      signals += [
+        ("AXLE_TORQ", "AXLE_TORQ", 0),
+        ("AXLE_TORQ_MIN", "AXLE_TORQ", 0),
+        ("AXLE_TORQ_MAX", "AXLE_TORQ", 0),
+      ]
+      checks += [("AXLE_TORQ", 30)]
 
     if CP.enableBsm:
       signals += [
