@@ -70,8 +70,8 @@ class CarController():
   # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
     if CS.hybrid:
-      ACCEL_TORQ_MIN = CS.axle["AXLE_TORQ_MIN"]
-      ACCEL_TORQ_MAX = CS.axle["AXLE_TORQ_MAX"]
+      ACCEL_TORQ_MIN = CS.hybridAxle["AXLE_TORQ_MIN"]
+      ACCEL_TORQ_MAX = CS.hybridAxle["AXLE_TORQ_MAX"]
     else:
       ACCEL_TORQ_MIN = 20
       ACCEL_TORQ_MAX = self.cachedParams.get_float('jvePilot.settings.longControl.maxAccelTorq', 500)
@@ -138,7 +138,7 @@ class CarController():
       else:
         aSmoothTarget = aTarget
 
-      rpm = (VEHICLE_MASS * CS.aEgoRaw * CS.out.vEgo) / (.105 * CS.axle["AXLE_TORQ"]) if CS.hybrid else CS.gasRpm
+      rpm = (VEHICLE_MASS * CS.aEgoRaw * CS.out.vEgo) / (.105 * CS.hybridAxle["AXLE_TORQ"]) if CS.hybrid else CS.gasRpm
       if CS.out.vEgo < LOW_WINDOW:
         cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
         if aTarget > 0.5:
