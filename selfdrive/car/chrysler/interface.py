@@ -4,6 +4,7 @@ from selfdrive.car.chrysler.values import CAR
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
 from common.op_params import opParams
+from selfdrive.car.disable_ecu import disable_ecu
 
 ButtonType = car.CarState.ButtonEvent.Type
 
@@ -11,6 +12,11 @@ GAS_RESUME_SPEED = 2.
 opParams = opParams()
 
 class CarInterface(CarInterfaceBase):
+  @staticmethod
+  def init(CP, logcan, sendcan):
+    if CP.openpilotLongitudinalControl:
+      disable_ecu(logcan, sendcan, bus=1, diag_request=b'\x53\x07', diag_response=b'\x4d\x03')
+
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
     return -4, 2.

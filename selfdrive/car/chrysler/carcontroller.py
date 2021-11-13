@@ -92,6 +92,9 @@ class CarController():
         self.last_brake = round(CS.acc_2['ACC_DECEL'], 2)  # start here since ACC was already active
       return
 
+    if (acc_2_counter % 10) == 0:
+      can_sends.append((0x7D0, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", 1))
+
     vTarget = jvepilot_state.carControl.vTargetFuture
 
     # ECO
