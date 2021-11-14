@@ -14,8 +14,7 @@ opParams = opParams()
 class CarInterface(CarInterfaceBase):
   @staticmethod
   def init(CP, logcan, sendcan):
-    if CP.openpilotLongitudinalControl:
-      disable_ecu(logcan, sendcan, bus=1, diag_request=b'\x53\x07', diag_response=b'\x4d\x03')
+    disable_ecu(logcan, sendcan, bus=0, addr=0x7d0, diag_request=b"\x02\x10\x03", diag_response=b"", com_cont_req=b"\x28\x83\x01")
 
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
