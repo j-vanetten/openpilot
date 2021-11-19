@@ -3,6 +3,8 @@ This fork is only for Chrysler/Jeep vehicles!
 
 [![Buy me a beer!](https://github.com/j-vanetten/openpilot/blob/jvePilot-release/.github/ButMeABeer.png?raw=true)](https://www.buymeacoffee.com/jvePilot)
 
+Come join us on [Discord](https://discord.gg/r8yaDBdnwH)! 
+
 # Table of contents
 - [**Safety Notes**](#safety-notes)
 - [jvePilot](#jvepilot)
