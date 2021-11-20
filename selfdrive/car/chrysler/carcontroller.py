@@ -258,7 +258,7 @@ class CarController():
     return round(CS.out.cruiseState.speed * self.round_to_unit) / self.round_to_unit
 
   def accel_hysteresis(self, accel, accel_steady):
-    ACCEL_HYST_GAP = self.cachedParams.get_float('jvePilot.settings.longControl.hystGap', 500)
+    ACCEL_HYST_GAP = 0.06
 
     if accel > accel_steady + ACCEL_HYST_GAP:
       accel_steady = accel - ACCEL_HYST_GAP
