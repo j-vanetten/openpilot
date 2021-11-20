@@ -15,7 +15,7 @@ opParams = opParams()
 class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
-    return 10., 10.  # high limits
+    return -1.5, 10.  # high limits
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
