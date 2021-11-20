@@ -198,9 +198,6 @@ class CarState(CarStateBase):
       ("DISPLAY_REQ", "ACC_2", 0),
       ("COUNTER", "ACC_2", 0),
       ("CHECKSUM", "ACC_2", 0),
-
-      ("ACCELERATION", "SENSORS", 0),
-      ("ENGINE_RPM", "ACCEL_PEDAL_MSG", 0),
     ]
 
     checks = [
