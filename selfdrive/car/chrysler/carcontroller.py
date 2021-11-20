@@ -1,6 +1,6 @@
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
-                                               create_wheel_buttons_command, create_lkas_heartbit
+                                               create_wheel_buttons_command, create_lkas_heartbit, acc_command
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -10,14 +10,13 @@ from common.cached_params import CachedParams
 from common.op_params import opParams
 from common.params import Params
 from cereal import car
-import cereal.messaging as messaging
+import math
+
 ButtonType = car.CarState.ButtonEvent.Type
 
 V_CRUISE_MIN_IMPERIAL_MS = V_CRUISE_MIN_IMPERIAL * CV.KPH_TO_MS
 V_CRUISE_MIN_MS = V_CRUISE_MIN * CV.KPH_TO_MS
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
-
-ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -31,6 +30,9 @@ class CarController():
     self.steer_rate_limited = False
     self.last_button_counter = -1
     self.button_frame = -1
+    self.last_acc_2_counter = -1
+    self.accel_steady = 0
+    self.last_brake = None
 
     self.packer = CANPacker(dbc_name)
 
@@ -54,8 +56,57 @@ class CarController():
     can_sends = []
     self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
     self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
+    self.acc(CS, actuators, can_sends, enabled, c.jvePilotState)
 
     return can_sends
+
+  # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
+  def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
+    acc_2_counter = CS.acc_2['COUNTER']
+    if acc_2_counter == self.last_acc_2_counter:
+      return
+    self.last_acc_2_counter = acc_2_counter
+
+    override_request = CS.out.gasPressed or CS.out.brakePressed or CS.acc_2['ACC_TORQ_REQ'] == 1
+    if not enabled or override_request or jvepilot_state.carControl.useLaneLines:
+      self.last_brake = None
+      return  # don't brake while controls active
+
+    aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
+    if aTarget >= 0:
+      self.last_brake = None
+      return  # no need to slow down
+
+    if CS.acc_2['ACC_DECEL_REQ'] == 1:
+      if CS.acc_2['ACC_DECEL'] < aTarget:
+        return  # stock ACC is doing all the work
+      elif self.last_brake is None:
+        self.last_brake = round(CS.acc_2['ACC_DECEL'], 2)  # pick up braking from here
+
+    vTarget = jvepilot_state.carControl.vTargetFuture
+
+    COAST_WINDOW = CV.MPH_TO_MS * 3
+    speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large, start braking
+    not_slowing_fast_enough = speed_to_far_off and vTarget < CS.out.vEgo + CS.aEgo  # not going to get there, start braking
+    already_braking = aTarget <= 0 and self.last_brake is not None
+
+    need_to_slow_down = vTarget < CS.out.vEgo < self.current_cruise_setting(CS)
+    if need_to_slow_down and (already_braking or not_slowing_fast_enough):
+      brake_target = max(-4., round(aTarget, 2))
+      if self.last_brake is None:
+        self.last_brake = min(0., brake_target / 2)
+      else:
+        lBrake = self.last_brake
+        tBrake = brake_target
+        if tBrake < lBrake:
+          self.last_brake = max(self.last_brake - 0.2, tBrake)
+        elif tBrake > lBrake:
+          self.last_brake = min(self.last_brake + 0.2, tBrake)
+
+      print(f"last_brake={self.last_brake}, brake_target={brake_target}")
+
+      brake = math.floor(self.last_brake * 100) / 100 if self.last_brake is not None else 4
+      can_sends.append(acc_command(self.packer, acc_2_counter + 1, brake, CS.acc_2))
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
@@ -167,14 +218,9 @@ class CarController():
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
 
-    # ACC Braking
-    diff = CS.out.vEgo - target
-    if diff > ACC_BRAKE_THRESHOLD and abs(target - jvepilot_state.carControl.vMaxCruise) > ACC_BRAKE_THRESHOLD:  # ignore change in max cruise speed
-      target -= diff
-
     # round to nearest unit
     target = round(min(jvepilot_state.carControl.vMaxCruise, target) * self.round_to_unit)
-    current = round(CS.out.cruiseState.speed * self.round_to_unit)
+    current = self.current_cruise_setting(CS) * self.round_to_unit
 
     if target < current and current > self.minAccSetting:
       return 'ACC_SPEED_DEC'
@@ -207,3 +253,17 @@ class CarController():
           return 'ACC_FOLLOW_DEC'
         else:
           return 'ACC_FOLLOW_INC'
+
+  def current_cruise_setting(self, CS):
+    return round(CS.out.cruiseState.speed * self.round_to_unit) / self.round_to_unit
+
+  def accel_hysteresis(self, accel, accel_steady):
+    ACCEL_HYST_GAP = self.cachedParams.get_float('jvePilot.settings.longControl.hystGap', 500)
+
+    if accel > accel_steady + ACCEL_HYST_GAP:
+      accel_steady = accel - ACCEL_HYST_GAP
+    elif accel < accel_steady - ACCEL_HYST_GAP:
+      accel_steady = accel + ACCEL_HYST_GAP
+    accel = accel_steady
+
+    return accel, accel_steady

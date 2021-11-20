@@ -49,6 +49,7 @@ class Planner():
     self.fcw = False
 
     self.cachedParams = CachedParams()
+    self.speed_steady = -1
 
     self.v_desired = init_v
     self.a_desired = init_a
@@ -114,6 +115,12 @@ class Planner():
         curv = abs(curvs[-1])
         if curv != 0:
           self.v_desired = float(min(self.v_desired, self.limit_speed_in_curv(sm, curv)))
+        else:
+          self.speed_steady = -1
+      else:
+        self.speed_steady = -1
+    else:
+      self.speed_steady = -1
 
   def publish(self, sm, pm):
     plan_send = messaging.new_message('longitudinalPlan')
@@ -145,4 +152,19 @@ class Planner():
 
     v_curvature = np.sqrt(a_y_max / np.clip(curv, 1e-4, None))
     model_speed = np.min(v_curvature)
-    return model_speed * self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedRatio', 5000)
+
+    speed = model_speed * self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedRatio', 5000)
+    speed, self.speed_steady = self.speed_hysteresis(speed, self.speed_steady)
+
+    return speed
+
+  def speed_hysteresis(self, speed, speed_steady):
+    SPEED_HYST_GAP = CV.MPH_TO_MS * 3
+
+    if speed > speed_steady + SPEED_HYST_GAP:
+      speed_steady = speed - SPEED_HYST_GAP
+    elif speed < speed_steady - SPEED_HYST_GAP:
+      speed_steady = speed + SPEED_HYST_GAP
+    speed = speed_steady
+
+    return speed, speed_steady

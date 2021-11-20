@@ -342,18 +342,22 @@ BO_ 941 NEW_MSG_3ad: 8 XXX
  SG_ INCREASING_2 : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 500 ACC_2: 8 XXX
- SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_STOP : 5|1@1+ (1,0) [0|0] "" XXX
+ SG_ ACC_GO : 6|1@1+ (1,0) [0|0] "" XXX
+ SG_ ACC_TORQ : 4|13@0+ (0.25,-500) [-500|1547.5] "Nm" XXX
+ SG_ ACC_TORQ_REQ : 7|1@1+ (1,0) [0|0] "" XXX
+ SG_ ACC_DECEL : 19|12@0+ (0.004885,-16) [-16|4] "m/s2" XXX
+ SG_ ACC_DECEL_REQ : 36|3@1+ (1,0) [0|0] "" XXX
+ SG_ ACC_AVAILABLE : 20|1@1+ (1,0) [0|0] "" XXX
+ SG_ ACC_ENABLED : 21|1@1+ (1,0) [0|0] "" XXX
+ SG_ DISABLE_FUEL_SHUTOFF : 23|1@1+ (1,0) [0|0] "" XXX
+ SG_ GR_MAX_REQ : 32|4@1+ (1,0) [0|0] "" XXX
+ SG_ STS : 46|2@1+ (1,0) [0|0] "" XXX
+ SG_ COLLISION_BRK_PREP : 48|1@1+ (1,0) [0|0] "" XXX
+ SG_ ACC_BRK_PREP : 49|1@1+ (1,0) [0|0] "" XXX
+ SG_ DISPLAY_REQ : 50|2@1+ (1,0) [0|0] "" XXX
  SG_ COUNTER : 55|4@0+ (1,0) [0|15] "" XXX
- SG_ ACC_STOP : 5|1@0+ (1,0) [0|1] "" XXX
- SG_ ACC_GO : 6|1@0+ (1,0) [0|1] "" XXX
- SG_ ACC_DECEL_CMD : 19|12@0+ (0.004885,-16) [-16|4] "m/s2" XXX
- SG_ ACC_AVAILABLE : 20|1@0+ (1,0) [0|1] "" XXX
- SG_ ACC_ENABLED : 21|1@0+ (1,0) [0|1] "" XXX
- SG_ BRAKE_WARN : 39|1@0+ (1,0) [0|1] "" XXX
- SG_ COLLISION_BRK_PREP : 48|1@0+ (1,0) [0|1] "" XXX
- SG_ ACC_BRK_PREP : 49|1@0+ (1,0) [0|1] "" XXX
- SG_ COMMAND_TYPE_2 : 50|1@0+ (1,0) [0|1] "" XXX
- SG_ COMMAND_TYPE : 38|3@0+ (1,0) [0|7] "" XXX
+ SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 625 ACC_1: 8 XXX
  SG_ SPEED : 31|8@0+ (1,0) [0|255] "km/h" XXX

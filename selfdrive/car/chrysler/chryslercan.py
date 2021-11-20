@@ -64,3 +64,16 @@ def create_wheel_buttons_command(packer, counter, buttons):
       values[b] = 1
 
   return packer.make_can_msg("WHEEL_BUTTONS", 0, values)
+
+def acc_command(packer, counter, brake, acc_2):
+  values = acc_2.copy()  # forward what we parsed
+  values['COUNTER'] = counter % 0x10
+
+  if brake != 4:
+    values['ACC_DECEL_REQ'] = 1
+    values['ACC_DECEL'] = brake
+  else:
+    values['ACC_DECEL_REQ'] = 0
+    values['ACC_DECEL'] = 4
+
+  return packer.make_can_msg("ACC_2", 0, values)
