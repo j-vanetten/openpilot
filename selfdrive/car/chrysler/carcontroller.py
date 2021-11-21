@@ -86,22 +86,24 @@ class CarController():
     vTarget = jvepilot_state.carControl.vTargetFuture
 
     COAST_WINDOW = CV.MPH_TO_MS * 3
+    BRAKE_CHANGE = 0.01
+
     speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large, start braking
     not_slowing_fast_enough = speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there, start braking
     already_braking = aTarget <= 0 and self.last_brake is not None
 
-    need_to_slow_down = vTarget < CS.out.vEgo < self.current_cruise_setting(CS)
+    need_to_slow_down = CS.out.vEgo > vTarget and CS.out.vEgo > self.current_cruise_setting(CS)
     if need_to_slow_down and (already_braking or not_slowing_fast_enough):
-      brake_target = max(-4., round(aTarget, 2))
+      brake_target = max(CarControllerParams.ACCEL_MIN, round(aTarget, 2))
       if self.last_brake is None:
-        self.last_brake = min(0., brake_target / 2)
+        self.last_brake = min(0., brake_target / 3)
       else:
         lBrake = self.last_brake
         tBrake = brake_target
         if tBrake < lBrake:
-          self.last_brake = max(self.last_brake - 0.2, tBrake)
+          self.last_brake = max(self.last_brake - BRAKE_CHANGE, tBrake)
         elif tBrake > lBrake:
-          self.last_brake = min(self.last_brake + 0.2, tBrake)
+          self.last_brake = min(self.last_brake + BRAKE_CHANGE, tBrake)
 
       print(f"last_brake={self.last_brake}, brake_target={brake_target}")
 
