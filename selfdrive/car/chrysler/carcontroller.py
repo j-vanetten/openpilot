@@ -87,7 +87,7 @@ class CarController():
 
     COAST_WINDOW = CV.MPH_TO_MS * 3
     speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large, start braking
-    not_slowing_fast_enough = speed_to_far_off and vTarget < CS.out.vEgo + CS.aEgo  # not going to get there, start braking
+    not_slowing_fast_enough = speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there, start braking
     already_braking = aTarget <= 0 and self.last_brake is not None
 
     need_to_slow_down = vTarget < CS.out.vEgo < self.current_cruise_setting(CS)
