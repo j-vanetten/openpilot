@@ -96,10 +96,13 @@ class CarController():
     if need_to_slow_down and (already_braking or not_slowing_fast_enough):
       brake_target = max(CarControllerParams.ACCEL_MIN, round(aTarget, 2))
       if self.last_brake is None:
-        self.last_brake = min(0., brake_target / 3)
+        self.last_brake = min(0., brake_target / 4)
       else:
-        lBrake = self.last_brake
         tBrake = brake_target
+        if not speed_to_far_off:  # let up on brake as we approach
+          tBrake *= (CS.out.vEgo - vTarget) / COAST_WINDOW
+
+        lBrake = self.last_brake
         if tBrake < lBrake:
           self.last_brake = max(self.last_brake - BRAKE_CHANGE, tBrake)
         elif tBrake > lBrake:
