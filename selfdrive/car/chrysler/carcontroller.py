@@ -91,7 +91,7 @@ class CarController():
     jvepilot_state.carState.fcw = aTarget < 0 and CS.dashboard["LEAD_VEHICLE"] == 0 and vTarget < CS.out.vEgo < self.minAccSetting
 
     COAST_WINDOW = CV.MPH_TO_MS * 3
-    BRAKE_CHANGE = 0.01
+    BRAKE_CHANGE = 0.03
 
     speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large, start braking
     not_slowing_fast_enough = speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there, start braking
