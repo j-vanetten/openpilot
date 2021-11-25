@@ -69,13 +69,13 @@ class CarController():
 
     override_request = CS.out.gasPressed or CS.out.brakePressed or CS.acc_2['ACC_TORQ_REQ'] == 1
     if not enabled or override_request or jvepilot_state.carControl.useLaneLines:
-      jvepilot_state.carControl.fcw = False
+      jvepilot_state.carState.fcw = False
       self.last_brake = None
       return  # don't brake while controls active
 
     aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
     if aTarget >= 0:
-      jvepilot_state.carControl.fcw = False
+      jvepilot_state.carState.fcw = False
       self.last_brake = None
       return  # no need to slow down
 
@@ -87,7 +87,8 @@ class CarController():
 
     vTarget = jvepilot_state.carControl.vTargetFuture
 
-    jvepilot_state.carControl.fcw = aTarget < 0 and CS.dashboard["LEAD_VEHICLE"] == 0 and vTarget < CS.out.vEgo < self.minAccSetting
+    # FCW when OP wants to slow, but we can no longer spoof ACC braking and ACC doesn't see a vehicle
+    jvepilot_state.carState.fcw = aTarget < 0 and CS.dashboard["LEAD_VEHICLE"] == 0 and vTarget < CS.out.vEgo < self.minAccSetting
 
     COAST_WINDOW = CV.MPH_TO_MS * 3
     BRAKE_CHANGE = 0.01
