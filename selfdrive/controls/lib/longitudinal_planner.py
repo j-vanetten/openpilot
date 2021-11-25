@@ -108,24 +108,6 @@ class Planner():
     self.a_desired = float(interp(DT_MDL, T_IDXS[:CONTROL_N], self.a_desired_trajectory))
     self.v_desired = self.v_desired + DT_MDL * (self.a_desired + a_prev)/2.0
 
-  def target_speed(self, lateral_planner, sm):
-    v_cruise_kph = sm['controlsState'].vCruise
-    if lateral_planner.lateralPlan and self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
-      curvs = list(lateral_planner.lateralPlan.curvatures)
-      if len(curvs):
-        # find the largest curvature in the solution and use that.
-        curv = abs(curvs[-1])
-        if curv != 0:
-          v_cruise_kph = float(min(v_cruise_kph, self.limit_speed_in_curv(sm, curv)))
-        else:
-          self.speed_steady = -1
-      else:
-        self.speed_steady = -1
-    else:
-      self.speed_steady = -1
-
-    return v_cruise_kph
-
   def publish(self, sm, pm):
     plan_send = messaging.new_message('longitudinalPlan')
 
@@ -144,6 +126,24 @@ class Planner():
     longitudinalPlan.fcw = self.fcw
 
     pm.send('longitudinalPlan', plan_send)
+
+  def target_speed(self, lateral_planner, sm):
+    target = sm['controlsState'].vCruise * CV.KPH_TO_MS
+    if lateral_planner.lateralPlan and self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
+      curvs = list(lateral_planner.lateralPlan.curvatures)
+      if len(curvs):
+        # find the largest curvature in the solution and use that.
+        curv = abs(curvs[-1])
+        if curv != 0:
+          target = float(min(target, self.limit_speed_in_curv(sm, curv)))
+        else:
+          self.speed_steady = -1
+      else:
+        self.speed_steady = -1
+    else:
+      self.speed_steady = -1
+
+    return target * CV.MS_TO_KPH
 
   def limit_speed_in_curv(self, sm, curv):
     v_ego = sm['carState'].vEgo
