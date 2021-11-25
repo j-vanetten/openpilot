@@ -87,7 +87,7 @@ class CarController():
 
     vTarget = jvepilot_state.carControl.vTargetFuture
 
-    jvepilot_state.carControl.fcw = aTarget < 0 and CS.dashboard["LEAD_VEHICLE"] == 0 and vTarget < CS.out.vEgo < (self.minAccSetting * 0.95)
+    jvepilot_state.carControl.fcw = aTarget < 0 and CS.dashboard["LEAD_VEHICLE"] == 0 and vTarget < CS.out.vEgo < self.minAccSetting
 
     COAST_WINDOW = CV.MPH_TO_MS * 3
     BRAKE_CHANGE = 0.01
