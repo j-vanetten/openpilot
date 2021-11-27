@@ -76,13 +76,13 @@ class CarController():
     aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
     vTarget = CS.out.cruiseState.speed
 
-    if aTarget >= 0:
+    if aTarget >= 0 or CS.out.vEgo > jvepilot_state.carControl.vMaxCruise:
       CS.fcw = False
       self.last_brake = None
       return  # no need to slow down
 
     # FCW when OP wants to slow, but we can no longer spoof ACC braking and ACC doesn't see a vehicle
-    CS.fcw = aTarget < 0 and CS.dashboard["LEAD_VEHICLE"] == 0 and vTarget < CS.out.vEgo < self.minAccSetting
+    CS.fcw = aTarget < 0 and CS.dashboard["LEAD_VEHICLE"] == 0 and CS.out.vEgo < self.minAccSetting
 
     if CS.acc_2['ACC_DECEL_REQ'] == 1:
       if CS.acc_2['ACC_DECEL'] < aTarget:
@@ -92,12 +92,11 @@ class CarController():
     COAST_WINDOW = CV.MPH_TO_MS * 3
     BRAKE_CHANGE = 0.05
 
-    speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large
-    not_slowing_fast_enough = self.last_brake is None and speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there
     already_braking = self.last_brake is not None
+    speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large
+    not_slowing_fast_enough = not already_braking and speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there
 
-    need_to_slow_down = CS.out.vEgo > vTarget
-    if need_to_slow_down:
+    if CS.out.vEgo > vTarget:
       if already_braking or not_slowing_fast_enough:
         if CS.acc_2['ACC_DECEL_REQ'] == 1 and self.last_brake is None:
           self.last_brake = CS.acc_2['ACC_DECEL']  # pick up braking from here
@@ -122,7 +121,7 @@ class CarController():
 
         brake = math.floor(self.last_brake * 100) / 100 if self.last_brake is not None else 4
         can_sends.append(acc_command(self.packer, acc_2_counter + 1, brake, CS.acc_2))
-    elif already_braking:  # let up on the brake
+    elif self.last_brake is not None:  # let up on the brake
       self.last_brake += BRAKE_CHANGE * 2
       brake = math.floor(self.last_brake * 100) / 100
       if self.last_brake < 0:
