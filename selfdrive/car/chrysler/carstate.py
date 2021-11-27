@@ -33,6 +33,7 @@ class CarState(CarStateBase):
     self.dashboard = None
     self.speedRequested = 0
     self.acc_2 = None
+    self.fcw = False
 
   def update(self, cp, cp_cam):
     min_steer_check = self.opParams.get('steer.checkMinimum')
@@ -103,6 +104,8 @@ class CarState(CarStateBase):
     ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DASHBOARD"]['ACC_DISTANCE_CONFIG_2'])))
     ret.jvePilotCarState.buttonCounter = int(cp.vl["WHEEL_BUTTONS"]['COUNTER'])
     self.lkasHeartbit = cp_cam.vl["LKAS_HEARTBIT"]
+
+    ret.jvePilotCarState.fcw = self.fcw
 
     button_events = []
     for buttonType in CHECK_BUTTONS:

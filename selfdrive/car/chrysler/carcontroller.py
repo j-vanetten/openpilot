@@ -69,54 +69,66 @@ class CarController():
 
     override_request = CS.out.gasPressed or CS.out.brakePressed or CS.acc_2['ACC_TORQ_REQ'] == 1
     if not enabled or override_request or jvepilot_state.carControl.useLaneLines:
-      jvepilot_state.carState.fcw = False
+      CS.fcw = False
       self.last_brake = None
       return  # don't brake while controls active
 
     aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
+    vTarget = CS.out.cruiseState.speed
+
     if aTarget >= 0:
-      jvepilot_state.carState.fcw = False
+      CS.fcw = False
       self.last_brake = None
       return  # no need to slow down
 
+    # FCW when OP wants to slow, but we can no longer spoof ACC braking and ACC doesn't see a vehicle
+    CS.fcw = aTarget < 0 and CS.dashboard["LEAD_VEHICLE"] == 0 and vTarget < CS.out.vEgo < self.minAccSetting
+
     if CS.acc_2['ACC_DECEL_REQ'] == 1:
       if CS.acc_2['ACC_DECEL'] < aTarget:
+        self.last_brake = None
         return  # stock ACC is doing all the work
-      elif self.last_brake is None:
-        self.last_brake = round(CS.acc_2['ACC_DECEL'], 2)  # pick up braking from here
-
-    vTarget = jvepilot_state.carControl.vTargetFuture
-
-    # FCW when OP wants to slow, but we can no longer spoof ACC braking and ACC doesn't see a vehicle
-    jvepilot_state.carState.fcw = aTarget < 0 and CS.dashboard["LEAD_VEHICLE"] == 0 and vTarget < CS.out.vEgo < self.minAccSetting
 
     COAST_WINDOW = CV.MPH_TO_MS * 3
-    BRAKE_CHANGE = 0.03
+    BRAKE_CHANGE = 0.05
 
-    speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large, start braking
-    not_slowing_fast_enough = speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there, start braking
-    already_braking = aTarget <= 0 and self.last_brake is not None
+    speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large
+    not_slowing_fast_enough = self.last_brake is None and speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there
+    already_braking = self.last_brake is not None
 
-    need_to_slow_down = CS.out.vEgo > vTarget and CS.out.vEgo > self.current_cruise_setting(CS)
-    if need_to_slow_down and (already_braking or not_slowing_fast_enough):
-      brake_target = max(CarControllerParams.ACCEL_MIN, round(aTarget, 2))
-      if self.last_brake is None:
-        self.last_brake = min(0., brake_target / 4)
+    need_to_slow_down = CS.out.vEgo > vTarget
+    if need_to_slow_down:
+      if already_braking or not_slowing_fast_enough:
+        if CS.acc_2['ACC_DECEL_REQ'] == 1 and self.last_brake is None:
+          self.last_brake = CS.acc_2['ACC_DECEL']  # pick up braking from here
+
+        brake_target = max(CarControllerParams.ACCEL_MIN, round(aTarget, 2))
+        if self.last_brake is None:
+          self.last_brake = min(0., brake_target / 2)
+        else:
+          tBrake = brake_target
+          if not speed_to_far_off:  # let up on brake as we approach
+            tBrake *= (CS.out.vEgo - vTarget) / COAST_WINDOW
+
+          lBrake = self.last_brake
+          if tBrake < lBrake:
+            diff = min(BRAKE_CHANGE, (lBrake - tBrake) / 2)
+            self.last_brake = max(lBrake - diff, tBrake)
+          elif tBrake - lBrake > 0.01:  # don't let up unless it's a big enough jump
+            diff = min(BRAKE_CHANGE, (tBrake - lBrake) / 2)
+            self.last_brake = min(lBrake + diff, tBrake)
+
+        print(f"last_brake={self.last_brake}, brake_target={brake_target}")
+
+        brake = math.floor(self.last_brake * 100) / 100 if self.last_brake is not None else 4
+        can_sends.append(acc_command(self.packer, acc_2_counter + 1, brake, CS.acc_2))
+    elif already_braking:  # let up on the brake
+      self.last_brake += BRAKE_CHANGE * 2
+      brake = math.floor(self.last_brake * 100) / 100
+      if self.last_brake < 0:
+        can_sends.append(acc_command(self.packer, acc_2_counter + 1, brake, CS.acc_2))
       else:
-        tBrake = brake_target
-        if not speed_to_far_off:  # let up on brake as we approach
-          tBrake *= (CS.out.vEgo - vTarget) / COAST_WINDOW
-
-        lBrake = self.last_brake
-        if tBrake < lBrake:
-          self.last_brake = max(self.last_brake - BRAKE_CHANGE, tBrake)
-        elif tBrake > lBrake:
-          self.last_brake = min(self.last_brake + BRAKE_CHANGE, tBrake)
-
-      print(f"last_brake={self.last_brake}, brake_target={brake_target}")
-
-      brake = math.floor(self.last_brake * 100) / 100 if self.last_brake is not None else 4
-      can_sends.append(acc_command(self.packer, acc_2_counter + 1, brake, CS.acc_2))
+        self.last_brake = None
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
@@ -216,7 +228,7 @@ class CarController():
       return 'ACC_RESUME'
 
   def hybrid_acc_button(self, CS, jvepilot_state):
-    target = jvepilot_state.carControl.vTargetFuture + 3 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
+    target = jvepilot_state.carControl.vTargetFuture + (3 * CV.MPH_TO_MS)  # add extra speed so ACC does the limiting
 
     # Move the adaptive curse control to the target speed
     eco_limit = None
@@ -230,7 +242,7 @@ class CarController():
 
     # round to nearest unit
     target = round(min(jvepilot_state.carControl.vMaxCruise, target) * self.round_to_unit)
-    current = self.current_cruise_setting(CS) * self.round_to_unit
+    current = round(CS.out.cruiseState.speed * self.round_to_unit)
 
     if target < current and current > self.minAccSetting:
       return 'ACC_SPEED_DEC'
@@ -263,9 +275,6 @@ class CarController():
           return 'ACC_FOLLOW_DEC'
         else:
           return 'ACC_FOLLOW_INC'
-
-  def current_cruise_setting(self, CS):
-    return round(CS.out.cruiseState.speed * self.round_to_unit) / self.round_to_unit
 
   def accel_hysteresis(self, accel, accel_steady):
     ACCEL_HYST_GAP = 0.06
