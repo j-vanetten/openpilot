@@ -18,6 +18,8 @@ V_CRUISE_MIN_IMPERIAL_MS = V_CRUISE_MIN_IMPERIAL * CV.KPH_TO_MS
 V_CRUISE_MIN_MS = V_CRUISE_MIN * CV.KPH_TO_MS
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
+# ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
+
 class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.apply_steer_last = 0
@@ -73,7 +75,14 @@ class CarController():
       self.last_brake = None
       return  # don't brake while controls active
 
+    COAST_WINDOW = CV.MPH_TO_MS * 3
+    BRAKE_CHANGE = 0.05
+    MAX_BRAKE_ASSIST = -1.  # max braking when a lead car is detected
+
+    acc_lead_detected = CS.dashboard["LEAD_VEHICLE"] == 1
+
     aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
+    aTarget = max(aTarget, MAX_BRAKE_ASSIST) if acc_lead_detected else aTarget
     vTarget = CS.out.cruiseState.speed
 
     if aTarget >= 0 or CS.out.vEgo > jvepilot_state.carControl.vMaxCruise:
@@ -82,15 +91,12 @@ class CarController():
       return  # no need to slow down
 
     # FCW when OP wants to slow, but we can no longer spoof ACC braking and ACC doesn't see a vehicle
-    CS.fcw = aTarget < 0 and CS.dashboard["LEAD_VEHICLE"] == 0 and CS.out.vEgo < self.minAccSetting
+    CS.fcw = aTarget < 0 and not acc_lead_detected and CS.out.vEgo < self.minAccSetting
 
     if CS.acc_2['ACC_DECEL_REQ'] == 1:
       if CS.acc_2['ACC_DECEL'] < aTarget:
         self.last_brake = None
         return  # stock ACC is doing all the work
-
-    COAST_WINDOW = CV.MPH_TO_MS * 3
-    BRAKE_CHANGE = 0.05
 
     already_braking = self.last_brake is not None
     speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large
@@ -238,6 +244,11 @@ class CarController():
 
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
+
+    # # ACC Braking
+    # diff = CS.out.vEgo - target
+    # if diff > ACC_BRAKE_THRESHOLD and abs(target - jvepilot_state.carControl.vMaxCruise) > ACC_BRAKE_THRESHOLD:  # ignore change in max cruise speed
+    #   target -= diff
 
     # round to nearest unit
     target = round(min(jvepilot_state.carControl.vMaxCruise, target) * self.round_to_unit)
