@@ -1,3 +1,19 @@
+Version jvePilot-0.8.11(v3.7.1)
+========================
+Visit http://bit.ly/jvereadme for more information
+* Update to 0.8.11
+ * Support for CAN FD on the red panda
+ * Support for an external panda on the comma three
+ * Navigation: Show more detailed instructions when approaching maneuver
+ * Fixed occasional steering faults on GM cars thanks to jyoung8607!
+ * Nissan ECU firmware fingerprinting thanks to robin-reckmann, martinl, and razem-io!
+ * Cadillac Escalade ESV 2016 support thanks to Gibby!
+ * Genesis G70 2020 support thanks to tecandrew!
+ * Hyundai Santa Fe Hybrid 2022 support thanks to sunnyhaibin!
+ * Mazda CX-9 2021 support thanks to Jacar!
+ * Volkswagen Polo 2020 support thanks to jyoung8607!
+ * Volkswagen T-Roc 2021 support thanks to jyoung8607!
+
 Version jvePilot-0.8.10(v3.7)
 ========================
 Visit http://bit.ly/jvereadme for more information
