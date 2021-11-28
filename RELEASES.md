@@ -1,5 +1,7 @@
-Version 0.8.11 (2021-11-29)
+Version jvePilot-0.8.11(v3.7.1)
 ========================
+Visit http://bit.ly/jvereadme for more information
+* Update to 0.8.11
  * Support for CAN FD on the red panda
  * Support for an external panda on the comma three
  * Navigation: Show more detailed instructions when approaching maneuver
