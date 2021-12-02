@@ -79,10 +79,8 @@ class CarController():
     BRAKE_CHANGE = 0.05
     MAX_BRAKE_ASSIST = -1.  # max braking when a lead car is detected
 
-    acc_lead_detected = CS.dashboard["LEAD_VEHICLE"] == 1
-
     aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
-    aTarget = max(aTarget, MAX_BRAKE_ASSIST) if acc_lead_detected else aTarget
+    aTarget = max(aTarget, MAX_BRAKE_ASSIST) if CS.leadVehicle else aTarget
     vTarget = CS.out.cruiseState.speed
 
     if aTarget >= 0 or CS.out.vEgo > jvepilot_state.carControl.vMaxCruise:
@@ -91,7 +89,7 @@ class CarController():
       return  # no need to slow down
 
     # FCW when OP wants to slow, but we can no longer spoof ACC braking and ACC doesn't see a vehicle
-    CS.fcw = aTarget < 0 and not acc_lead_detected and CS.out.vEgo < self.minAccSetting
+    CS.fcw = aTarget < 0 and not CS.leadVehicle and CS.out.vEgo < self.minAccSetting
 
     if CS.acc_2['ACC_DECEL_REQ'] == 1:
       if CS.acc_2['ACC_DECEL'] < aTarget:
@@ -128,7 +126,7 @@ class CarController():
         brake = math.floor(self.last_brake * 100) / 100 if self.last_brake is not None else 4
         can_sends.append(acc_command(self.packer, acc_2_counter + 1, brake, CS.acc_2))
     elif self.last_brake is not None:  # let up on the brake
-      self.last_brake += BRAKE_CHANGE * 2
+      self.last_brake += BRAKE_CHANGE
       brake = math.floor(self.last_brake * 100) / 100
       if self.last_brake < 0:
         can_sends.append(acc_command(self.packer, acc_2_counter + 1, brake, CS.acc_2))
@@ -233,7 +231,8 @@ class CarController():
       return 'ACC_RESUME'
 
   def hybrid_acc_button(self, CS, jvepilot_state):
-    target = jvepilot_state.carControl.vTargetFuture + (3 * CV.MPH_TO_MS)  # add extra speed so ACC does the limiting
+    leadBuffer = 3 * CV.MPH_TO_MS if CS.leadVehicle else 0  # add extra speed so ACC does the limiting when lead is detected
+    target = jvepilot_state.carControl.vTargetFuture + leadBuffer
 
     # Move the adaptive curse control to the target speed
     eco_limit = None
