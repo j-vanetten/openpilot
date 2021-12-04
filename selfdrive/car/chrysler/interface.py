@@ -71,6 +71,7 @@ class CarInterface(CarInterfaceBase):
     self.cp_cam.update_strings(can_strings)
 
     ret = self.CS.update(self.cp, self.cp_cam)
+    ret.steerWarning = not self.CC.moving_fast
 
     ret.canValid = self.cp.can_valid and self.cp_cam.can_valid
 
@@ -83,8 +84,6 @@ class CarInterface(CarInterfaceBase):
 
     if ret.brakePressed and ret.vEgo < GAS_RESUME_SPEED:
       events.add(car.CarEvent.EventName.accBrakeHold)
-    elif not self.CC.moving_fast:
-      events.add(car.CarEvent.EventName.belowSteerSpeed)
 
     if self.CS.button_pressed(ButtonType.cancel):
       events.add(car.CarEvent.EventName.buttonCancel)  # cancel button pressed
