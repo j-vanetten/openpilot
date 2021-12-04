@@ -204,7 +204,7 @@ def below_steer_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: 
     "Steer Unavailable at Lower Speeds",
     "",
     AlertStatus.userPrompt, AlertSize.small,
-    Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimePrompt, .1 if alert else 0., 0.4, .3)
+    Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimePrompt, .2 if alert else 0.)
 
 
 def calibration_incomplete_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool) -> Alert:
