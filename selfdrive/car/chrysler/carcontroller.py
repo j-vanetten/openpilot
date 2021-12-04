@@ -77,7 +77,7 @@ class CarController():
 
     COAST_WINDOW = CV.MPH_TO_MS * 3
     BRAKE_CHANGE = 0.05
-    MAX_BRAKE_ASSIST = -1.  # max braking when a lead car is detected
+    MAX_BRAKE_ASSIST = -1.5  # max braking when a lead car is detected
 
     aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
     aTarget = max(aTarget, MAX_BRAKE_ASSIST) if CS.leadVehicle else aTarget

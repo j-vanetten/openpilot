@@ -84,7 +84,7 @@ class RadarInterface(RadarInterfaceBase):
       if 'LONG_DIST' in cpt:  # c_* message
         azimuth = (cpt['LAT_ANGLE'])
         self.pts[trackId].dRel = math.cos(azimuth) * cpt['LONG_DIST']
-        self.pts[trackId].yRel = -math.sin(azimuth) * cpt['LONG_DIST']
+        self.pts[trackId].yRel = math.sin(azimuth) * cpt['LONG_DIST']
       else:  # d_* message
         self.pts[trackId].vRel = cpt['REL_SPEED']
         self.pts[trackId].measured = bool(cpt['MEASURED'])
