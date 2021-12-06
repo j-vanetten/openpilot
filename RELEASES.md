@@ -1,6 +1,7 @@
 Version jvePilot-0.8.11(v3.7.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Fixed radar.  Should get less collision alerts
 * Update to 0.8.11
  * Support for CAN FD on the red panda
  * Support for an external panda on the comma three
