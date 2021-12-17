@@ -69,9 +69,10 @@ class CarController():
       return
     self.last_acc_2_counter = acc_2_counter
 
+    CS.fcw = False
+
     override_request = CS.out.gasPressed or CS.out.brakePressed or CS.acc_2['ACC_TORQ_REQ'] == 1
     if not enabled or override_request or jvepilot_state.carControl.useLaneLines:
-      CS.fcw = False
       self.last_brake = None
       return  # don't brake while controls active
 
@@ -83,13 +84,12 @@ class CarController():
     aTarget = max(aTarget, MAX_BRAKE_ASSIST) if CS.leadVehicle else aTarget
     vTarget = CS.out.cruiseState.speed
 
-    if aTarget >= 0 or CS.out.vEgo > jvepilot_state.carControl.vMaxCruise:
-      CS.fcw = False
-      self.last_brake = None
-      return  # no need to slow down
-
     # FCW when OP wants to slow, but we can no longer spoof ACC braking and ACC doesn't see a vehicle
     CS.fcw = aTarget < 0 and not CS.leadVehicle and CS.out.vEgo < self.minAccSetting
+
+    if aTarget >= 0 or CS.out.vEgo > jvepilot_state.carControl.vMaxCruise:
+      self.last_brake = None
+      return  # no need to slow down
 
     if CS.acc_2['ACC_DECEL_REQ'] == 1:
       if CS.acc_2['ACC_DECEL'] < aTarget:
@@ -97,7 +97,7 @@ class CarController():
         return  # stock ACC is doing all the work
 
     already_braking = self.last_brake is not None
-    speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # speed gap is large
+    speed_to_far_off = CS.out.vEgo - vTarget > CV.MPH_TO_MS * 1  # gap
     not_slowing_fast_enough = not already_braking and speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there
 
     if CS.out.vEgo > vTarget:
@@ -231,8 +231,8 @@ class CarController():
       return 'ACC_RESUME'
 
   def hybrid_acc_button(self, CS, jvepilot_state):
-    leadBuffer = 3 * CV.MPH_TO_MS if CS.leadVehicle else 0  # add extra speed so ACC does the limiting when lead is detected
-    target = jvepilot_state.carControl.vTargetFuture + leadBuffer
+    # leadBuffer = 3 * CV.MPH_TO_MS if CS.leadVehicle else 0  # add extra speed so ACC does the limiting when lead is detected
+    target = jvepilot_state.carControl.vTargetFuture # + leadBuffer
 
     # Move the adaptive curse control to the target speed
     eco_limit = None
