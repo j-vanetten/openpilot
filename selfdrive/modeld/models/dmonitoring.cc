@@ -31,24 +31,6 @@ static inline void init_yuv_buf(std::vector<uint8_t> &buf, const int width, int 
   memset(v, 128, (width / 2) * (height / 2));
 }
 
-template <class T>
-static inline T *get_buffer(std::vector<T> &buf, const size_t size) {
-  if (buf.size() < size) buf.resize(size);
-  return buf.data();
-}
-
-static inline void init_yuv_buf(std::vector<uint8_t> &buf, const int width, int height) {
-  uint8_t *y = get_buffer(buf, width * height * 3 / 2);
-  uint8_t *u = y + width * height;
-  uint8_t *v = u + (width / 2) * (height / 2);
-
-  // needed on comma two to make the padded border black
-  // equivalent to RGB(0,0,0) in YUV space
-  memset(y, 16, width * height);
-  memset(u, 128, (width / 2) * (height / 2));
-  memset(v, 128, (width / 2) * (height / 2));
-}
-
 void dmonitoring_init(DMonitoringModelState* s) {
   s->is_rhd = Params().getBool("IsRHD");
   for (int x = 0; x < std::size(s->tensor); ++x) {

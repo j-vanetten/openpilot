@@ -21,6 +21,7 @@
 const int bdr_s = 30;
 const int header_h = 420;
 const int footer_h = 280;
+const int button_bigger = 96;
 
 const int UI_FREQ = 20;   // Hz
 typedef cereal::CarControl::HUDControl::AudibleAlert AudibleAlert;
@@ -105,13 +106,10 @@ typedef struct UIScene {
   uint64_t started_frame;
 
   // jvePilot
-  int autoFollowButtonEnabled;
-  int accEcoButtonEnabled;
   int autoFollowEnabled;
   int accEco;
 
-  Rect autoFollow_btn;
-  Rect accEco_img;
+  QRect accEco_btn;
 } UIScene;
 
 typedef struct UIState {

@@ -224,13 +224,13 @@ def below_engage_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric:
   return NoEntryAlert(f"Speed Below {get_display_speed(CP.minEnableSpeed, metric)}")
 
 
-def below_steer_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool) -> Alert:
+def below_steer_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> Alert:
   alert = cachedParams.get_bool("jvePilot.settings.audioAlertOnSteeringLoss", 1000)
   return Alert(
     "Steer Unavailable at Lower Speeds",
     "",
     AlertStatus.userPrompt, AlertSize.small,
-    Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimePrompt if alert else AudibleAlert.none, .4)
+    Priority.MID, VisualAlert.steerRequired, AudibleAlert.prompt if alert else AudibleAlert.none, 0.4)
 
 
 def calibration_incomplete_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> Alert:

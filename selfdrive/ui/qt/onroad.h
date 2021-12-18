@@ -11,6 +11,10 @@
 
 class OnroadHud : public QWidget {
   Q_OBJECT
+  Q_PROPERTY(int pedalPressedAmount MEMBER pedalPressedAmount NOTIFY valueChanged);
+  Q_PROPERTY(int accEco MEMBER accEco NOTIFY valueChanged);
+  Q_PROPERTY(bool autoFollowEnabled MEMBER autoFollowEnabled NOTIFY valueChanged);
+
   Q_PROPERTY(QString speed MEMBER speed NOTIFY valueChanged);
   Q_PROPERTY(QString speedUnit MEMBER speedUnit NOTIFY valueChanged);
   Q_PROPERTY(QString maxSpeed MEMBER maxSpeed NOTIFY valueChanged);
@@ -26,8 +30,15 @@ public:
 
 private:
   void drawIcon(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity);
+  void drawText(QPainter &p, int x, int y, const QString &text, QColor color);
   void drawText(QPainter &p, int x, int y, const QString &text, int alpha = 255);
   void paintEvent(QPaintEvent *event) override;
+
+  QPixmap eco_imgs[3];
+  QPixmap auto_follow_imgs[2];
+  int pedalPressedAmount;
+  int accEco;
+  bool autoFollowEnabled;
 
   QPixmap engage_img;
   QPixmap dm_img;
