@@ -18,7 +18,9 @@ V_CRUISE_MIN_IMPERIAL_MS = V_CRUISE_MIN_IMPERIAL * CV.KPH_TO_MS
 V_CRUISE_MIN_MS = V_CRUISE_MIN * CV.KPH_TO_MS
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
-# ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
+COAST_WINDOW = CV.MPH_TO_MS * 3
+BRAKE_CHANGE = 0.05
+MAX_BRAKE_ASSIST = -1.5  # max braking when a lead car is detected
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -70,26 +72,22 @@ class CarController():
     self.last_acc_2_counter = acc_2_counter
 
     CS.fcw = False
-
-    override_request = CS.out.gasPressed or CS.out.brakePressed or CS.acc_2['ACC_TORQ_REQ'] == 1
-    if not enabled or override_request or jvepilot_state.carControl.useLaneLines:
-      self.last_brake = None
-      return  # don't brake while controls active
-
-    COAST_WINDOW = CV.MPH_TO_MS * 3
-    BRAKE_CHANGE = 0.05
-    MAX_BRAKE_ASSIST = -1.5  # max braking when a lead car is detected
-
     aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
     aTarget = max(aTarget, MAX_BRAKE_ASSIST) if CS.leadVehicle else aTarget
-    vTarget = CS.out.cruiseState.speed
+
+    override_request = CS.out.gasPressed or CS.out.brakePressed
+    if not enabled or override_request or jvepilot_state.carControl.useLaneLines or aTarget >= 0:
+      self.last_brake = None
+      return  # out of our control, or not braking
+
+    vTarget = jvepilot_state.carControl.vTargetFuture
 
     # FCW when OP wants to slow, but we can no longer spoof ACC braking and ACC doesn't see a vehicle
-    CS.fcw = aTarget < 0 and not CS.leadVehicle and CS.out.vEgo < self.minAccSetting
+    CS.fcw = not CS.leadVehicle and vTarget < self.minAccSetting
 
-    if aTarget >= 0 or CS.out.vEgo > jvepilot_state.carControl.vMaxCruise:
+    if CS.out.vEgo > jvepilot_state.carControl.vMaxCruise or CS.out.vEgo < CS.out.cruiseState.speed or CS.acc_2['ACC_TORQ_REQ'] == 1:
       self.last_brake = None
-      return  # no need to slow down
+      return  # we are over set speed (let it coast), already slower than setting, or ACC is accelerating
 
     if CS.acc_2['ACC_DECEL_REQ'] == 1:
       if CS.acc_2['ACC_DECEL'] < aTarget:
