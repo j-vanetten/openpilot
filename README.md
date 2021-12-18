@@ -76,9 +76,9 @@ It sets the follow distance to closer at slow speeds and increases it the faster
 Setting the follow speed to one/two bars helps with keeping up with cars that take off when stopped or at slow speeds.
 The faster you go, the more distance you want, so you can have more confidence in ACC being able to stop in case it needs to.
 
-The current enabled state of Auto Follow is displayed on the bottom of the jvePilot display.
+The current enabled state of Auto Follow is as an icon above the ACC Eco button on the jvePilot display.
 Pressing Follow + or - will disable Auto Follow giving you full control to set the follow distance. 
-To re-enable Auto Follow, hold either Follow + or - for half a second or tap the button on the display. 
+To re-enable Auto Follow, hold either Follow + or - for half a second. 
  
 ### ACC Eco
 When enabled, jvePilot will limit how far ahead the ACC setting is above the current speed.  
