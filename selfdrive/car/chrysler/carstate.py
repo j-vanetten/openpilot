@@ -56,10 +56,13 @@ class CarState(CarStateBase):
 
     ret.espDisabled = (cp.vl["TRACTION_BUTTON"]["TRACTION_OFF"] == 1)
 
-    ret.wheelSpeeds.fl = cp.vl["WHEEL_SPEEDS"]["WHEEL_SPEED_FL"]
-    ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEEDS"]["WHEEL_SPEED_RR"]
-    ret.wheelSpeeds.rl = cp.vl["WHEEL_SPEEDS"]["WHEEL_SPEED_RL"]
-    ret.wheelSpeeds.fr = cp.vl["WHEEL_SPEEDS"]["WHEEL_SPEED_FR"]
+    ret.wheelSpeeds = self.get_wheel_speeds(
+      cp.vl["WHEEL_SPEEDS"]["WHEEL_SPEED_FL"],
+      cp.vl["WHEEL_SPEEDS"]["WHEEL_SPEED_FR"],
+      cp.vl["WHEEL_SPEEDS"]["WHEEL_SPEED_RL"],
+      cp.vl["WHEEL_SPEEDS"]["WHEEL_SPEED_RR"],
+      unit=1,
+    )
     ret.vEgoRaw = cp.vl["BRAKE_1"]["VEHICLE_SPEED_KPH"] * CV.KPH_TO_MS
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw <= 0.1
