@@ -375,14 +375,17 @@ struct CarControl {
 
     enum AudibleAlert {
       none @0;
-      chimeEngage @1;
-      chimeDisengage @2;
-      chimeError @3;
-      chimeWarning1 @4; # unused
-      chimeWarningRepeat @5;
-      chimeWarningRepeatInfinite @6;
-      chimePrompt @7;
-      chimeWarning2RepeatInfinite @8;
+
+      engage @1;
+      disengage @2;
+      refuse @3;
+
+      warningSoft @4;
+      warningImmediate @5;
+
+      prompt @6;
+      promptRepeat @7;
+      promptDistracted @8;
     }
   }
 
@@ -403,6 +406,7 @@ struct CarParams {
   enableDsu @5 :Bool;        # driving support unit
   enableApgs @6 :Bool;       # advanced parking guidance system
   enableBsm @56 :Bool;       # blind spot monitoring
+  flags @64 :UInt32;         # flags for car specific quirks
 
   minEnableSpeed @7 :Float32;
   minSteerSpeed @8 :Float32;
@@ -465,6 +469,8 @@ struct CarParams {
   communityFeature @46: Bool;  # true if a community maintained feature is detected
   fingerprintSource @49: FingerprintSource;
   networkLocation @50 :NetworkLocation;  # Where Panda/C2 is integrated into the car's CAN network
+
+  wheelSpeedFactor @63 :Float32; # Multiplier on wheels speeds to computer actual speeds
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;
@@ -544,7 +550,7 @@ struct CarParams {
     allOutput @17;
     gmAscm @18;
     noOutput @19;  # like silent but without silent CAN TXs
-    hondaBoschHarness @20;
+    hondaBosch @20;
     volkswagenPq @21;
     subaruLegacy @22;  # pre-Global platform
     hyundaiLegacy @23;

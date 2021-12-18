@@ -1,7 +1,44 @@
-Version jvePilot-0.8.11(v3.7.1)
+Version 0.8.12 (2021-12-15)
+========================
+ * New driving model
+   * Improved behavior around exits
+   * Better pose accuracy at high speeds, allowing max speed of 90mph
+   * Fully incorporated comma three data into all parts of training stack
+ * Improved follow distance
+ * Better longitudinal policy, especially in low speed traffic
+ * New alert sounds
+ * AGNOS 3
+   * Display burn in mitigation
+   * Improved audio amplifier configuration
+   * System reliability improvements
+   * Update Python to 3.8.10
+ * Raw logs upload moved to connect.comma.ai
+ * Fixed HUD alerts on newer Honda Bosch thanks to csouers!
+ * Audi Q3 2020-21 support thanks to jyoung8607!
+ * Lexus RC 2020 support thanks to ErichMoraga!
+
+
+Version jvePilot-0.8.12(v3.7.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
-* Fixed radar.  Should get less collision alerts
+* Fixed radar.  Should get less collision alert
+* Update to 0.8.12
+ * New driving model
+   * Improved behavior around exits
+   * Better pose accuracy at high speeds, allowing max speed of 90mph
+   * Fully incorporated comma three data into all parts of training stack
+ * Improved follow distance
+ * Better longitudinal policy, especially in low speed traffic
+ * New alert sounds
+ * AGNOS 3
+   * Display burn in mitigation
+   * Improved audio amplifier configuration
+   * System reliability improvements
+   * Update Python to 3.8.10
+ * Raw logs upload moved to connect.comma.ai
+ * Fixed HUD alerts on newer Honda Bosch thanks to csouers!
+ * Audi Q3 2020-21 support thanks to jyoung8607!
+ * Lexus RC 2020 support thanks to ErichMoraga!
 * Update to 0.8.11
  * Support for CAN FD on the red panda
  * Support for an external panda on the comma three

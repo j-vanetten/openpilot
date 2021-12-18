@@ -5,8 +5,9 @@ from common.realtime import DT_MDL
 from selfdrive.config import Conversions as CV
 from selfdrive.modeld.constants import T_IDXS
 
-# kph
-V_CRUISE_MAX = 135
+# WARNING: this value was determined based on the model's training distribution,
+#          model predictions above this speed can be unpredictable
+V_CRUISE_MAX = 145  # kph
 V_CRUISE_MIN = 30  # Chrysler min ACC when metric
 V_CRUISE_DELTA = 5  # ACC increments (unit agnostic)
 V_CRUISE_MIN_IMPERIAL = int(20 * CV.MPH_TO_KPH)
