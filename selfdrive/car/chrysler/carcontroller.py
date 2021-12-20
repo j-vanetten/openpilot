@@ -76,18 +76,18 @@ class CarController():
     aTarget = max(aTarget, MAX_BRAKE_ASSIST) if CS.leadVehicle else aTarget
 
     override_request = CS.out.gasPressed or CS.out.brakePressed
-    if not enabled or override_request or jvepilot_state.carControl.useLaneLines or aTarget >= 0:
+    if not enabled or override_request or jvepilot_state.carControl.useLaneLines:
       self.last_brake = None
       return  # out of our control, or not braking
 
     vTarget = jvepilot_state.carControl.vTargetFuture
 
     # FCW when OP wants to slow, but we can no longer spoof ACC braking and ACC doesn't see a vehicle
-    CS.fcw = not CS.leadVehicle and vTarget < self.minAccSetting
+    CS.fcw = not CS.leadVehicle and vTarget < self.minAccSetting and aTarget < 0
 
-    if CS.out.vEgo > jvepilot_state.carControl.vMaxCruise or CS.out.vEgo < CS.out.cruiseState.speed or CS.acc_2['ACC_TORQ_REQ'] == 1:
+    if CS.out.vEgo < CS.out.cruiseState.speed or CS.acc_2['ACC_TORQ_REQ'] == 1:
       self.last_brake = None
-      return  # we are over set speed (let it coast), already slower than setting, or ACC is accelerating
+      return  # already slower than setting, or ACC is accelerating
 
     if CS.acc_2['ACC_DECEL_REQ'] == 1:
       if CS.acc_2['ACC_DECEL'] < aTarget:
