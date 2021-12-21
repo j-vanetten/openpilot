@@ -8,7 +8,7 @@ from common.basedir import BASEDIR
 from selfdrive.swaglog import cloudlog
 
 
-TESTED_BRANCHES = ['devel', 'release2-staging', 'release3-staging', 'dashcam-staging', 'release2', 'release3', 'dashcam']
+TESTED_BRANCHES = ['jvePilot-release', 'origin/jvePilot-release']
 
 training_version: bytes = b"0.2.0"
 terms_version: bytes = b"2"
@@ -72,7 +72,7 @@ def get_comma_remote() -> bool:
   if origin is None:
     return False
 
-  return origin.startswith('git@github.com:commaai') or origin.startswith('https://github.com/commaai')
+  return origin.startswith('git@github.com:j-vanetten') or origin.startswith('https://github.com/j-vanetten')
 
 
 @cache
@@ -103,7 +103,7 @@ def get_dirty() -> bool:
       if dirty and get_comma_remote():
         try:
           dirty_files = run_cmd(["git", "diff-index", branch, "--"])
-          cloudlog.event("dirty comma branch", version=get_version(), dirty=dirty, origin=origin, branch=branch,
+          cloudlog.event("dirty jvePilot branch", version=get_version(), dirty=dirty, origin=origin, branch=branch,
                           dirty_files=dirty_files, commit=get_commit(), origin_commit=get_commit(branch))
         except subprocess.CalledProcessError:
           pass

@@ -6,6 +6,7 @@ import cereal.messaging as messaging
 from common.realtime import DT_CTRL
 from selfdrive.config import Conversions as CV
 from selfdrive.locationd.calibrationd import MIN_SPEED_FILTER
+from common.cached_params import CachedParams
 
 AlertSize = log.ControlsState.AlertSize
 AlertStatus = log.ControlsState.AlertStatus
@@ -13,6 +14,7 @@ VisualAlert = car.CarControl.HUDControl.VisualAlert
 AudibleAlert = car.CarControl.HUDControl.AudibleAlert
 EventName = car.CarEvent.EventName
 
+cachedParams = CachedParams()
 
 # Alert priorities
 class Priority(IntEnum):
@@ -223,11 +225,12 @@ def below_engage_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric:
 
 
 def below_steer_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> Alert:
+  alert = cachedParams.get_bool("jvePilot.settings.audioAlertOnSteeringLoss", 1000)
   return Alert(
-    f"Steer Unavailable Below {get_display_speed(CP.minSteerSpeed, metric)}",
+    "Steer Unavailable at Lower Speeds",
     "",
     AlertStatus.userPrompt, AlertSize.small,
-    Priority.MID, VisualAlert.steerRequired, AudibleAlert.prompt, 0.4)
+    Priority.MID, VisualAlert.steerRequired, AudibleAlert.prompt if alert else AudibleAlert.none, 0.4)
 
 
 def calibration_incomplete_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> Alert:
@@ -388,6 +391,14 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       "",
       AlertStatus.userPrompt, AlertSize.small,
       Priority.LOW, VisualAlert.steerRequired, AudibleAlert.prompt, 1.),
+  },
+
+  EventName.accBrakeHold: {
+    ET.WARNING: Alert(
+      "WAITING TO RESUME ACC",
+      "Release brake to resume ACC",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.LOW, VisualAlert.none, AudibleAlert.none, .2, .2, .2),
   },
 
   EventName.preDriverDistracted: {
@@ -823,7 +834,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       "Speed Too High",
       "Model uncertain at this speed",
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.promptRepeat, 4.),
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.none, 4.),
     ET.NO_ENTRY: NoEntryAlert("Slow down to engage"),
   },
 

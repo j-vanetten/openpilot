@@ -2,6 +2,7 @@
 import math
 import numpy as np
 from common.numpy_fast import interp
+from common.cached_params import CachedParams
 
 import cereal.messaging as messaging
 from common.realtime import DT_MDL
@@ -15,9 +16,8 @@ from selfdrive.swaglog import cloudlog
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2  # car smoothly decel at .2m/s^2 when user is distracted
-A_CRUISE_MIN = -1.2
-A_CRUISE_MAX_VALS = [1.2, 1.2, 0.8, 0.6]
-A_CRUISE_MAX_BP = [0., 15., 25., 40.]
+A_CRUISE_MIN = -10.
+A_CRUISE_MAX = 10.
 
 # Lookup table for turns
 _A_TOTAL_MAX_V = [1.7, 3.2]
@@ -25,7 +25,7 @@ _A_TOTAL_MAX_BP = [20., 40.]
 
 
 def get_max_accel(v_ego):
-  return interp(v_ego, A_CRUISE_MAX_BP, A_CRUISE_MAX_VALS)
+  return A_CRUISE_MAX
 
 
 def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
@@ -48,6 +48,8 @@ class Planner:
 
     self.fcw = False
 
+    self.cachedParams = CachedParams()
+
     self.v_desired = init_v
     self.a_desired = init_a
     self.alpha = np.exp(-DT_MDL / 2.0)
@@ -56,7 +58,8 @@ class Planner:
     self.a_desired_trajectory = np.zeros(CONTROL_N)
     self.j_desired_trajectory = np.zeros(CONTROL_N)
 
-  def update(self, sm):
+
+  def update(self, sm, lateral_planner):
     v_ego = sm['carState'].vEgo
     a_ego = sm['carState'].aEgo
 
@@ -79,15 +82,17 @@ class Planner:
     self.v_desired = max(0.0, self.v_desired)
 
     accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
-    accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
+    if not self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
+      accel_limits = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
+
     if force_slow_decel:
       # if required so, force a smooth deceleration
-      accel_limits_turns[1] = min(accel_limits_turns[1], AWARENESS_DECEL)
-      accel_limits_turns[0] = min(accel_limits_turns[0], accel_limits_turns[1])
+      accel_limits[1] = min(accel_limits[1], AWARENESS_DECEL)
+      accel_limits[0] = min(accel_limits[0], accel_limits[1])
     # clip limits, cannot init MPC outside of bounds
-    accel_limits_turns[0] = min(accel_limits_turns[0], self.a_desired + 0.05)
-    accel_limits_turns[1] = max(accel_limits_turns[1], self.a_desired - 0.05)
-    self.mpc.set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
+    accel_limits[0] = min(accel_limits[0], self.a_desired + 0.05)
+    accel_limits[1] = max(accel_limits[1], self.a_desired - 0.05)
+    self.mpc.set_accel_limits(accel_limits[0], accel_limits[1])
     self.mpc.set_cur_state(self.v_desired, self.a_desired)
     self.mpc.update(sm['carState'], sm['radarState'], v_cruise, prev_accel_constraint=prev_accel_constraint)
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
@@ -103,6 +108,14 @@ class Planner:
     a_prev = self.a_desired
     self.a_desired = float(interp(DT_MDL, T_IDXS[:CONTROL_N], self.a_desired_trajectory))
     self.v_desired = self.v_desired + DT_MDL * (self.a_desired + a_prev) / 2.0
+
+    if lateral_planner.lateralPlan and self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
+      curvs = list(lateral_planner.lateralPlan.curvatures)
+      if len(curvs):
+        # find the largest curvature in the solution and use that.
+        curv = abs(curvs[-1])
+        if curv != 0:
+          self.v_desired = float(min(self.v_desired, self.limit_speed_in_curv(sm, curv)))
 
   def publish(self, sm, pm):
     plan_send = messaging.new_message('longitudinalPlan')
@@ -122,3 +135,16 @@ class Planner:
     longitudinalPlan.fcw = self.fcw
 
     pm.send('longitudinalPlan', plan_send)
+
+  def limit_speed_in_curv(self, sm, curv):
+    v_ego = sm['carState'].vEgo
+    a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
+
+    # drop off
+    drop_off = self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedDropOff', 5000)
+    if drop_off != 2 and a_y_max > 0:
+      a_y_max = np.sqrt(a_y_max) ** drop_off
+
+    v_curvature = np.sqrt(a_y_max / np.clip(curv, 1e-4, None))
+    model_speed = np.min(v_curvature)
+    return model_speed * self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedRatio', 5000)

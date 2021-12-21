@@ -83,6 +83,23 @@ private:
 };
 
 std::unordered_map<std::string, uint32_t> keys = {
+    {"jvePilot.carState.accEco", PERSISTENT},
+    {"jvePilot.settings.accEco.speedAheadLevel1", PERSISTENT},
+    {"jvePilot.settings.accEco.speedAheadLevel2", PERSISTENT},
+    {"jvePilot.settings.autoFollow", PERSISTENT},
+    {"jvePilot.settings.autoFollow.speed1-2Bars", PERSISTENT},
+    {"jvePilot.settings.autoFollow.speed2-3Bars", PERSISTENT},
+    {"jvePilot.settings.autoFollow.speed3-4Bars", PERSISTENT},
+    {"jvePilot.settings.autoResume", PERSISTENT},
+    {"jvePilot.settings.disableOnGas", PERSISTENT},
+    {"jvePilot.settings.audioAlertOnSteeringLoss", PERSISTENT},
+    {"jvePilot.settings.deviceOffset", PERSISTENT},
+    {"jvePilot.settings.reverseAccSpeedChange", PERSISTENT},
+    {"jvePilot.settings.slowInCurves", PERSISTENT},
+    {"jvePilot.settings.slowInCurves.speedRatio", PERSISTENT},
+    {"jvePilot.settings.slowInCurves.speedDropOff", PERSISTENT},
+    {"jvePilot.settings.slowInCurves.speedDropOffAngle", PERSISTENT},
+
     {"AccessToken", CLEAR_ON_MANAGER_START | DONT_LOG},
     {"AthenadPid", PERSISTENT},
     {"BootedOnroad", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_OFF},

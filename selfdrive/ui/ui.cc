@@ -106,6 +106,7 @@ static void update_sockets(UIState *s) {
 static void update_state(UIState *s) {
   SubMaster &sm = *(s->sm);
   UIScene &scene = s->scene;
+  s->running_time = 1e-9 * (nanos_since_boot() - sm["deviceState"].getDeviceState().getStartedMonoTime());
 
   if (sm.updated("modelV2")) {
     update_model(s, sm["modelV2"].getModelV2());
@@ -183,6 +184,12 @@ static void update_state(UIState *s) {
     scene.light_sensor = std::clamp<float>(1.0 - (ev / max_ev), 0.0, 1.0);
   }
   scene.started = sm["deviceState"].getDeviceState().getStarted() && scene.ignition;
+
+  if (sm.updated("jvePilotState")) {
+    scene.autoFollowEnabled = sm["jvePilotState"].getJvePilotUIState().getAutoFollow() ? 1 : 0;
+    scene.accEco = sm["jvePilotState"].getJvePilotUIState().getAccEco();
+    scene.end_to_end = !sm["jvePilotState"].getJvePilotUIState().getUseLaneLines();
+  }
 }
 
 void ui_update_params(UIState *s) {
@@ -219,14 +226,20 @@ static void update_status(UIState *s) {
 
 
 QUIState::QUIState(QObject *parent) : QObject(parent) {
-  ui_state.sm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({
+  ui_state.pm = std::make_unique<PubMaster, const std::initializer_list<const char *>>({"jvePilotUIState"});
+  ui_state.sm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({"jvePilotState",
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
     "pandaStates", "carParams", "driverMonitoringState", "sensorEvents", "carState", "liveLocationKalman",
   });
 
+  ui_state.scene.autoFollowEnabled = -1;
+  ui_state.scene.accEco = -1;
+
   Params params;
   ui_state.wide_camera = Hardware::TICI() ? params.getBool("EnableWideCamera") : false;
   ui_state.has_prime = params.getBool("HasPrime");
+
+  ui_state.wide_camera = Hardware::TICI() ? Params().getBool("EnableWideCamera") : false;
 
   // update timer
   timer = new QTimer(this);

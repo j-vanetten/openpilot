@@ -131,4 +131,4 @@ class LongControl():
     self.last_output_accel = output_accel
     final_accel = clip(output_accel, accel_limits[0], accel_limits[1])
 
-    return final_accel
+    return final_accel, v_target_future
