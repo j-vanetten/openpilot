@@ -99,7 +99,7 @@ class CarController():
     not_slowing_fast_enough = not already_braking and speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there
 
     if CS.out.vEgo > vTarget:
-      if already_braking or not_slowing_fast_enough:
+      if aTarget < 0 and (already_braking or not_slowing_fast_enough):
         if CS.acc_2['ACC_DECEL_REQ'] == 1 and self.last_brake is None:
           self.last_brake = CS.acc_2['ACC_DECEL']  # pick up braking from here
 
@@ -118,8 +118,6 @@ class CarController():
           elif tBrake - lBrake > 0.01:  # don't let up unless it's a big enough jump
             diff = min(BRAKE_CHANGE, (tBrake - lBrake) / 2)
             self.last_brake = min(lBrake + diff, tBrake)
-
-        print(f"last_brake={self.last_brake}, brake_target={brake_target}")
 
         brake = math.floor(self.last_brake * 100) / 100 if self.last_brake is not None else 4
         can_sends.append(acc_command(self.packer, acc_2_counter + 1, brake, CS.acc_2))
