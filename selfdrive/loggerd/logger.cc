@@ -2,6 +2,7 @@
 
 #include <sys/stat.h>
 #include <unistd.h>
+#include <ftw.h>
 
 #include <cassert>
 #include <cerrno>
@@ -28,22 +29,6 @@ void append_property(const char* key, const char* value, void *cookie) {
     (std::vector<std::pair<std::string, std::string> > *)cookie;
 
   properties->push_back(std::make_pair(std::string(key), std::string(value)));
-}
-
-int logger_mkpath(char* file_path) {
-  assert(file_path && *file_path);
-  char* p;
-  for (p=strchr(file_path+1, '/'); p; p=strchr(p+1, '/')) {
-    *p = '\0';
-    if (mkdir(file_path, 0775)==-1) {
-      if (errno != EEXIST) {
-        *p = '/';
-        return -1;
-      }
-    }
-    *p = '/';
-  }
-  return 0;
 }
 
 // ***** log metadata *****
@@ -154,8 +139,6 @@ void logger_init(LoggerState *s, const char* log_name, bool has_qlog) {
 }
 
 static LoggerHandle* logger_open(LoggerState *s, const char* root_path) {
-  int err;
-
   LoggerHandle *h = NULL;
   for (int i=0; i<LOGGER_MAX_HANDLES; i++) {
     if (s->handles[i].refcnt == 0) {
@@ -174,8 +157,7 @@ static LoggerHandle* logger_open(LoggerState *s, const char* root_path) {
   h->end_sentinel_type = SentinelType::END_OF_SEGMENT;
   h->exit_signal = 0;
 
-  err = logger_mkpath(h->log_path);
-  if (err) return NULL;
+  if (!util::create_directories(h->segment_path, 0775)) return nullptr;
 
   FILE* lock_file = fopen(h->lock_path, "wb");
   if (lock_file == NULL) return NULL;
@@ -284,4 +266,16 @@ void lh_close(LoggerHandle* h) {
     return;
   }
   pthread_mutex_unlock(&h->lock);
+}
+
+int clear_locks_fn(const char* fpath, const struct stat *sb, int tyupeflag) {
+  const char* dot = strrchr(fpath, '.');
+  if (dot && strcmp(dot, ".lock") == 0) {
+    unlink(fpath);
+  }
+  return 0;
+}
+
+void clear_locks(const std::string log_root) {
+  ftw(log_root.c_str(), clear_locks_fn, 16);
 }
