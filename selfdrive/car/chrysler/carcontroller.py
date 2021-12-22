@@ -175,15 +175,15 @@ class CarController():
     if not self.min_steer_check:
       self.moving_fast = True
       self.torq_enabled = enabled or low_steer_models
-    elif low_steer_models:
-      self.moving_fast = not CS.out.steerError and CS.lkas_active
-      self.torq_enabled = self.torq_enabled or CS.torq_status > 1
+    # elif low_steer_models:
+    #   self.moving_fast = not CS.out.steerError and CS.lkas_active
+    #   self.torq_enabled = self.torq_enabled or CS.torq_status > 1
     else:
-      self.moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed  # for status message
+      self.moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed or (low_steer_models and self.moving_fast) # for status message
       if CS.out.vEgo > (CS.CP.minSteerSpeed - 0.5):  # for command high bit
         self.torq_enabled = True
       elif CS.out.vEgo < (CS.CP.minSteerSpeed - 3.0):
-        self.torq_enabled = False  # < 14.5m/s stock turns off this bit, but fine down to 13.5
+        self.torq_enabled = (low_steer_models and self.torq_enabled)  # < 14.5m/s stock turns off this bit, but fine down to 13.5
 
     lkas_active = self.moving_fast and enabled
     if not lkas_active:
