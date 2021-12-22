@@ -268,13 +268,15 @@ void OnroadHud::paintEvent(QPaintEvent *event) {
              dm_img, QColor(0, 0, 0, 70), dmActive ? 1.0 : 0.2);
   }
 
-  // Auto Follow
-  drawIcon(p, rect().right() - radius / 2 - bdr_s * 2,
-              rect().bottom() - footer_h / 2 - button_bigger - radius - bdr_s,
-           auto_follow_imgs[autoFollowEnabled], QColor(0, 0, 0, 0), 1.0);
 
-  // eco icon
-  if (accEco >= 0) {
+  if (accEco >= 0) { // got data yet?
+    // Auto Follow
+    drawIcon(p,
+             rect().right() - radius / 2 - bdr_s * 2,
+             rect().bottom() - footer_h / 2 - button_bigger - radius,
+             auto_follow_imgs[autoFollowEnabled], QColor(0, 0, 0, 0), 1.0);
+
+    // eco icon
     drawIcon(p, rect().right() - radius / 2 - bdr_s * 2 - button_bigger, rect().bottom() - footer_h / 2 - button_bigger,
              eco_imgs[accEco], QColor(0, 0, 0, 0), 1.0);
     QUIState::ui_state.scene.accEco_btn = QRect(
