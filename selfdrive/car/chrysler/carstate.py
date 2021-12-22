@@ -32,7 +32,6 @@ class CarState(CarStateBase):
     self.lkasHeartbit = None
     self.dashboard = None
     self.speedRequested = 0
-    self.acc_1 = None
     self.acc_2 = None
     self.fcw = False
     self.leadVehicle = False
@@ -100,7 +99,6 @@ class CarState(CarStateBase):
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]["CAR_MODEL"]
     self.torq_status = cp.vl["EPS_STATUS"]["TORQ_STATUS"]
     self.gasRpm = cp.vl["ACCEL_PEDAL_MSG"]["ENGINE_RPM"]
-    self.acc_1 = cp.vl['ACC_1']
     self.acc_2 = cp.vl['ACC_2']
 
     brake = cp.vl["BRAKE_1"]["BRAKE_VAL_TOTAL"]
@@ -214,10 +212,6 @@ class CarState(CarStateBase):
       ("COUNTER", "ACC_2", 0),
       ("CHECKSUM", "ACC_2", 0),
 
-      ("FORWARD_1", "ACC_1", 0),
-      ("FORWARD_2", "ACC_1", 0),
-      ("FORWARD_3", "ACC_1", 0),
-
       ("ACCELERATION", "SENSORS", 0),
       ("ENGINE_RPM", "ACCEL_PEDAL_MSG", 0),
     ]
@@ -243,7 +237,6 @@ class CarState(CarStateBase):
       ("ACCEL_RELATED_120", 50),
       ("SENSORS", 50),
       ("ACCEL_PEDAL_MSG", 50),
-      ("ACC_1", 50),
     ]
 
     if CP.enableBsm:
