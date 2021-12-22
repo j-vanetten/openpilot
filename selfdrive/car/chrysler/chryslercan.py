@@ -1,6 +1,7 @@
 from cereal import car
 from selfdrive.car import make_can_msg
-
+from selfdrive.config import Conversions as CV
+import math
 
 GearShifter = car.CarState.GearShifter
 VisualAlert = car.CarControl.HUDControl.VisualAlert
@@ -64,6 +65,15 @@ def create_wheel_buttons_command(packer, counter, buttons):
       values[b] = 1
 
   return packer.make_can_msg("WHEEL_BUTTONS", 0, values)
+
+def dashboard(packer, cruise, state, enabled, lead):
+  values = {
+    'ACC_SPEED_CONFIG_KPH': math.floor(cruise * CV.MS_TO_KPH),
+    'ACC_SPEED_CONFIG_MPH': math.floor(cruise * CV.MS_TO_MPH),
+    'CRUISE_STATE': state,
+    'ACC_ENABLED': enabled,
+  }
+  return packer.make_can_msg("DASHBOARD", 0, values)
 
 def acc_log(packer, aTarget, vTarget, long_starting, long_stopping):
   values = {
