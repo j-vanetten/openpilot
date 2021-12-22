@@ -69,9 +69,9 @@ class CarController():
   # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
     ACCEL_TORQ_MIN = 20
-    ACCEL_TORQ_MAX = self.cachedParams.get_float('jvePilot.settings.longControl.maxAccelTorq', 500)
-    ACCEL_TORQ_START = self.cachedParams.get_float('jvePilot.settings.longControl.torqStart', 500)
-    VEHICLE_MASS = self.cachedParams.get_float('jvePilot.settings.longControl.vehicleMass', 500)
+    ACCEL_TORQ_MAX = 360
+    ACCEL_TORQ_START = 100
+    VEHICLE_MASS = 2268
     LOW_WINDOW = CV.MPH_TO_MS * 3
     COAST_WINDOW = CV.MPH_TO_MS * 2
     BRAKE_CHANGE = 0.05
@@ -220,7 +220,7 @@ class CarController():
       CS.accEnabled = True
 
   def accel_hysteresis(self, accel, accel_steady):
-    ACCEL_HYST_GAP = self.cachedParams.get_float('jvePilot.settings.longControl.hystGap', 500)
+    ACCEL_HYST_GAP = 0.06
 
     if accel > accel_steady + ACCEL_HYST_GAP:
       accel_steady = accel - ACCEL_HYST_GAP
