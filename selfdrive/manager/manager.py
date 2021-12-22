@@ -36,6 +36,24 @@ def manager_init():
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
 
   default_params = [
+    ("CommunityFeaturesToggle", "1"),
+    ("jvePilot.carState.accEco", "1"),
+    ("jvePilot.settings.accEco.speedAheadLevel1", "7"),
+    ("jvePilot.settings.accEco.speedAheadLevel2", "5"),
+    ("jvePilot.settings.autoFollow", "1"),
+    ("jvePilot.settings.autoFollow.speed1-2Bars", "15"),
+    ("jvePilot.settings.autoFollow.speed2-3Bars", "30"),
+    ("jvePilot.settings.autoFollow.speed3-4Bars", "65"),
+    ("jvePilot.settings.autoResume", "1"),
+    ("jvePilot.settings.disableOnGas", "0"),
+    ("jvePilot.settings.audioAlertOnSteeringLoss", "1"),
+    ("jvePilot.settings.deviceOffset", "0.00"),
+    ("jvePilot.settings.reverseAccSpeedChange", "1"),
+    ("jvePilot.settings.slowInCurves", "1"),
+    ("jvePilot.settings.slowInCurves.speedRatio", "1.0"),
+    ("jvePilot.settings.slowInCurves.speedDropOff", "2.0"),
+    ("jvePilot.settings.slowInCurves.speedDropOffAngle", "0.0"),
+
     ("CompletedTrainingVersion", "0"),
     ("HasAcceptedTerms", "0"),
     ("OpenpilotEnabledToggle", "1"),
