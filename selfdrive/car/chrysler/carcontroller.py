@@ -179,7 +179,7 @@ class CarController():
     #   self.moving_fast = not CS.out.steerError and CS.lkas_active
     #   self.torq_enabled = self.torq_enabled or CS.torq_status > 1
     else:
-      self.moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed or (low_steer_models and self.moving_fast) # for status message
+      self.moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed # for status message
       if CS.out.vEgo > (CS.CP.minSteerSpeed - 0.5):  # for command high bit
         self.torq_enabled = True
       elif CS.out.vEgo < (CS.CP.minSteerSpeed - 3.0):
