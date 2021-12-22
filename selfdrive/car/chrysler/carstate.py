@@ -32,9 +32,12 @@ class CarState(CarStateBase):
     self.lkasHeartbit = None
     self.dashboard = None
     self.speedRequested = 0
+    self.acc_1 = None
     self.acc_2 = None
     self.fcw = False
     self.leadVehicle = False
+    self.gasRpm = None
+    self.accEnabled = False
 
   def update(self, cp, cp_cam):
     min_steer_check = self.opParams.get('steer.checkMinimum')
@@ -73,11 +76,11 @@ class CarState(CarStateBase):
     ret.steeringRateDeg = cp.vl["STEERING"]["STEERING_RATE"]
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["GEAR"]["PRNDL"], None))
 
-    ret.cruiseState.enabled = cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
-    ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3, 4]  # the comment below says 3 and 4 are ACC mode
+    ret.cruiseState.enabled = self.accEnabled  # cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
+    ret.cruiseState.available = not cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2, 3, 4]
     ret.cruiseState.speed = cp.vl["DASHBOARD"]["ACC_SPEED_CONFIG_KPH"] * CV.KPH_TO_MS
     # CRUISE_STATE is a three bit msg, 0 is off, 1 and 2 are Non-ACC mode, 3 and 4 are ACC mode, find if there are other states too
-    ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2]
+    ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2, 3, 4]
     self.leadVehicle = cp.vl["DASHBOARD"]["LEAD_VEHICLE"] == 1
     self.dashboard = cp.vl["DASHBOARD"]
 
@@ -85,7 +88,7 @@ class CarState(CarStateBase):
     ret.steeringTorqueEps = cp.vl["EPS_STATUS"]["TORQUE_MOTOR"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
     self.lkas_active = cp.vl["EPS_STATUS"]["LKAS_ACTIVE"] == 1
-    ret.steerError = cp.vl["EPS_STATUS"]["LKAS_STEER_FAULT"] == 1 or (min_steer_check and not self.lkas_active and ret.vEgo > self.CP.minSteerSpeed)
+    ret.steerError = cp.vl["EPS_STATUS"]["LKAS_STEER_FAULT"] == 1  # or (min_steer_check and not self.lkas_active and ret.vEgo > self.CP.minSteerSpeed)
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]["HIGH_BEAM_FLASH"])
 
@@ -96,7 +99,10 @@ class CarState(CarStateBase):
     self.lkas_counter = cp_cam.vl["LKAS_COMMAND"]["COUNTER"]
     self.lkas_car_model = cp_cam.vl["LKAS_HUD"]["CAR_MODEL"]
     self.torq_status = cp.vl["EPS_STATUS"]["TORQ_STATUS"]
+    self.gasRpm = cp.vl["ACCEL_PEDAL_MSG"]["ENGINE_RPM"]
+    self.acc_1 = cp.vl['ACC_1']
     self.acc_2 = cp.vl['ACC_2']
+
     brake = cp.vl["BRAKE_1"]["BRAKE_VAL_TOTAL"]
     gas = cp.vl["ACCEL_RELATED_120"]["ACCEL"]
     if gas > 0:
@@ -207,6 +213,13 @@ class CarState(CarStateBase):
       ("DISPLAY_REQ", "ACC_2", 0),
       ("COUNTER", "ACC_2", 0),
       ("CHECKSUM", "ACC_2", 0),
+
+      ("FORWARD_1", "ACC_1", 0),
+      ("FORWARD_2", "ACC_1", 0),
+      ("FORWARD_3", "ACC_1", 0),
+
+      ("ACCELERATION", "SENSORS", 0),
+      ("ENGINE_RPM", "ACCEL_PEDAL_MSG", 0),
     ]
 
     checks = [
@@ -227,7 +240,10 @@ class CarState(CarStateBase):
       ("WHEEL_BUTTONS", 50),
       ("BLIND_SPOT_WARNINGS", 2),
       ("BRAKE_1", 100),
-      ("ACCEL_RELATED_120", 50)
+      ("ACCEL_RELATED_120", 50),
+      ("SENSORS", 50),
+      ("ACCEL_PEDAL_MSG", 50),
+      ("ACC_1", 50),
     ]
 
     if CP.enableBsm:
