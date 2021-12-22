@@ -229,8 +229,7 @@ class CarController():
       return 'ACC_RESUME'
 
   def hybrid_acc_button(self, CS, jvepilot_state):
-    # leadBuffer = 3 * CV.MPH_TO_MS if CS.leadVehicle else 0  # add extra speed so ACC does the limiting when lead is detected
-    target = jvepilot_state.carControl.vTargetFuture # + leadBuffer
+    target = jvepilot_state.carControl.vTargetFuture
 
     # Move the adaptive curse control to the target speed
     eco_limit = None
