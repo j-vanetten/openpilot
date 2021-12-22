@@ -318,99 +318,14 @@ class CarController():
     self.last_button_counter = button_counter
 
     self.button_frame += 1
-    button_counter_offset = 1
-    buttons_to_press = []
-    if pcm_cancel_cmd:
-      buttons_to_press = ['ACC_CANCEL']
-    elif not CS.button_pressed(ButtonType.cancel):
-      follow_inc_button = CS.button_pressed(ButtonType.followInc)
-      follow_dec_button = CS.button_pressed(ButtonType.followDec)
 
-      if jvepilot_state.carControl.autoFollow:
-        follow_inc_button = CS.button_pressed(ButtonType.followInc, False)
-        follow_dec_button = CS.button_pressed(ButtonType.followDec, False)
-        if (follow_inc_button and follow_inc_button.pressedFrames < 50) or \
-           (follow_dec_button and follow_dec_button.pressedFrames < 50):
-          jvepilot_state.carControl.autoFollow = False
-          jvepilot_state.notifyUi = True
-      elif (follow_inc_button and follow_inc_button.pressedFrames >= 50) or \
-           (follow_dec_button and follow_dec_button.pressedFrames >= 50):
-        jvepilot_state.carControl.autoFollow = True
-        jvepilot_state.notifyUi = True
-
-      if enabled and not CS.out.brakePressed:
-        button_counter_offset = [1, 1, 0, None][self.button_frame % 4]
-        if button_counter_offset is not None:
-          if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
-            buttons_to_press = [self.auto_resume_button(CS, gas_resume_speed)]
-          elif CS.out.cruiseState.enabled:  # Control ACC
-            buttons_to_press = [self.auto_follow_button(CS, jvepilot_state), self.hybrid_acc_button(CS, jvepilot_state)]
-
-    buttons_to_press = list(filter(None, buttons_to_press))
-    if buttons_to_press is not None and len(buttons_to_press) > 0:
-      new_msg = create_wheel_buttons_command(self.packer, button_counter + button_counter_offset, buttons_to_press)
-      can_sends.append(new_msg)
-
-  def auto_resume_button(self, CS, gas_resume_speed):
-    if self.auto_resume and CS.out.vEgo <= gas_resume_speed:  # Keep trying while under gas_resume_speed
-      return 'ACC_RESUME'
-
-  def hybrid_acc_button(self, CS, jvepilot_state):
-    target = jvepilot_state.carControl.vTargetFuture
-
-    # Move the adaptive curse control to the target speed
-    eco_limit = None
-    if jvepilot_state.carControl.accEco == 1:  # if eco mode
-      eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)
-    elif jvepilot_state.carControl.accEco == 2:  # if eco mode
-      eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
-
-    if eco_limit:
-      target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
-
-    # # ACC Braking
-    # diff = CS.out.vEgo - target
-    # if diff > ACC_BRAKE_THRESHOLD and abs(target - jvepilot_state.carControl.vMaxCruise) > ACC_BRAKE_THRESHOLD:  # ignore change in max cruise speed
-    #   target -= diff
-
-    # round to nearest unit
-    target = round(min(jvepilot_state.carControl.vMaxCruise, target) * self.round_to_unit)
-    current = round(CS.out.cruiseState.speed * self.round_to_unit)
-
-    if target < current and current > self.minAccSetting:
-      return 'ACC_SPEED_DEC'
-    elif target > current:
-      return 'ACC_SPEED_INC'
-
-  def auto_follow_button(self, CS, jvepilot_state):
-    if jvepilot_state.carControl.autoFollow:
-      crossover = [0,
-                   self.cachedParams.get_float('jvePilot.settings.autoFollow.speed1-2Bars', 1000) * CV.MPH_TO_MS,
-                   self.cachedParams.get_float('jvePilot.settings.autoFollow.speed2-3Bars', 1000) * CV.MPH_TO_MS,
-                   self.cachedParams.get_float('jvePilot.settings.autoFollow.speed3-4Bars', 1000) * CV.MPH_TO_MS]
-
-      if CS.out.vEgo < crossover[1]:
-        target_follow = 0
-      elif CS.out.vEgo < crossover[2]:
-        target_follow = 1
-      elif CS.out.vEgo < crossover[3]:
-        target_follow = 2
-      else:
-        target_follow = 3
-
-      if self.autoFollowDistanceLock is not None and abs(crossover[self.autoFollowDistanceLock] - CS.out.vEgo) > AUTO_FOLLOW_LOCK_MS:
-        self.autoFollowDistanceLock = None  # unlock
-
-      if jvepilot_state.carState.accFollowDistance != target_follow and (self.autoFollowDistanceLock or target_follow) == target_follow:
-        self.autoFollowDistanceLock = target_follow  # going from close to far, use upperbound
-
-        if jvepilot_state.carState.accFollowDistance > target_follow:
-          return 'ACC_FOLLOW_DEC'
-        else:
-          return 'ACC_FOLLOW_INC'
+    if pcm_cancel_cmd or CS.button_pressed(ButtonType.cancel):
+      CS.accEnabled = False
+    elif CS.button_pressed(ButtonType.accelCruise) or CS.button_pressed(ButtonType.decelCruise) or CS.button_pressed(ButtonType.resumeCruise):
+      CS.accEnabled = True
 
   def accel_hysteresis(self, accel, accel_steady):
-    ACCEL_HYST_GAP = 0.06
+    ACCEL_HYST_GAP = self.cachedParams.get_float('jvePilot.settings.longControl.hystGap', 500)
 
     if accel > accel_steady + ACCEL_HYST_GAP:
       accel_steady = accel - ACCEL_HYST_GAP
