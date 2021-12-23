@@ -88,7 +88,7 @@ class CarController():
       self.last_torque = ACCEL_TORQ_START
       self.last_aTarget = CS.out.aEgo
       can_sends.append(acc_command(self.packer, acc_2_counter + 1, False, False, 0, False, 0, CS.acc_2))
-      can_sends.append(dashboard(self.packer, jvepilot_state.carControl.vMaxCruise, 3, 0, 0))
+      can_sends.append(dashboard(self.packer, jvepilot_state.carControl.vMaxCruise, 3, 0))
       return  # out of our control
 
     vTarget = jvepilot_state.carControl.vTargetFuture
@@ -153,7 +153,7 @@ class CarController():
 
     can_sends.append(acc_log(self.packer, actuators.accel, vTarget, long_starting, long_stopping))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True, go_req, torque, stop_req, brake, CS.acc_2))
-    can_sends.append(dashboard(self.packer, jvepilot_state.carControl.vMaxCruise, 4, 1, 0))
+    can_sends.append(dashboard(self.packer, jvepilot_state.carControl.vMaxCruise, 3, 1))
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
