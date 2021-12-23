@@ -87,7 +87,7 @@ class CarController():
       self.last_brake = None
       self.last_torque = ACCEL_TORQ_START
       self.last_aTarget = CS.out.aEgo
-      can_sends.append(acc_command(self.packer, acc_2_counter + 1, False, False, 0, False, 0, CS.acc_2))
+      # can_sends.append(acc_command(self.packer, acc_2_counter + 1, False, False, 0, False, 0, CS.acc_2))
       return  # out of our control
 
     vTarget = jvepilot_state.carControl.vTargetFuture
@@ -148,7 +148,13 @@ class CarController():
         self.last_brake = None
 
     self.last_aTarget = CS.out.aEgo
-    brake = math.floor(self.last_brake * 100) / 100 if self.last_brake is not None else 4
+
+    if stop_req:
+      brake = -2
+    elif self.last_brake:
+      brake = math.floor(self.last_brake * 100) / 100
+    else:
+      brake = 4
 
     can_sends.append(acc_log(self.packer, actuators.accel, vTarget, long_starting, long_stopping))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True, go_req, torque, stop_req, brake, CS.acc_2))
@@ -175,15 +181,15 @@ class CarController():
     if not self.min_steer_check:
       self.moving_fast = True
       self.torq_enabled = enabled or low_steer_models
-    # elif low_steer_models:
-    #   self.moving_fast = not CS.out.steerError and CS.lkas_active
-    #   self.torq_enabled = self.torq_enabled or CS.torq_status > 1
+    elif low_steer_models:
+      self.moving_fast = not CS.out.steerError and CS.lkas_active
+      self.torq_enabled = self.torq_enabled or CS.torq_status > 1
     else:
       self.moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed # for status message
       if CS.out.vEgo > (CS.CP.minSteerSpeed - 0.5):  # for command high bit
         self.torq_enabled = True
       elif CS.out.vEgo < (CS.CP.minSteerSpeed - 3.0):
-        self.torq_enabled = (low_steer_models and self.torq_enabled)  # < 14.5m/s stock turns off this bit, but fine down to 13.5
+        self.torq_enabled = False  # < 14.5m/s stock turns off this bit, but fine down to 13.5
 
     lkas_active = self.moving_fast and enabled
     if not lkas_active:
