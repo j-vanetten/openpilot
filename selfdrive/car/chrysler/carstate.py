@@ -37,6 +37,7 @@ class CarState(CarStateBase):
     self.leadVehicle = False
     self.gasRpm = None
     self.accEnabled = False
+    self.reallyEnabled = True
 
   def update(self, cp, cp_cam):
     min_steer_check = self.opParams.get('steer.checkMinimum')
@@ -75,11 +76,12 @@ class CarState(CarStateBase):
     ret.steeringRateDeg = cp.vl["STEERING"]["STEERING_RATE"]
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["GEAR"]["PRNDL"], None))
 
+    self.reallyEnabled = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [2, 4]
     ret.cruiseState.enabled = self.accEnabled  # cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
-    ret.cruiseState.available = not cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2, 3, 4]
+    ret.cruiseState.available = True  # not cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2, 3, 4]
     ret.cruiseState.speed = cp.vl["DASHBOARD"]["ACC_SPEED_CONFIG_KPH"] * CV.KPH_TO_MS
     # CRUISE_STATE is a three bit msg, 0 is off, 1 and 2 are Non-ACC mode, 3 and 4 are ACC mode, find if there are other states too
-    ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2, 3, 4]
+    ret.cruiseState.nonAdaptive = False  # cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2, 3, 4]
     self.leadVehicle = cp.vl["DASHBOARD"]["LEAD_VEHICLE"] == 1
     self.dashboard = cp.vl["DASHBOARD"]
 

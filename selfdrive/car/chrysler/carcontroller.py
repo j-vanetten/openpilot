@@ -219,6 +219,10 @@ class CarController():
     elif CS.button_pressed(ButtonType.accelCruise) or CS.button_pressed(ButtonType.decelCruise) or CS.button_pressed(ButtonType.resumeCruise):
       CS.accEnabled = True
 
+    if CS.reallyEnabled:
+      new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, ['ACC_CANCEL'])
+      can_sends.append(new_msg)
+
   def accel_hysteresis(self, accel, accel_steady):
     ACCEL_HYST_GAP = 0.06
 
