@@ -60,9 +60,9 @@ class CarController():
 
     #*** control msgs ***
     can_sends = []
+    self.acc(CS, actuators, can_sends, enabled, c.jvePilotState)
     self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
     self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
-    self.acc(CS, actuators, can_sends, enabled, c.jvePilotState)
 
     return can_sends
 
