@@ -110,9 +110,7 @@ static int chrysler_tx_hook(CANPacket_t *to_send) {
 
   // ACC_1
   if (addr == 500) {
-    int cruise_engaged = ((GET_BYTE(to_send, 2) & 0x38U) >> 3) == 7U;
-    controls_allowed = cruise_engaged
-    cruise_engaged_prev = cruise_engaged;
+    controls_allowed = ((GET_BYTE(to_send, 2) & 0x38U) >> 3) == 7U;
   }
 
   // LKA STEER
