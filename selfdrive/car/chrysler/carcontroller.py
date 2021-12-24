@@ -242,40 +242,41 @@ class CarController():
       if CS.reallyEnabled:
         new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, ['ACC_CANCEL'])
         can_sends.append(new_msg)
-      else:
-        button_counter_offset = 1
-        buttons_to_press = []
-        if pcm_cancel_cmd:
-          buttons_to_press = ['ACC_CANCEL']
-        elif not CS.button_pressed(ButtonType.cancel):
-          follow_inc_button = CS.button_pressed(ButtonType.followInc)
-          follow_dec_button = CS.button_pressed(ButtonType.followDec)
+        
+    else:
+      button_counter_offset = 1
+      buttons_to_press = []
+      if pcm_cancel_cmd:
+        buttons_to_press = ['ACC_CANCEL']
+      elif not CS.button_pressed(ButtonType.cancel):
+        follow_inc_button = CS.button_pressed(ButtonType.followInc)
+        follow_dec_button = CS.button_pressed(ButtonType.followDec)
 
-          if jvepilot_state.carControl.autoFollow:
-            follow_inc_button = CS.button_pressed(ButtonType.followInc, False)
-            follow_dec_button = CS.button_pressed(ButtonType.followDec, False)
-            if (follow_inc_button and follow_inc_button.pressedFrames < 50) or \
-                (follow_dec_button and follow_dec_button.pressedFrames < 50):
-              jvepilot_state.carControl.autoFollow = False
-              jvepilot_state.notifyUi = True
-          elif (follow_inc_button and follow_inc_button.pressedFrames >= 50) or \
-              (follow_dec_button and follow_dec_button.pressedFrames >= 50):
-            jvepilot_state.carControl.autoFollow = True
+        if jvepilot_state.carControl.autoFollow:
+          follow_inc_button = CS.button_pressed(ButtonType.followInc, False)
+          follow_dec_button = CS.button_pressed(ButtonType.followDec, False)
+          if (follow_inc_button and follow_inc_button.pressedFrames < 50) or \
+              (follow_dec_button and follow_dec_button.pressedFrames < 50):
+            jvepilot_state.carControl.autoFollow = False
             jvepilot_state.notifyUi = True
+        elif (follow_inc_button and follow_inc_button.pressedFrames >= 50) or \
+            (follow_dec_button and follow_dec_button.pressedFrames >= 50):
+          jvepilot_state.carControl.autoFollow = True
+          jvepilot_state.notifyUi = True
 
-          if enabled and not CS.out.brakePressed:
-            button_counter_offset = [1, 1, 0, None][self.button_frame % 4]
-            if button_counter_offset is not None:
-              if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
-                buttons_to_press = [self.auto_resume_button(CS, gas_resume_speed)]
-              elif CS.out.cruiseState.enabled:  # Control ACC
-                buttons_to_press = [self.auto_follow_button(CS, jvepilot_state),
-                                    self.hybrid_acc_button(CS, jvepilot_state)]
+        if enabled and not CS.out.brakePressed:
+          button_counter_offset = [1, 1, 0, None][self.button_frame % 4]
+          if button_counter_offset is not None:
+            if (not CS.out.cruiseState.enabled) or CS.out.standstill:  # Stopped and waiting to resume
+              buttons_to_press = [self.auto_resume_button(CS, gas_resume_speed)]
+            elif CS.out.cruiseState.enabled:  # Control ACC
+              buttons_to_press = [self.auto_follow_button(CS, jvepilot_state),
+                                  self.hybrid_acc_button(CS, jvepilot_state)]
 
-        buttons_to_press = list(filter(None, buttons_to_press))
-        if buttons_to_press is not None and len(buttons_to_press) > 0:
-          new_msg = create_wheel_buttons_command(self.packer, button_counter + button_counter_offset, buttons_to_press)
-          can_sends.append(new_msg)
+      buttons_to_press = list(filter(None, buttons_to_press))
+      if buttons_to_press is not None and len(buttons_to_press) > 0:
+        new_msg = create_wheel_buttons_command(self.packer, button_counter + button_counter_offset, buttons_to_press)
+        can_sends.append(new_msg)
 
   def auto_resume_button(self, CS, gas_resume_speed):
     if self.auto_resume and CS.out.vEgo <= gas_resume_speed:  # Keep trying while under gas_resume_speed
