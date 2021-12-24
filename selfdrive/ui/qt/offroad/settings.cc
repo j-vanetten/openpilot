@@ -103,11 +103,18 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                                   "../assets/jvepilot/settings/icon_gas_pedal.png",
                                   this));
 
-  // disableOnGas
+  // audioAlertOnSteeringLoss
   addItem(new ParamControl("jvePilot.settings.audioAlertOnSteeringLoss",
                                   "Audio Alert on Steering Loss",
                                   "When enabled, jvePilot will play an alert when speed it too low to steer.",
                                   "../assets/jvepilot/settings/alert_steer_loss.png",
+                                  this));
+
+  // longControl
+  addItem(new ParamControl("jvePilot.settings.longControl",
+                                  "Experimental Long Control",
+                                  "When enabled, jvePilot will control gas and brakes.",
+                                  "../assets/jvepilot/settings/long_control.png",
                                   this));
 
   // accEco
