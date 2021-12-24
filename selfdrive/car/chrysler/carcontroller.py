@@ -60,8 +60,8 @@ class CarController():
 
     #*** control msgs ***
     can_sends = []
-    self.acc(CS, actuators, can_sends, enabled, c.jvePilotState)
-    self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
+    if self.acc(CS, actuators, can_sends, enabled, c.jvePilotState):
+      self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
     self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
 
     return can_sends
@@ -78,7 +78,7 @@ class CarController():
 
     acc_2_counter = CS.acc_2['COUNTER']
     if acc_2_counter == self.last_acc_2_counter:
-      return
+      return False
     self.last_acc_2_counter = acc_2_counter
 
     aTarget, self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
@@ -88,7 +88,7 @@ class CarController():
       self.last_torque = ACCEL_TORQ_START
       self.last_aTarget = CS.out.aEgo
       can_sends.append(acc_command(self.packer, acc_2_counter + 1, enabled, False, 0, False, 0, CS.acc_2))
-      return  # out of our control
+      return True  # out of our control
 
     vTarget = jvepilot_state.carControl.vTargetFuture
 
@@ -158,6 +158,8 @@ class CarController():
 
     can_sends.append(acc_log(self.packer, actuators.accel, vTarget, long_starting, long_stopping))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True, go_req, torque, stop_req, brake, CS.acc_2))
+
+    return True
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:

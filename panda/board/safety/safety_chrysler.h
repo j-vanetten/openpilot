@@ -111,13 +111,7 @@ static int chrysler_tx_hook(CANPacket_t *to_send) {
   // ACC_1
   if (addr == 500) {
     int cruise_engaged = ((GET_BYTE(to_send, 2) & 0x38U) >> 3) == 7U;
-    if (cruise_engaged && !cruise_engaged_prev) {
-      controls_allowed = 1;
-    }
-    // keep control if stopped when cruise disengaged
-    else if (!cruise_engaged && (vehicle_speed > CHRYSLER_GAS_THRSLD || (cruise_engaged_prev && vehicle_moving))) {
-      controls_allowed = 0;
-    }
+    controls_allowed = cruise_engaged
     cruise_engaged_prev = cruise_engaged;
   }
 
