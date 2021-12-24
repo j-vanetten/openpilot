@@ -5,6 +5,7 @@ from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD
 from common.cached_params import CachedParams
+from common.params import Params
 from common.op_params import opParams
 import numpy as np
 
@@ -36,7 +37,7 @@ class CarState(CarStateBase):
     self.gasRpm = None
     self.accEnabled = False
     self.reallyEnabled = True
-    self.longControl = self.cachedParams.get_bool('jvePilot.settings.longControl')
+    self.longControl = Params().get_bool('jvePilot.settings.longControl')
 
   def update(self, cp, cp_cam):
     min_steer_check = self.opParams.get('steer.checkMinimum')

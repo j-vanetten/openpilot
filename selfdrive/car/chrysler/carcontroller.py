@@ -45,7 +45,7 @@ class CarController():
     self.cachedParams = CachedParams()
     self.opParams = opParams()
     self.auto_resume = self.params.get_bool('jvePilot.settings.autoResume')
-    self.longControl = self.cachedParams.get_bool('jvePilot.settings.longControl')
+    self.longControl = self.params.get_bool('jvePilot.settings.longControl')
     self.minAccSetting = V_CRUISE_MIN_MS if self.params.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
     self.round_to_unit = CV.MS_TO_KPH if self.params.get_bool("IsMetric") else CV.MS_TO_MPH
     self.autoFollowDistanceLock = None
