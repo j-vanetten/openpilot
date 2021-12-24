@@ -4,6 +4,7 @@ from common.numpy_fast import clip, interp
 from common.realtime import DT_MDL
 from selfdrive.config import Conversions as CV
 from selfdrive.modeld.constants import T_IDXS
+from common.cached_params import CachedParams
 
 # WARNING: this value was determined based on the model's training distribution,
 #          model predictions above this speed can be unpredictable
@@ -12,6 +13,7 @@ V_CRUISE_MIN = 30  # Chrysler min ACC when metric
 V_CRUISE_DELTA = 5  # ACC increments (unit agnostic)
 V_CRUISE_MIN_IMPERIAL = int(20 * CV.MPH_TO_KPH)
 V_CRUISE_DELTA_IMPERIAL = int(V_CRUISE_DELTA * CV.MPH_TO_KPH)
+cachedParams = CachedParams()
 
 LAT_MPC_N = 16
 LON_MPC_N = 32
@@ -97,7 +99,10 @@ def initialize_v_cruise(v_ego, button_events, v_cruise_last, is_metric):
 
 
 def cruise_min(is_metric):
-  return 10 if is_metric else int(5 * CV.MPH_TO_KPH)
+  if cachedParams.get_bool('jvePilot.settings.longControl', 1000):
+    return 10 if is_metric else int(5 * CV.MPH_TO_KPH)
+  else:
+    return V_CRUISE_MIN if is_metric else V_CRUISE_MIN_IMPERIAL
 
 
 def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates):

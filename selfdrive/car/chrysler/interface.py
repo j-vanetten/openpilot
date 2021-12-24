@@ -18,9 +18,9 @@ class CarInterface(CarInterfaceBase):
     if cachedParams.get_bool('jvePilot.settings.longControl', 1000):
       eco = cachedParams.get_float('jvePilot.carState.accEco', 1000)
       if eco == 1:
-        return CarControllerParams.ACCEL_MIN, 1.5
+        return CarControllerParams.ACCEL_MIN, 1.25
       elif eco == 2:
-        return CarControllerParams.ACCEL_MIN, 1.
+        return CarControllerParams.ACCEL_MIN, .75
 
     return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
 
