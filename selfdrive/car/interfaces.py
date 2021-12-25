@@ -163,7 +163,7 @@ class CarInterfaceBase():
     if cs_out.steerError:
       events.add(EventName.steerUnavailable)
 
-    if (cs_out.gasPressed and self.disable_on_gas and (not self.CS.out.gasPressed) and cs_out.vEgo > gas_resume_speed) or \
+    if (cs_out.gasPressed and self.disable_on_gas and (not self.CS.out.gasPressed)) or \
         (cs_out.brakePressed and (not self.CS.out.brakePressed) and not cs_out.standstill):
       events.add(EventName.pedalPressed)
 
