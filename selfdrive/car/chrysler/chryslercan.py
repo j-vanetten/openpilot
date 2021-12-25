@@ -79,21 +79,27 @@ def acc_command(packer, counter, enabled, go, gas, stop, brake, acc_2):
   values['ACC_AVAILABLE'] = 1
   values['ACC_ENABLED'] = enabled
   values['COUNTER'] = counter % 0x10
-  values['ACC_GO'] = go
-  values['ACC_STOP'] = stop
+  
+  if go is not None:
+    values['ACC_GO'] = go
+    
+  if stop is not None:
+    values['ACC_STOP'] = stop
 
-  if brake != 4:
-    values['ACC_DECEL_REQ'] = 1
-    values['ACC_DECEL'] = brake
-  else:
-    values['ACC_DECEL_REQ'] = 0
-    values['ACC_DECEL'] = 4
+  if brake is not None:
+    if brake != 4:
+      values['ACC_DECEL_REQ'] = 1
+      values['ACC_DECEL'] = brake
+    else:
+      values['ACC_DECEL_REQ'] = 0
+      values['ACC_DECEL'] = 4
 
-  if brake == 4 and gas != 0:
-    values['ACC_TORQ_REQ'] = 1
-    values['ACC_TORQ'] = gas
-  else:
-    values['ACC_TORQ_REQ'] = 0
-    values['ACC_TORQ'] = 0
+  if gas is not None:
+    if brake == 4 and gas != 0:
+      values['ACC_TORQ_REQ'] = 1
+      values['ACC_TORQ'] = gas
+    else:
+      values['ACC_TORQ_REQ'] = 0
+      values['ACC_TORQ'] = 0
 
   return packer.make_can_msg("ACC_2", 0, values)
