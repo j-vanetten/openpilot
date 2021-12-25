@@ -38,6 +38,7 @@ class CarController():
     self.last_brake = None
     self.last_torque = 0.
     self.last_aTarget = 0.
+    self.last_enabled = False
 
     self.packer = CANPacker(dbc_name)
 
@@ -87,7 +88,9 @@ class CarController():
       self.last_brake = None
       self.last_torque = ACCEL_TORQ_START
       self.last_aTarget = CS.out.aEgo
-      can_sends.append(acc_command(self.packer, acc_2_counter + 1, enabled, None, None, None, None, CS.acc_2))
+      if self.last_enabled != enabled:
+        self.last_enabled = enabled
+        can_sends.append(acc_command(self.packer, acc_2_counter + 1, enabled, None, None, None, None, CS.acc_2))
       return True  # out of our control
 
     vTarget = jvepilot_state.carControl.vTargetFuture
