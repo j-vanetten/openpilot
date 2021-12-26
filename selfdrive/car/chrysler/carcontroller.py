@@ -159,7 +159,7 @@ class CarController():
     else:
       brake = 4
 
-    can_sends.append(acc_log(self.packer, actuators.accel, vTarget, long_starting, long_stopping))
+    #can_sends.append(acc_log(self.packer, actuators.accel, vTarget, long_starting, long_stopping))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True, go_req, torque, stop_req, brake, CS.acc_2))
 
     return True
