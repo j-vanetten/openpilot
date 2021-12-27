@@ -75,7 +75,7 @@ class CarController():
     ACCEL_TORQ_MAX = 360
     ACCEL_TORQ_START = 100
     VEHICLE_MASS = 2268
-    LOW_WINDOW = CV.MPH_TO_MS * 10
+    LOW_WINDOW = CV.MPH_TO_MS * 15
     COAST_WINDOW = CV.MPH_TO_MS * 2
     BRAKE_CHANGE = 0.05
 
@@ -126,7 +126,9 @@ class CarController():
         offset = aSmoothTarget - CS.out.aEgo
 
       self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, cruise))
-      if offset < 0 or self.last_torque < ACCEL_TORQ_MAX:
+      if offset < 0:
+        self.mass_offset = max(0., self.mass_offset + offset)
+      elif offset > 0.2 and self.last_torque < ACCEL_TORQ_MAX:
         self.mass_offset = max(0., self.mass_offset + offset)
 
       torque = math.floor(self.last_torque * 100) / 100 if cruise > ACCEL_TORQ_MIN else 0.
