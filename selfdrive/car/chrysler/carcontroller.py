@@ -118,7 +118,7 @@ class CarController():
 
       rpm = CS.gasRpm
       mass = VEHICLE_MASS + self.mass_offset
-      if CS.out.aEgo > 0.4:
+      if aTarget > 0.5 and CS.out.vEgo >= LOW_WINDOW:
         cruise = (mass * aTarget * vTarget) / (.105 * rpm)
         offset = aTarget - CS.out.aEgo
       else:
@@ -245,7 +245,7 @@ class CarController():
     self.button_frame += 1
 
     if self.longControl:
-      if pcm_cancel_cmd or CS.button_pressed(ButtonType.cancel):
+      if pcm_cancel_cmd or CS.button_pressed(ButtonType.cancel) or CS.out.brakePressed:
         CS.accEnabled = False
       elif CS.button_pressed(ButtonType.accelCruise) or CS.button_pressed(ButtonType.decelCruise) or CS.button_pressed(
           ButtonType.resumeCruise):
