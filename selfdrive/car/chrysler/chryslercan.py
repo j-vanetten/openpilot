@@ -65,13 +65,13 @@ def create_wheel_buttons_command(packer, counter, buttons):
 
   return packer.make_can_msg("WHEEL_BUTTONS", 0, values)
 
-def acc_log(packer, massAdjust, aTarget, vTarget, long_starting, long_stopping):
+def acc_log(packer, adjustment, aTarget, vTarget, long_starting, long_stopping):
   values = {
     'OP_A_TARGET': aTarget,
     'OP_V_TARGET': vTarget,
     'LONG_STARTING': long_starting,
     'LONG_STOPPING': long_stopping,
-    'MASS_ADJUST': massAdjust
+    'ADJUSTMENT': adjustment
   }
   return packer.make_can_msg("ACC_LOG", 0, values)
 

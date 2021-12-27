@@ -40,7 +40,7 @@ class CarController():
     self.last_torque = 0.
     self.last_aTarget = 0.
     self.last_enabled = False
-    self.mass_offset = 0.
+    self.torq_adjust = 0.
 
     self.packer = CANPacker(dbc_name)
 
@@ -90,7 +90,7 @@ class CarController():
       self.last_brake = None
       self.last_torque = ACCEL_TORQ_START
       self.last_aTarget = CS.out.aEgo
-      self.mass_offset = max(0., self.mass_offset - 0.1)
+      self.torq_adjust = max(0., self.torq_adjust - 0.1)
       if self.last_enabled != enabled:
         self.last_enabled = enabled
         can_sends.append(acc_command(self.packer, acc_2_counter + 1, enabled, None, None, None, None, CS.acc_2))
@@ -117,20 +117,16 @@ class CarController():
         aSmoothTarget = aTarget
 
       rpm = CS.gasRpm
-      mass = VEHICLE_MASS + self.mass_offset
       if aTarget > 0.5 and CS.out.vEgo >= LOW_WINDOW:
-        cruise = (mass * aTarget * vTarget) / (.105 * rpm)
+        cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
         offset = aTarget - CS.out.aEgo
       else:
-        cruise = (mass * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
+        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
         offset = aSmoothTarget - CS.out.aEgo
 
-      self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, cruise))
-      if offset < 0:
-        self.mass_offset = max(0., self.mass_offset + offset)
-      elif offset > 0.2 and self.last_torque < ACCEL_TORQ_MAX:
-        self.mass_offset = max(0., self.mass_offset + offset)
+      self.torq_adjust = max(0., self.torq_adjust + offset)
 
+      self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, cruise + self.torq_adjust))
       torque = math.floor(self.last_torque * 100) / 100 if cruise > ACCEL_TORQ_MIN else 0.
     elif aTarget < 0 and (already_braking or not_slowing_fast_enough):
       brake_target = max(CarControllerParams.ACCEL_MIN, round(aTarget, 2))
@@ -160,15 +156,15 @@ class CarController():
     self.last_aTarget = CS.out.aEgo
 
     if stop_req:
-      self.mass_offset = 0
+      self.torq_adjust = 0
       brake = -2
     elif self.last_brake:
-      self.mass_offset = max(0., self.mass_offset - 0.1)
+      self.torq_adjust = max(0., self.torq_adjust - 0.1)
       brake = math.floor(self.last_brake * 100) / 100
     else:
       brake = 4
 
-    can_sends.append(acc_log(self.packer, self.mass_offset, actuators.accel, vTarget, long_starting, long_stopping))
+    can_sends.append(acc_log(self.packer, self.torq_adjust, actuators.accel, vTarget, long_starting, long_stopping))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True, go_req, torque, stop_req, brake, CS.acc_2))
 
     return True
