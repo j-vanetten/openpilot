@@ -1,7 +1,7 @@
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
-                                               create_wheel_buttons_command, create_lkas_heartbit, \
-                                               acc_command, acc_log
+  create_wheel_buttons_command, create_lkas_heartbit, \
+  acc_command, acc_log
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -21,6 +21,7 @@ V_CRUISE_MIN_MS = V_CRUISE_MIN * CV.KPH_TO_MS
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 
+
 class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.apply_steer_last = 0
@@ -39,6 +40,7 @@ class CarController():
     self.last_torque = 0.
     self.last_aTarget = 0.
     self.last_enabled = False
+    self.mass_offset = 0.
 
     self.packer = CANPacker(dbc_name)
 
@@ -59,7 +61,7 @@ class CarController():
       self.params.put("EndToEndToggle", "0" if c.jvePilotState.carControl.useLaneLines else "1")
       c.jvePilotState.notifyUi = True
 
-    #*** control msgs ***
+    # *** control msgs ***
     can_sends = []
     if not self.longControl or self.acc(CS, actuators, can_sends, enabled, c.jvePilotState):
       self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
@@ -88,6 +90,7 @@ class CarController():
       self.last_brake = None
       self.last_torque = ACCEL_TORQ_START
       self.last_aTarget = CS.out.aEgo
+      self.mass_offset = max(0., self.mass_offset - 0.1)
       if self.last_enabled != enabled:
         self.last_enabled = enabled
         can_sends.append(acc_command(self.packer, acc_2_counter + 1, enabled, None, None, None, None, CS.acc_2))
@@ -114,16 +117,18 @@ class CarController():
         aSmoothTarget = aTarget
 
       rpm = CS.gasRpm
-      if CS.out.vEgo < LOW_WINDOW:
-        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
-        if aTarget > 0.5:
-          cruise = max(cruise, ACCEL_TORQ_START)  # give it some oomph
-      elif CS.out.vEgo < 20 * CV.MPH_TO_MS:
-        cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
+      mass = VEHICLE_MASS + self.mass_offset
+      if CS.out.aEgo > 0.4:
+        cruise = (mass * aTarget * vTarget) / (.105 * rpm)
+        offset = aTarget - CS.out.aEgo
       else:
-        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
+        cruise = (mass * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
+        offset = aSmoothTarget - CS.out.aEgo
 
       self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, cruise))
+      if offset < 0 or self.last_torque < ACCEL_TORQ_MAX:
+        self.mass_offset = max(0., self.mass_offset + offset)
+
       torque = math.floor(self.last_torque * 100) / 100 if cruise > ACCEL_TORQ_MIN else 0.
     elif aTarget < 0 and (already_braking or not_slowing_fast_enough):
       brake_target = max(CarControllerParams.ACCEL_MIN, round(aTarget, 2))
@@ -153,13 +158,15 @@ class CarController():
     self.last_aTarget = CS.out.aEgo
 
     if stop_req:
+      self.mass_offset = 0
       brake = -2
     elif self.last_brake:
+      self.mass_offset = max(0., self.mass_offset - 0.1)
       brake = math.floor(self.last_brake * 100) / 100
     else:
       brake = 4
 
-    #can_sends.append(acc_log(self.packer, actuators.accel, vTarget, long_starting, long_stopping))
+    can_sends.append(acc_log(self.packer, self.mass_offset, actuators.accel, vTarget, long_starting, long_stopping))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True, go_req, torque, stop_req, brake, CS.acc_2))
 
     return True
@@ -193,7 +200,8 @@ class CarController():
                                                    CS.out.steeringTorqueEps, CarControllerParams)
     self.steer_rate_limited = new_steer != apply_steer
 
-    low_steer_models = self.car_fingerprint in (CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID)
+    low_steer_models = self.car_fingerprint in (
+      CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID)
     if not self.min_steer_check:
       self.moving_fast = True
       self.torq_enabled = enabled or low_steer_models
@@ -239,13 +247,14 @@ class CarController():
     if self.longControl:
       if pcm_cancel_cmd or CS.button_pressed(ButtonType.cancel):
         CS.accEnabled = False
-      elif CS.button_pressed(ButtonType.accelCruise) or CS.button_pressed(ButtonType.decelCruise) or CS.button_pressed(ButtonType.resumeCruise):
+      elif CS.button_pressed(ButtonType.accelCruise) or CS.button_pressed(ButtonType.decelCruise) or CS.button_pressed(
+          ButtonType.resumeCruise):
         CS.accEnabled = True
 
       if CS.reallyEnabled:
         new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, ['ACC_CANCEL'])
         can_sends.append(new_msg)
-        
+
     else:
       button_counter_offset = 1
       buttons_to_press = []
@@ -300,7 +309,8 @@ class CarController():
 
     # ACC Braking
     diff = CS.out.vEgo - target
-    if diff > ACC_BRAKE_THRESHOLD and abs(target - jvepilot_state.carControl.vMaxCruise) > ACC_BRAKE_THRESHOLD:  # ignore change in max cruise speed
+    if diff > ACC_BRAKE_THRESHOLD and abs(
+        target - jvepilot_state.carControl.vMaxCruise) > ACC_BRAKE_THRESHOLD:  # ignore change in max cruise speed
       target -= diff
 
     # round to nearest unit
@@ -328,10 +338,12 @@ class CarController():
       else:
         target_follow = 3
 
-      if self.autoFollowDistanceLock is not None and abs(crossover[self.autoFollowDistanceLock] - CS.out.vEgo) > AUTO_FOLLOW_LOCK_MS:
+      if self.autoFollowDistanceLock is not None and abs(
+          crossover[self.autoFollowDistanceLock] - CS.out.vEgo) > AUTO_FOLLOW_LOCK_MS:
         self.autoFollowDistanceLock = None  # unlock
 
-      if jvepilot_state.carState.accFollowDistance != target_follow and (self.autoFollowDistanceLock or target_follow) == target_follow:
+      if jvepilot_state.carState.accFollowDistance != target_follow and (
+          self.autoFollowDistanceLock or target_follow) == target_follow:
         self.autoFollowDistanceLock = target_follow  # going from close to far, use upperbound
 
         if jvepilot_state.carState.accFollowDistance > target_follow:
