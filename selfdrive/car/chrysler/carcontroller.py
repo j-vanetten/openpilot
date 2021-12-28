@@ -78,6 +78,7 @@ class CarController():
     LOW_WINDOW = CV.MPH_TO_MS * 15
     COAST_WINDOW = CV.MPH_TO_MS * 2
     BRAKE_CHANGE = 0.05
+    ADJUST_ACCEL_THRESHOLD = 0.2
 
     acc_2_counter = CS.acc_2['COUNTER']
     if acc_2_counter == self.last_acc_2_counter:
@@ -119,12 +120,14 @@ class CarController():
       rpm = CS.gasRpm
       if aTarget > 0.5 and CS.out.vEgo >= LOW_WINDOW:
         cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
-        offset = aTarget - CS.out.aEgo
       else:
         cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
-        offset = aSmoothTarget - CS.out.aEgo
 
-      self.torq_adjust = max(0., self.torq_adjust + offset)
+      offset = aTarget - CS.out.aEgo
+      if cruise + self.torq_adjust > ACCEL_TORQ_MAX:
+        self.torq_adjust = max(0., ACCEL_TORQ_MAX - self.torq_adjust)
+      elif offset < 0 or offset > ADJUST_ACCEL_THRESHOLD:
+        self.torq_adjust = max(0., self.torq_adjust + offset - ADJUST_ACCEL_THRESHOLD)
 
       self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, cruise + self.torq_adjust))
       torque = math.floor(self.last_torque * 100) / 100 if cruise > ACCEL_TORQ_MIN else 0.
@@ -152,6 +155,8 @@ class CarController():
         self.last_brake = math.floor(self.last_brake * 100) / 100
       else:
         self.last_brake = None
+    else:
+      self.torq_adjust = max(0., self.torq_adjust - 0.1)
 
     self.last_aTarget = CS.out.aEgo
 
