@@ -41,6 +41,8 @@ class CarController():
     self.last_aTarget = 0.
     self.last_enabled = False
     self.torq_adjust = 0.
+    self.last_no_torq_frame = 0
+    self.ccframe = 0
 
     self.packer = CANPacker(dbc_name)
 
@@ -56,6 +58,7 @@ class CarController():
     self.min_steer_check = self.opParams.get("steer.checkMinimum")
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
+    self.ccframe += 1
     if CS.button_pressed(ButtonType.lkasToggle, False):
       c.jvePilotState.carControl.useLaneLines = not c.jvePilotState.carControl.useLaneLines
       self.params.put("EndToEndToggle", "0" if c.jvePilotState.carControl.useLaneLines else "1")
@@ -78,7 +81,8 @@ class CarController():
     LOW_WINDOW = CV.MPH_TO_MS * 15
     COAST_WINDOW = CV.MPH_TO_MS * 2
     BRAKE_CHANGE = 0.05
-    ADJUST_ACCEL_THRESHOLD = 0.2
+    ADJUST_ACCEL_COOLDOWN = 0.2
+    START_ADJUST_ACCEL_FRAMES = 100
 
     acc_2_counter = CS.acc_2['COUNTER']
     if acc_2_counter == self.last_acc_2_counter:
@@ -91,7 +95,8 @@ class CarController():
       self.last_brake = None
       self.last_torque = ACCEL_TORQ_START
       self.last_aTarget = CS.out.aEgo
-      self.torq_adjust = max(0., self.torq_adjust - 0.1)
+      self.torq_adjust = max(0., self.torq_adjust - ADJUST_ACCEL_COOLDOWN)
+      self.last_no_torq_frame = self.ccframe
       if self.last_enabled != enabled:
         self.last_enabled = enabled
         can_sends.append(acc_command(self.packer, acc_2_counter + 1, enabled, None, None, None, None, CS.acc_2))
@@ -118,20 +123,34 @@ class CarController():
         aSmoothTarget = aTarget
 
       rpm = CS.gasRpm
-      if aTarget > 0.5 and CS.out.vEgo >= LOW_WINDOW:
+      if CS.out.vEgo < LOW_WINDOW:
+        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
+        if aTarget > 0.5:
+          cruise = max(cruise, ACCEL_TORQ_START)  # give it some oomph
+      elif CS.out.vEgo < 20 * CV.MPH_TO_MS:
         cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
       else:
         cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
 
-      offset = aTarget - CS.out.aEgo
+      offset = actuators.accel - CS.out.aEgo - 0.2
+
+      if offset > 0:
+        if self.ccframe - self.last_no_torq_frame > START_ADJUST_ACCEL_FRAMES:
+          self.torq_adjust += offset
+      else:
+        self.torq_adjust = max(0., self.torq_adjust + offset)
+        self.last_no_torq_frame = self.ccframe
+
       if cruise + self.torq_adjust > ACCEL_TORQ_MAX:
         self.torq_adjust = max(0., ACCEL_TORQ_MAX - self.torq_adjust)
-      elif offset < 0 or offset > ADJUST_ACCEL_THRESHOLD:
-        self.torq_adjust = max(0., self.torq_adjust + offset - ADJUST_ACCEL_THRESHOLD)
+        self.last_no_torq_frame = self.ccframe
 
       self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, cruise + self.torq_adjust))
       torque = math.floor(self.last_torque * 100) / 100 if cruise > ACCEL_TORQ_MIN else 0.
     elif aTarget < 0 and (already_braking or not_slowing_fast_enough):
+      self.torq_adjust = max(0., self.torq_adjust - ADJUST_ACCEL_COOLDOWN)
+      self.last_no_torq_frame = self.ccframe
+
       brake_target = max(CarControllerParams.ACCEL_MIN, round(aTarget, 2))
       if self.last_brake is None:
         self.last_brake = min(0., brake_target / 2)
@@ -150,21 +169,25 @@ class CarController():
 
       self.last_brake = math.floor(self.last_brake * 100) / 100 if self.last_brake is not None else None
     elif self.last_brake is not None:  # let up on the brake
+      self.torq_adjust = max(0., self.torq_adjust - ADJUST_ACCEL_COOLDOWN)
+      self.last_no_torq_frame = self.ccframe
+
       self.last_brake += BRAKE_CHANGE
       if self.last_brake < 0:
         self.last_brake = math.floor(self.last_brake * 100) / 100
       else:
         self.last_brake = None
     else:
-      self.torq_adjust = max(0., self.torq_adjust - 0.1)
+      self.torq_adjust = max(0., self.torq_adjust - ADJUST_ACCEL_COOLDOWN)
+      self.last_no_torq_frame = self.ccframe
 
     self.last_aTarget = CS.out.aEgo
 
     if stop_req:
       self.torq_adjust = 0
+      self.last_no_torq_frame = self.ccframe
       brake = -2
     elif self.last_brake:
-      self.torq_adjust = max(0., self.torq_adjust - 0.1)
       brake = math.floor(self.last_brake * 100) / 100
     else:
       brake = 4
