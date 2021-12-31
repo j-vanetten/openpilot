@@ -18,9 +18,9 @@ class CarInterface(CarInterfaceBase):
     if cachedParams.get_bool('jvePilot.settings.longControl', 1000):
       eco = cachedParams.get_float('jvePilot.carState.accEco', 1000)
       if eco == 1:
-        return CarControllerParams.ACCEL_MIN, 1.25
+        return CarControllerParams.ACCEL_MIN, 1.33
       elif eco == 2:
-        return CarControllerParams.ACCEL_MIN, .75
+        return CarControllerParams.ACCEL_MIN, 1.
 
     return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
 
@@ -99,6 +99,10 @@ class CarInterface(CarInterfaceBase):
       events.add(car.CarEvent.EventName.pcmEnable)  # cruse is enabled
     elif (not ret.cruiseState.enabled) and (ret.vEgo > GAS_RESUME_SPEED or (self.CS.out.cruiseState.enabled and (not ret.standstill))):
       events.add(car.CarEvent.EventName.pcmDisable)  # give up, too fast to resume
+
+    if cachedParams.get_bool('jvePilot.settings.longControl', 1000):
+      if ret.brakePressed and not self.CS.out.brakePressed:
+        events.add(car.CarEvent.EventName.pedalPressed)
 
     ret.events = events.to_msg()
 

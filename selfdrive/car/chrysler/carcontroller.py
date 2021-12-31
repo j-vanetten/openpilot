@@ -74,13 +74,12 @@ class CarController():
 
   # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
+    ACCEL_TORQ_LOW = 80
     ACCEL_TORQ_MIN = 20
     ACCEL_TORQ_MAX = 360
-    ACCEL_TORQ_ADJUST_START = 100
     UNDER_ACCEL_MULTIPLIER = 1.
     TORQ_RELEASE_CHANGE = ACCEL_TORQ_MAX / 100
     VEHICLE_MASS = 2268
-    LOW_WINDOW = CV.MPH_TO_MS * 3
     SLOW_WINDOW = CV.MPH_TO_MS * 10
     COAST_WINDOW = CV.MPH_TO_MS * 2
     BRAKE_CHANGE = 0.05
@@ -104,7 +103,7 @@ class CarController():
       stop_req = long_stopping or (CS.out.standstill and aTarget == 0 and not go_req)
 
       currently_braking = self.last_brake is not None
-      speed_to_far_off = CS.out.vEgo - vTarget > CV.MPH_TO_MS * 1  # gap
+      speed_to_far_off = CS.out.vEgo - vTarget > CV.MPH_TO_MS * 2  # gap
       not_slowing_fast_enough = not currently_braking and speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there
 
       if aTarget < 0 and (currently_braking or not_slowing_fast_enough):  # brake
@@ -135,8 +134,7 @@ class CarController():
         rpm = CS.gasRpm
         if CS.out.vEgo < SLOW_WINDOW:
           cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
-          if self.last_torque is None and (go_req or CS.out.vEgo < LOW_WINDOW):  # booster on start
-            self.torq_adjust = max(self.torq_adjust, ACCEL_TORQ_ADJUST_START)
+          cruise += ACCEL_TORQ_LOW * (1 - (CS.out.vEgo / SLOW_WINDOW))
         else:
           cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
 
