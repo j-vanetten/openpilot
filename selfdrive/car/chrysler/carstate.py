@@ -81,6 +81,7 @@ class CarState(CarStateBase):
       ret.cruiseState.enabled = self.accEnabled
       ret.cruiseState.available = cp.vl["DASHBOARD"]["CRUISE_STATE"] == 0
       ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] != 0
+      ret.cruiseState.brake_error = cp.vl["ACC_2"]["STS"] != 0
     else:
       ret.cruiseState.enabled = cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
       ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3,4]  # the comment below says 3 and 4 are ACC mode

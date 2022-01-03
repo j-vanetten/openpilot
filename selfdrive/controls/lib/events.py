@@ -401,6 +401,11 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .2, .2, .2),
   },
 
+  EventName.cruiseModesNotSupported: {
+    ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
+    ET.NO_ENTRY: NoEntryAlert("Unsupported Cruise Mode"),
+  },
+
   EventName.preDriverDistracted: {
     ET.WARNING: Alert(
       "Pay Attention",

@@ -80,6 +80,7 @@ class CarController():
     UNDER_ACCEL_MULTIPLIER = 1.
     TORQ_RELEASE_CHANGE = ACCEL_TORQ_MAX / 100
     VEHICLE_MASS = 2268
+    LOW_WINDOW = CV.MPH_TO_MS * 5
     SLOW_WINDOW = CV.MPH_TO_MS * 10
     COAST_WINDOW = CV.MPH_TO_MS * 2
     BRAKE_CHANGE = 0.05
@@ -101,6 +102,9 @@ class CarController():
     if enabled and not override_request:
       go_req = long_starting and CS.out.standstill
       stop_req = long_stopping or (CS.out.standstill and aTarget == 0 and not go_req)
+
+      if go_req or CS.out.vEgo < LOW_WINDOW:
+        under_accel_frame_count = self.under_accel_frame_count = START_ADJUST_ACCEL_FRAMES  # ready to add torq
 
       currently_braking = self.last_brake is not None
       speed_to_far_off = CS.out.vEgo - vTarget > CV.MPH_TO_MS * 2  # gap
@@ -147,7 +151,16 @@ class CarController():
         if cruise + self.torq_adjust > ACCEL_TORQ_MAX:  # keep the adjustment in check
           self.torq_adjust = max(0., ACCEL_TORQ_MAX - self.torq_adjust)
 
-        self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, cruise + self.torq_adjust))
+        torque = cruise + self.torq_adjust
+        if self.last_torque is None:
+          self.last_torque = torque / 2
+
+        if self.last_torque < torque:
+          self.last_torque += ADJUST_ACCEL_COOLDOWN
+        else:
+          self.last_torque -= ADJUST_ACCEL_COOLDOWN
+
+        self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, torque))
 
       elif self.last_brake is not None:  # let up on the brake
         self.last_brake += BRAKE_CHANGE
