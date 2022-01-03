@@ -38,7 +38,7 @@ class CarState(CarStateBase):
     self.accEnabled = False
     self.reallyEnabled = True
     self.longControl = Params().get_bool('jvePilot.settings.longControl')
-    self.hybrid = CP.car_fingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
+    self.hybrid = CP.carFingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
 
   def update(self, cp, cp_cam):
     min_steer_check = self.opParams.get('steer.checkMinimum')
@@ -162,7 +162,7 @@ class CarState(CarStateBase):
 
   @staticmethod
   def get_can_parser(CP):
-    hybrid = CP.car_fingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
+    hybrid = CP.carFingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
 
     signals = [
       # sig_name, sig_address, default
