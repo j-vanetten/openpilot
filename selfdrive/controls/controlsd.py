@@ -160,6 +160,7 @@ class Controls:
     self.current_alert_types = [ET.PERMANENT]
     self.logged_comm_issue = False
 
+    self.longControl = params.get_bool('jvePilot.settings.longControl')
     self.v_target = 0.
     self.buttonPressTimes = {}
     self.cachedParams = CachedParams()
@@ -420,7 +421,7 @@ class Controls:
 
     msg = messaging.new_message('jvePilotUIState')
     msg.jvePilotUIState = self.sm['jvePilotUIState']
-    msg.jvePilotUIState.autoFollow = self.jvePilotState.carControl.autoFollow
+    msg.jvePilotUIState.autoFollow = -1 if self.longControl else self.jvePilotState.carControl.autoFollow
     msg.jvePilotUIState.accEco = self.jvePilotState.carControl.accEco
     msg.jvePilotUIState.useLaneLines = self.jvePilotState.carControl.useLaneLines
     self.pm.send('jvePilotState', msg)

@@ -202,7 +202,7 @@ void OnroadHud::updateState(const UIState &s) {
 
   setProperty("pedalPressedAmount", int(sm["carState"].getCarState().getJvePilotCarState().getPedalPressedAmount() * 255));
   setProperty("accEco", s.scene.accEco);
-  setProperty("autoFollowEnabled", s.scene.autoFollowEnabled == 1);
+  setProperty("autoFollowEnabled", s.scene.autoFollowEnabled);
 
   setProperty("is_cruise_set", cruise_set);
   setProperty("speed", QString::number(std::nearbyint(cur_speed)));
@@ -269,13 +269,15 @@ void OnroadHud::paintEvent(QPaintEvent *event) {
   }
 
 
-  if (accEco >= 0) { // got data yet?
+  if (autoFollowEnabled >= 0) { // got data yet?
     // Auto Follow
     drawIcon(p,
              rect().right() - radius / 2 - bdr_s * 2,
              rect().bottom() - footer_h / 2 - button_bigger - radius,
              auto_follow_imgs[autoFollowEnabled], QColor(0, 0, 0, 0), 1.0);
+  }
 
+  if (accEco >= 0) { // got data yet?
     // eco icon
     drawIcon(p, rect().right() - radius / 2 - bdr_s * 2 - button_bigger, rect().bottom() - footer_h / 2 - button_bigger,
              eco_imgs[accEco], QColor(0, 0, 0, 0), 1.0);

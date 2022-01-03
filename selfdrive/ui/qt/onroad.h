@@ -13,7 +13,7 @@ class OnroadHud : public QWidget {
   Q_OBJECT
   Q_PROPERTY(int pedalPressedAmount MEMBER pedalPressedAmount NOTIFY valueChanged);
   Q_PROPERTY(int accEco MEMBER accEco NOTIFY valueChanged);
-  Q_PROPERTY(bool autoFollowEnabled MEMBER autoFollowEnabled NOTIFY valueChanged);
+  Q_PROPERTY(int autoFollowEnabled MEMBER autoFollowEnabled NOTIFY valueChanged);
 
   Q_PROPERTY(QString speed MEMBER speed NOTIFY valueChanged);
   Q_PROPERTY(QString speedUnit MEMBER speedUnit NOTIFY valueChanged);
@@ -38,7 +38,7 @@ private:
   QPixmap auto_follow_imgs[2];
   int pedalPressedAmount;
   int accEco;
-  bool autoFollowEnabled;
+  int autoFollowEnabled;
 
   QPixmap engage_img;
   QPixmap dm_img;

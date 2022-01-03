@@ -186,7 +186,7 @@ static void update_state(UIState *s) {
   scene.started = sm["deviceState"].getDeviceState().getStarted() && scene.ignition;
 
   if (sm.updated("jvePilotState")) {
-    scene.autoFollowEnabled = sm["jvePilotState"].getJvePilotUIState().getAutoFollow() ? 1 : 0;
+    scene.autoFollowEnabled = sm["jvePilotState"].getJvePilotUIState().getAutoFollow();
     scene.accEco = sm["jvePilotState"].getJvePilotUIState().getAccEco();
     scene.end_to_end = !sm["jvePilotState"].getJvePilotUIState().getUseLaneLines();
   }
