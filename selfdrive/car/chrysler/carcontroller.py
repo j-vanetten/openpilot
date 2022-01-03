@@ -93,7 +93,7 @@ class CarController():
     self.last_acc_2_counter = acc_2_counter
 
     under_accel_frame_count = 0
-    aTarget = actuators.accel #  , self.accel_steady = self.accel_hysteresis(actuators.accel, self.accel_steady)
+    aTarget = actuators.accel
     vTarget = jvepilot_state.carControl.vTargetFuture
     long_starting = actuators.longControlState == LongCtrlState.starting
     long_stopping = actuators.longControlState == LongCtrlState.stopping
@@ -209,17 +209,6 @@ class CarController():
     self.last_aTarget = CS.out.aEgo
 
     return True
-
-  def accel_hysteresis(self, accel, accel_steady):
-    ACCEL_HYST_GAP = 0.06
-
-    if accel > accel_steady + ACCEL_HYST_GAP:
-      accel_steady = accel - ACCEL_HYST_GAP
-    elif accel < accel_steady - ACCEL_HYST_GAP:
-      accel_steady = accel + ACCEL_HYST_GAP
-    accel = accel_steady
-
-    return accel, accel_steady
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
