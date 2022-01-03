@@ -257,7 +257,7 @@ class CarState(CarStateBase):
       ("SENSORS", 50),
       ("ACCEL_PEDAL_MSG", 50),
       ("AXLE_TORQ", 50),
-      ("AXLE_1", 50),
+      ("ACC_1", 50),
     ]
 
     if CP.enableBsm:
