@@ -21,6 +21,19 @@ V_CRUISE_MIN_MS = V_CRUISE_MIN * CV.KPH_TO_MS
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 
+# LONG PARAMS
+ACCEL_TORQ_LOW = 80
+ACCEL_TORQ_MIN = 20
+ACCEL_TORQ_MAX = 360
+UNDER_ACCEL_MULTIPLIER = 1.
+TORQ_RELEASE_CHANGE = ACCEL_TORQ_MAX / 100
+VEHICLE_MASS = 2268
+LOW_WINDOW = CV.MPH_TO_MS * 5
+SLOW_WINDOW = CV.MPH_TO_MS * 10
+COAST_WINDOW = CV.MPH_TO_MS * 2
+BRAKE_CHANGE = 0.05
+ADJUST_ACCEL_COOLDOWN = 0.2
+START_ADJUST_ACCEL_FRAMES = 100
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -74,19 +87,6 @@ class CarController():
 
   # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
-    ACCEL_TORQ_LOW = 80
-    ACCEL_TORQ_MIN = 20
-    ACCEL_TORQ_MAX = 360
-    UNDER_ACCEL_MULTIPLIER = 1.
-    TORQ_RELEASE_CHANGE = ACCEL_TORQ_MAX / 100
-    VEHICLE_MASS = 2268
-    LOW_WINDOW = CV.MPH_TO_MS * 5
-    SLOW_WINDOW = CV.MPH_TO_MS * 10
-    COAST_WINDOW = CV.MPH_TO_MS * 2
-    BRAKE_CHANGE = 0.05
-    ADJUST_ACCEL_COOLDOWN = 0.2
-    START_ADJUST_ACCEL_FRAMES = 100
-
     acc_2_counter = CS.acc_2['COUNTER']
     if acc_2_counter == self.last_acc_2_counter:
       return False
@@ -111,56 +111,10 @@ class CarController():
       not_slowing_fast_enough = not currently_braking and speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there
 
       if aTarget < 0 and (currently_braking or not_slowing_fast_enough):  # brake
-        brake_target = max(CarControllerParams.ACCEL_MIN, round(aTarget, 2))
-        if self.last_brake is None:
-          self.last_brake = min(0., brake_target / 2)
-        else:
-          tBrake = brake_target
-          if not speed_to_far_off:  # let up on brake as we approach
-            tBrake *= (CS.out.vEgo - vTarget) / COAST_WINDOW
-
-          lBrake = self.last_brake
-          if tBrake < lBrake:
-            diff = min(BRAKE_CHANGE, (lBrake - tBrake) / 2)
-            self.last_brake = max(lBrake - diff, tBrake)
-          elif tBrake - lBrake > 0.01:  # don't let up unless it's a big enough jump
-            diff = min(BRAKE_CHANGE, (tBrake - lBrake) / 2)
-            self.last_brake = min(lBrake + diff, tBrake)
+        self.acc_brake(CS, aTarget, vTarget, speed_to_far_off)
 
       elif aTarget > 0 and not currently_braking:  # gas
-        vSmoothTarget = (vTarget + CS.out.vEgo) / 2
-        accelerating = vTarget - COAST_WINDOW * CV.MS_TO_MPH > CS.out.vEgo and aTarget > 0 and CS.out.aEgo > 0 and CS.out.aEgo > self.last_aTarget
-        if accelerating:
-          aSmoothTarget = (aTarget + CS.out.aEgo) / 2
-        else:
-          aSmoothTarget = aTarget
-
-        rpm = CS.gasRpm
-        if CS.out.vEgo < SLOW_WINDOW:
-          cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
-          cruise += ACCEL_TORQ_LOW * (1 - (CS.out.vEgo / SLOW_WINDOW))
-        else:
-          cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
-
-        offset = actuators.accel - CS.out.aEgo
-        if offset > 0.2:
-          under_accel_frame_count = self.under_accel_frame_count + 1  # inc under accelerating frame count
-          if self.ccframe - self.under_accel_frame_count > START_ADJUST_ACCEL_FRAMES:
-            self.torq_adjust += offset * UNDER_ACCEL_MULTIPLIER
-
-        if cruise + self.torq_adjust > ACCEL_TORQ_MAX:  # keep the adjustment in check
-          self.torq_adjust = max(0., ACCEL_TORQ_MAX - self.torq_adjust)
-
-        torque = cruise + self.torq_adjust
-        if self.last_torque is None:
-          self.last_torque = torque / 2
-
-        if self.last_torque < torque:
-          self.last_torque += ADJUST_ACCEL_COOLDOWN
-        else:
-          self.last_torque -= ADJUST_ACCEL_COOLDOWN
-
-        self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, torque))
+        under_accel_frame_count = self.acc_gas(CS, aTarget, vTarget, under_accel_frame_count)
 
       elif self.last_brake is not None:  # let up on the brake
         self.last_brake += BRAKE_CHANGE
@@ -209,6 +163,53 @@ class CarController():
     self.last_aTarget = CS.out.aEgo
 
     return True
+
+  def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
+    vSmoothTarget = (vTarget + CS.out.vEgo) / 2
+    accelerating = vTarget - COAST_WINDOW * CV.MS_TO_MPH > CS.out.vEgo and aTarget > 0 and CS.out.aEgo > 0 and CS.out.aEgo > self.last_aTarget
+    if accelerating:
+      aSmoothTarget = (aTarget + CS.out.aEgo) / 2
+    else:
+      aSmoothTarget = aTarget
+    rpm = CS.gasRpm
+    if CS.out.vEgo < SLOW_WINDOW:
+      cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
+      cruise += ACCEL_TORQ_LOW * (1 - (CS.out.vEgo / SLOW_WINDOW))
+    else:
+      cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
+    offset = aTarget - CS.out.aEgo
+    if offset > 0.2:
+      under_accel_frame_count = self.under_accel_frame_count + 1  # inc under accelerating frame count
+      if self.ccframe - self.under_accel_frame_count > START_ADJUST_ACCEL_FRAMES:
+        self.torq_adjust += offset * UNDER_ACCEL_MULTIPLIER
+    if cruise + self.torq_adjust > ACCEL_TORQ_MAX:  # keep the adjustment in check
+      self.torq_adjust = max(0., ACCEL_TORQ_MAX - self.torq_adjust)
+    torque = cruise + self.torq_adjust
+    if self.last_torque is None:
+      self.last_torque = torque / 2
+    if self.last_torque < torque:
+      self.last_torque += ADJUST_ACCEL_COOLDOWN
+    else:
+      self.last_torque -= ADJUST_ACCEL_COOLDOWN
+    self.last_torque = max(ACCEL_TORQ_MIN, min(ACCEL_TORQ_MAX, torque))
+    return under_accel_frame_count
+
+  def acc_brake(self, CS, aTarget, vTarget, speed_to_far_off):
+    brake_target = max(CarControllerParams.ACCEL_MIN, round(aTarget, 2))
+    if self.last_brake is None:
+      self.last_brake = min(0., brake_target / 2)
+    else:
+      tBrake = brake_target
+      if not speed_to_far_off:  # let up on brake as we approach
+        tBrake *= (CS.out.vEgo - vTarget) / COAST_WINDOW
+
+      lBrake = self.last_brake
+      if tBrake < lBrake:
+        diff = min(BRAKE_CHANGE, (lBrake - tBrake) / 2)
+        self.last_brake = max(lBrake - diff, tBrake)
+      elif tBrake - lBrake > 0.01:  # don't let up unless it's a big enough jump
+        diff = min(BRAKE_CHANGE, (tBrake - lBrake) / 2)
+        self.last_brake = min(lBrake + diff, tBrake)
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
