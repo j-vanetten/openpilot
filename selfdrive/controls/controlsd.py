@@ -421,7 +421,7 @@ class Controls:
 
     msg = messaging.new_message('jvePilotUIState')
     msg.jvePilotUIState = self.sm['jvePilotUIState']
-    msg.jvePilotUIState.autoFollow = -1 if self.longControl else self.jvePilotState.carControl.autoFollow
+    msg.jvePilotUIState.autoFollow = -1 if self.longControl else (1 if self.jvePilotState.carControl.autoFollow else 0)
     msg.jvePilotUIState.accEco = self.jvePilotState.carControl.accEco
     msg.jvePilotUIState.useLaneLines = self.jvePilotState.carControl.useLaneLines
     self.pm.send('jvePilotState', msg)
