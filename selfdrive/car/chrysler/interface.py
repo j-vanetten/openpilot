@@ -11,11 +11,12 @@ ButtonType = car.CarState.ButtonEvent.Type
 GAS_RESUME_SPEED = 2.
 cachedParams = CachedParams()
 opParams = opParams()
+long_control = cachedParams.get_bool('jvePilot.settings.longControl', 0)
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
-    if cachedParams.get_bool('jvePilot.settings.longControl', 1000):
+    if long_control:
       eco = cachedParams.get_float('jvePilot.carState.accEco', 1000)
       if eco == 1:
         return CarControllerParams.ACCEL_MIN + 0.1, 1.33
@@ -95,11 +96,6 @@ class CarInterface(CarInterfaceBase):
     elif not self.CC.moving_fast:
       events.add(car.CarEvent.EventName.belowSteerSpeed)
 
-    if ret.cruiseState.nonAdaptive:
-      if long_control:
-        events.add(car.CarEvent.EventName.cruiseModesNotSupported)
-      else:
-        events.add(car.CarEvent.EventName.wrongCruiseMode)
     if self.CS.brake_error:
       events.add(car.CarEvent.EventName.brakeUnavailable)
 
