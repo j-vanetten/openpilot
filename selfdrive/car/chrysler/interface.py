@@ -96,7 +96,7 @@ class CarInterface(CarInterfaceBase):
     elif not self.CC.moving_fast:
       events.add(car.CarEvent.EventName.belowSteerSpeed)
 
-    if self.CS.brake_error:
+    if self.CS.cruise_error:
       events.add(car.CarEvent.EventName.brakeUnavailable)
 
     if self.CS.button_pressed(ButtonType.cancel):

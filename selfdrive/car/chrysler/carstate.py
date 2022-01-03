@@ -81,12 +81,12 @@ class CarState(CarStateBase):
       ret.cruiseState.enabled = self.accEnabled
       ret.cruiseState.available = cp.vl["DASHBOARD"]["CRUISE_STATE"] == 0
       ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] != 0
-      ret.cruiseState.brake_error = cp.vl["ACC_2"]["STS"] != 0
     else:
       ret.cruiseState.enabled = cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
       ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3,4]  # the comment below says 3 and 4 are ACC mode
       ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2]
 
+    self.cruise_error = cp.vl["ACC_2"]["STS"] != 0  # is this the cruise error?
     ret.cruiseState.speed = cp.vl["DASHBOARD"]["ACC_SPEED_CONFIG_KPH"] * CV.KPH_TO_MS
     # CRUISE_STATE is a three bit msg, 0 is off, 1 and 2 are Non-ACC mode, 3 and 4 are ACC mode, find if there are other states too
     self.dashboard = cp.vl["DASHBOARD"]
