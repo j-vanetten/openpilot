@@ -89,7 +89,7 @@ def acc_command(packer, counter, enabled, go, gas, stop, brake, acc_2):
 
   if brake is not None:
     if brake != 4:
-      values['ACC_DECEL_REQ'] = 1
+      values['ACC_DECEL_REQ'] = enabled
       values['ACC_DECEL'] = brake
     else:
       values['ACC_DECEL_REQ'] = 0
@@ -97,10 +97,19 @@ def acc_command(packer, counter, enabled, go, gas, stop, brake, acc_2):
 
   if gas is not None:
     if brake == 4 and gas != 0:
-      values['ACC_TORQ_REQ'] = 1
+      values['ACC_TORQ_REQ'] = enabled
       values['ACC_TORQ'] = gas
     else:
       values['ACC_TORQ_REQ'] = 0
       values['ACC_TORQ'] = 0
 
   return packer.make_can_msg("ACC_2", 0, values)
+
+def acc_hybrid_command(packer, counter, enabled, torq, acc_1):
+  values = acc_1.copy()  # forward what we parsed
+
+  if torq != 0:
+    values['ACC_TORQ_REQ'] = enabled
+    values['ACC_TORQ'] = torq
+
+  return packer.make_can_msg("ACC_1", 0, values)
