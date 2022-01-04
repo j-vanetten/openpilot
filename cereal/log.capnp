@@ -1376,7 +1376,7 @@ struct ManagerState {
 }
 
 struct JvePilotUIState {
-  autoFollow @0 :UInt8;
+  autoFollow @0 :Int8;
   accEco @1 :UInt8;
   useLaneLines @2 :Bool;
 }
