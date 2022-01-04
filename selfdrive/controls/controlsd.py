@@ -410,7 +410,7 @@ class Controls:
     if self.jvePilotState.notifyUi:
       self.ui_notify()
     elif self.sm.updated['jvePilotUIState']:
-      self.jvePilotState.carControl.autoFollow = self.sm['jvePilotUIState'].autoFollow
+      self.jvePilotState.carControl.autoFollow = self.sm['jvePilotUIState'].autoFollow == 1
       self.jvePilotState.carControl.accEco = self.sm['jvePilotUIState'].accEco
       put_nonblocking("jvePilot.carState.accEco", str(self.sm['jvePilotUIState'].accEco))
 
