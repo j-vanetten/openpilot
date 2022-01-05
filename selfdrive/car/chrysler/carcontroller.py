@@ -96,6 +96,7 @@ class CarController():
         can_sends.append(msg)
       self.acc_msgs = []
       self.last_acc_2_counter = acc_2_counter
+      return
 
     self.acc_msgs = []
     under_accel_frame_count = 0
