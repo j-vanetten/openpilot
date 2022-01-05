@@ -58,7 +58,6 @@ class CarController():
     self.under_accel_frame_count = 0
     self.ccframe = 0
     self.hybrid = self.car_fingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
-    self.acc_msgs = []
 
     self.packer = CANPacker(dbc_name)
 
@@ -82,8 +81,8 @@ class CarController():
 
     # *** control msgs ***
     can_sends = []
-    self.acc(CS, actuators, can_sends, enabled, c.jvePilotState)
-    self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
+    if not self.longControl or self.acc(CS, actuators, can_sends, enabled, c.jvePilotState):
+      self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
     self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
 
     return can_sends
@@ -91,14 +90,10 @@ class CarController():
   # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
     acc_2_counter = CS.acc_2['COUNTER']
-    if acc_2_counter != self.last_acc_2_counter:
-      for msg in self.acc_msgs:
-        can_sends.append(msg)
-      self.acc_msgs = []
-      self.last_acc_2_counter = acc_2_counter
-      return
+    if acc_2_counter == self.last_acc_2_counter:
+      return False
+    self.last_acc_2_counter = acc_2_counter
 
-    self.acc_msgs = []
     under_accel_frame_count = 0
     aTarget = actuators.accel
     vTarget = jvepilot_state.carControl.vTargetFuture
@@ -156,18 +151,24 @@ class CarController():
       go_req = None
       torque = None
 
+      if self.last_enabled != enabled:
+        self.last_enabled = enabled
+        can_sends.append(acc_command(self.packer, acc_2_counter + 1, enabled, None, None, None, None, CS.acc_2))
+
     if under_accel_frame_count == 0 and self.torq_adjust > 0:  # we are cooling down
       self.torq_adjust -= ADJUST_ACCEL_COOLDOWN
 
     can_sends.append(acc_log(self.packer, self.torq_adjust, actuators.accel, vTarget, long_starting, long_stopping))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, enabled, go_req, torque, stop_req, brake, CS.acc_2))
-    self.acc_msgs.append(acc_command(self.packer, acc_2_counter + 2, enabled, go_req, torque, stop_req, brake, CS.acc_2))
+    can_sends.append(acc_command(self.packer, acc_2_counter + 2, enabled, go_req, torque, stop_req, brake, CS.acc_2))
     if self.hybrid:
       can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, enabled, torque, CS.acc_1))
-      self.acc_msgs.append(acc_hybrid_command(self.packer, acc_2_counter + 2, enabled, torque, CS.acc_1))
+      can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 2, enabled, torque, CS.acc_1))
 
     self.under_accel_frame_count = under_accel_frame_count
     self.last_aTarget = CS.out.aEgo
+
+    return True
 
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
     if self.hybrid:
