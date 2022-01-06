@@ -96,7 +96,7 @@ class CarController():
       self.last_enabled = enabled
       can_sends.append(acc_command(self.packer, acc_2_counter, enabled, None, None, None, None, CS.acc_2))
 
-    if acc_2_counter != self.last_acc_2_counter:
+    if self.acc_params is not None and acc_2_counter != self.last_acc_2_counter:
       self.last_acc_2_counter = acc_2_counter
       if enabled and self.acc_params is not None:
         can_sends.append(acc_command(self.packer, acc_2_counter + 1, enabled,
@@ -113,7 +113,7 @@ class CarController():
       self.acc_params = None
       return
 
-
+    self.last_acc_2_counter = acc_2_counter
     self.acc_params = None
     under_accel_frame_count = 0
     aTarget = actuators.accel
