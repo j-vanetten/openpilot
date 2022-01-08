@@ -102,21 +102,20 @@ class CarController():
 
     counter_change = acc_2_counter != self.last_acc_2_counter
     self.last_acc_2_counter = acc_2_counter
-    if counter_change:
-      if self.acc_params is not None:
-        can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
-                                     self.acc_params["go_req"],
-                                     self.acc_params["torque"],
-                                     self.acc_params["stop_req"],
-                                     self.acc_params["brake"],
-                                     CS.acc_2))
+    if counter_change and self.acc_params is not None:
+      can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
+                                   self.acc_params["go_req"],
+                                   self.acc_params["torque"],
+                                   self.acc_params["stop_req"],
+                                   self.acc_params["brake"],
+                                   CS.acc_2))
 
-        if self.hybrid:
-          can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, True,
-                                              self.acc_params["torque"],
-                                              CS.acc_1))
-        self.acc_params = None
-        return
+      if self.hybrid:
+        can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, True,
+                                            self.acc_params["torque"],
+                                            CS.acc_1))
+      self.acc_params = None
+      return
 
     self.acc_params = None
     under_accel_frame_count = 0
@@ -184,17 +183,16 @@ class CarController():
 
     can_sends.append(acc_log(self.packer, self.torq_adjust, aTarget, vTarget, long_starting, long_stopping))
     
-    if counter_change or acc_2_counter % 2 == 0:  # don't flood the bus
-      can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
-                                   go_req,
-                                   torque,
-                                   stop_req,
-                                   brake,
-                                   CS.acc_2))
-      if self.hybrid:
-        can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, True,
-                                            torque,
-                                            CS.acc_1))
+    can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
+                                 go_req,
+                                 torque,
+                                 stop_req,
+                                 brake,
+                                 CS.acc_2))
+    if self.hybrid:
+      can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, True,
+                                          torque,
+                                          CS.acc_1))
 
     self.acc_params = {
       "go_req": go_req,
