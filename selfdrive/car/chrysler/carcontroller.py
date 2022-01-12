@@ -58,7 +58,6 @@ class CarController():
     self.under_accel_frame_count = 0
     self.ccframe = 0
     self.hybrid = self.car_fingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
-    self.acc_params = None
 
     self.packer = CANPacker(dbc_name)
 
@@ -96,28 +95,11 @@ class CarController():
       self.last_enabled = enabled
       can_sends.append(acc_command(self.packer, acc_2_counter, enabled, None, None, None, None, CS.acc_2))
 
-    if not enabled:
-      self.acc_params = None
-      return
-
     counter_change = acc_2_counter != self.last_acc_2_counter
     self.last_acc_2_counter = acc_2_counter
-    if counter_change and self.acc_params is not None:
-      can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
-                                   self.acc_params["go_req"],
-                                   self.acc_params["torque"],
-                                   self.acc_params["stop_req"],
-                                   self.acc_params["brake"],
-                                   CS.acc_2))
-
-      if self.hybrid:
-        can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, True,
-                                            self.acc_params["torque"],
-                                            CS.acc_1))
-      self.acc_params = None
+    if not enabled or not counter_change:
       return
 
-    self.acc_params = None
     under_accel_frame_count = 0
     aTarget = actuators.accel
     vTarget = jvepilot_state.carControl.vTargetFuture
@@ -183,23 +165,16 @@ class CarController():
 
     can_sends.append(acc_log(self.packer, self.torq_adjust, aTarget, vTarget, long_starting, long_stopping))
     
-    can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
+    can_sends.append(acc_command(self.packer, acc_2_counter + 2, True,
                                  go_req,
                                  torque,
                                  stop_req,
                                  brake,
                                  CS.acc_2))
     if self.hybrid:
-      can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, True,
+      can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 2, True,
                                           torque,
                                           CS.acc_1))
-
-    self.acc_params = {
-      "go_req": go_req,
-      "torque": torque,
-      "stop_req": stop_req,
-      "brake": brake
-    }
 
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
     if self.hybrid:
