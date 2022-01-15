@@ -3,6 +3,7 @@ from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_comm
   create_wheel_buttons_command, create_lkas_heartbit, \
   acc_command, acc_hybrid_command, acc_log
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
+from selfdrive.car.chrysler.interface import CarInterface
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
 
@@ -35,6 +36,7 @@ BRAKE_CHANGE = 0.05
 ADJUST_ACCEL_COOLDOWN = 0.2
 START_ADJUST_ACCEL_FRAMES = 100
 ACCEL_TO_NM = 1200
+TORQ_ADJUST_THRESHOLD = 0.3
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -97,7 +99,11 @@ class CarController():
 
     counter_change = acc_2_counter != self.last_acc_2_counter
     self.last_acc_2_counter = acc_2_counter
-    if not enabled or not counter_change:
+    if not counter_change:
+      return
+
+    if not enabled:
+      self.torq_adjust = 0
       return
 
     under_accel_frame_count = 0
@@ -114,14 +120,16 @@ class CarController():
       if go_req or CS.out.vEgo < LOW_WINDOW:
         under_accel_frame_count = self.under_accel_frame_count = START_ADJUST_ACCEL_FRAMES  # ready to add torq
 
+      accel_min, accel_max = self.acc_min_max(CS)
       currently_braking = self.last_brake is not None
       speed_to_far_off = CS.out.vEgo - vTarget > CV.MPH_TO_MS * 2  # gap
       not_slowing_fast_enough = not currently_braking and speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there
+      engine_brake = aTarget <= 0 and self.torque(CS, aTarget, vTarget) > accel_min and vTarget > SLOW_WINDOW
 
       if aTarget < 0 and (currently_braking or not_slowing_fast_enough):  # brake
         self.acc_brake(CS, aTarget, vTarget, speed_to_far_off)
 
-      elif aTarget > 0 and not currently_braking:  # gas
+      elif (aTarget > 0 or engine_brake) and not currently_braking:  # gas
         under_accel_frame_count = self.acc_gas(CS, aTarget, vTarget, under_accel_frame_count)
 
       elif self.last_brake is not None:  # let up on the brake
@@ -176,17 +184,24 @@ class CarController():
                                           torque,
                                           CS.acc_1))
 
-  def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
+  def torque(self, CS, aTarget, vTarget):
     if self.hybrid:
-      accel_min = CS.hybridAxleTorq["AXLE_TORQ_MIN"]
-      accel_max = CS.hybridAxleTorq["AXLE_TORQ_MAX"]
+      return aTarget * ACCEL_TO_NM
 
+    return (VEHICLE_MASS * aTarget * vTarget) / (.105 * CS.gasRpm)
+
+  def acc_min_max(self, CS):
+    if self.hybrid:
+      return CS.hybridAxleTorq["AXLE_TORQ_MIN"], CS.hybridAxleTorq["AXLE_TORQ_MAX"]
+
+    return CS.acc_2["ACC_TORQ"], ACCEL_TORQ_MAX
+
+  def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
+    accel_min, accel_max = self.acc_min_max(CS)
+    if self.hybrid:
       aSmoothTarget = (aTarget + CS.out.aEgo) / 2  # always smooth since hybrid has lots of torq
       cruise = aSmoothTarget * ACCEL_TO_NM
     else:
-      accel_min = ACCEL_TORQ_MIN  # are these in a message somewhere too?
-      accel_max = ACCEL_TORQ_MAX
-
       rpm = CS.gasRpm
       if CS.out.vEgo < SLOW_WINDOW:
         cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
@@ -203,10 +218,10 @@ class CarController():
 
     # adjust for hills and towing
     offset = aTarget - CS.out.aEgo
-    if offset > 0.2:
+    if offset > TORQ_ADJUST_THRESHOLD:
       under_accel_frame_count = self.under_accel_frame_count + 1  # inc under accelerating frame count
       if self.ccframe - self.under_accel_frame_count > START_ADJUST_ACCEL_FRAMES:
-        self.torq_adjust += offset * UNDER_ACCEL_MULTIPLIER
+        self.torq_adjust += offset * (1 / CarInterface.eco_multiplier())
 
     if cruise + self.torq_adjust > accel_max:  # keep the adjustment in check
       self.torq_adjust = max(0., accel_max - self.torq_adjust)

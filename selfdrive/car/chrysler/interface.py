@@ -16,14 +16,18 @@ long_control = cachedParams.get_bool('jvePilot.settings.longControl', 0)
 class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
-    if long_control:
-      eco = cachedParams.get_float('jvePilot.carState.accEco', 1000)
-      if eco == 1:
-        return CarControllerParams.ACCEL_MIN + 0.1, 1.33
-      elif eco == 2:
-        return CarControllerParams.ACCEL_MIN + 0.1, 1.
+    return CarControllerParams.ACCEL_MIN + 0.1, CarControllerParams.ACCEL_MAX * CarInterface.eco_multiplier()
 
-    return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
+  @staticmethod
+  def eco_multiplier():
+    eco_multiplier = 1
+    eco = cachedParams.get_float('jvePilot.carState.accEco', 1000)
+    if eco == 1:
+      eco_multiplier = CarControllerParams.ECO_1
+    elif eco == 2:
+      eco_multiplier = CarControllerParams.ECO_2
+
+    return eco_multiplier
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):

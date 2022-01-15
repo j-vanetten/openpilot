@@ -2,7 +2,10 @@
 
 from selfdrive.car import dbc_dict
 from cereal import car
+from common.cached_params import CachedParams
 Ecu = car.CarParams.Ecu
+cachedParams = CachedParams()
+long_control = cachedParams.get_bool('jvePilot.settings.longControl', 0)
 
 class CarControllerParams:
   STEER_MAX = 261         # 262 faults
@@ -11,6 +14,9 @@ class CarControllerParams:
   STEER_ERROR_MAX = 80
   ACCEL_MAX = 2.  # m/s2, high to not limit stock ACC
   ACCEL_MIN = -4.  # m/s2
+
+  ECO_1 = 0.666
+  ECO_2 = 0.5
 
 class CAR:
   PACIFICA_2017_HYBRID = "CHRYSLER PACIFICA HYBRID 2017"
