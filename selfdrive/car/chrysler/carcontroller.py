@@ -23,20 +23,23 @@ AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 
 # LONG PARAMS
-ACCEL_TORQ_LOW = 80
-ACCEL_TORQ_MIN = 20
-ACCEL_TORQ_MAX = 360
-UNDER_ACCEL_MULTIPLIER = 1.
-TORQ_RELEASE_CHANGE = ACCEL_TORQ_MAX / 100
 VEHICLE_MASS = 2268
 LOW_WINDOW = CV.MPH_TO_MS * 5
 SLOW_WINDOW = CV.MPH_TO_MS * 10
 COAST_WINDOW = CV.MPH_TO_MS * 2
-BRAKE_CHANGE = 0.05
-ADJUST_ACCEL_COOLDOWN = 0.2
-START_ADJUST_ACCEL_FRAMES = 100
-ACCEL_TO_NM = 1200
+
+# accelerator
+ACCEL_TORQ_SLOW = 40  # add this when going SLOW
+ACCEL_TORQ_MAX = 360
+UNDER_ACCEL_MULTIPLIER = 1.
+TORQ_RELEASE_CHANGE = 0.35
 TORQ_ADJUST_THRESHOLD = 0.3
+START_ADJUST_ACCEL_FRAMES = 100
+ADJUST_ACCEL_COOLDOWN = 0.2
+ACCEL_TO_NM = 1200
+
+# braking
+BRAKE_CHANGE = 0.05
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -139,27 +142,28 @@ class CarController():
 
       elif self.last_torque is not None:  # let up on gas
         self.last_torque -= TORQ_RELEASE_CHANGE
-        if self.last_torque < ACCEL_TORQ_MIN:
+        if self.last_torque <= max(0, accel_min):
           self.last_torque = None
 
       if stop_req:
-        brake = -2
-        torque = self.last_torque = 0
+        flux = acc_2_counter / 100.  # flux the brake while stopped
+        brake = -2 - flux
+        torque = self.last_torque = None
       elif go_req:
-        brake = 4
+        brake = self.last_brake = None
         torque = math.floor(self.last_torque * 100) / 100
       elif self.last_brake:
         brake = math.floor(self.last_brake * 100) / 100
-        torque = self.last_torque = 0
+        torque = self.last_torque = None
       elif self.last_torque:
-        brake = 4
+        brake = self.last_brake = None
         torque = math.floor(self.last_torque * 100) / 100
       else:  # coasting
-        brake = 4
-        torque = self.last_torque = 0
+        brake = self.last_brake = None
+        torque = self.last_torque = None
     else:
-      self.last_torque = 0
-      self.last_brake = 0
+      self.last_torque = None
+      self.last_brake = None
       stop_req = None
       brake = None
       go_req = None
@@ -205,7 +209,7 @@ class CarController():
       rpm = CS.gasRpm
       if CS.out.vEgo < SLOW_WINDOW:
         cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
-        cruise += ACCEL_TORQ_LOW * (1 - (CS.out.vEgo / SLOW_WINDOW))
+        cruise += ACCEL_TORQ_SLOW * (1 - (CS.out.vEgo / SLOW_WINDOW))
       else:
         vSmoothTarget = (vTarget + CS.out.vEgo) / 2
         accelerating = vTarget - COAST_WINDOW * CV.MS_TO_MPH > CS.out.vEgo and aTarget > 0 and CS.out.aEgo > 0 and CS.out.aEgo > self.last_aTarget
@@ -224,7 +228,7 @@ class CarController():
         self.torq_adjust += offset * (1 / CarInterface.eco_multiplier())
 
     if cruise + self.torq_adjust > accel_max:  # keep the adjustment in check
-      self.torq_adjust = max(0., accel_max - self.torq_adjust)
+      self.torq_adjust = max(0., accel_max - cruise)
 
     torque = cruise + self.torq_adjust
     if self.last_torque is None:
