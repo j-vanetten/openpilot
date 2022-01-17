@@ -25,7 +25,7 @@ ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 # LONG PARAMS
 VEHICLE_MASS = 2268
 LOW_WINDOW = CV.MPH_TO_MS * 5
-SLOW_WINDOW = CV.MPH_TO_MS * 10
+SLOW_WINDOW = CV.MPH_TO_MS * 20
 COAST_WINDOW = CV.MPH_TO_MS * 2
 
 # accelerator
@@ -127,7 +127,7 @@ class CarController():
       currently_braking = self.last_brake is not None
       speed_to_far_off = CS.out.vEgo - vTarget > CV.MPH_TO_MS * 2  # gap
       not_slowing_fast_enough = not currently_braking and speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there
-      engine_brake = aTarget <= 0 and self.torque(CS, aTarget, vTarget) > accel_min and vTarget > SLOW_WINDOW
+      engine_brake = aTarget <= 0 and self.torque(CS, aTarget, vTarget) > accel_min and vTarget > LOW_WINDOW
 
       if aTarget < 0 and (currently_braking or not_slowing_fast_enough):  # brake
         self.acc_brake(CS, aTarget, vTarget, speed_to_far_off)
@@ -146,8 +146,8 @@ class CarController():
           self.last_torque = None
 
       if stop_req:
-        flux = acc_2_counter / 100.  # flux the brake while stopped
-        brake = -2 - flux
+        flux = acc_2_counter / -50.  # flux the brake while stopped
+        brake = self.last_brake = -2 + flux
         torque = self.last_torque = None
       elif go_req:
         brake = self.last_brake = None
@@ -180,7 +180,7 @@ class CarController():
     can_sends.append(acc_command(self.packer, acc_2_counter + 2, True,
                                  go_req,
                                  torque,
-                                 stop_req,
+                                 stop_req and acc_2_counter % 2 == 0,
                                  brake,
                                  CS.acc_2))
     if self.hybrid:
