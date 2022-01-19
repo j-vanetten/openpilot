@@ -129,10 +129,10 @@ class CarController():
       not_slowing_fast_enough = not currently_braking and speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there
       engine_brake = aTarget <= 0 and self.torque(CS, aTarget, vTarget) > accel_min and vTarget > LOW_WINDOW
 
-      if aTarget < 0 and (currently_braking or not_slowing_fast_enough):  # brake
+      if not go_req and (aTarget < 0 and (currently_braking or not_slowing_fast_enough)):  # brake
         self.acc_brake(CS, aTarget, vTarget, speed_to_far_off)
 
-      elif (aTarget > 0 or engine_brake) and not currently_braking:  # gas
+      elif go_req or ((aTarget > 0 or engine_brake) and not currently_braking):  # gas
         under_accel_frame_count = self.acc_gas(CS, aTarget, vTarget, under_accel_frame_count)
 
       elif self.last_brake is not None:  # let up on the brake
@@ -176,7 +176,7 @@ class CarController():
     self.last_aTarget = CS.out.aEgo
 
     can_sends.append(acc_log(self.packer, self.torq_adjust, aTarget, vTarget, long_starting, long_stopping))
-    
+
     can_sends.append(acc_command(self.packer, acc_2_counter + 2, True,
                                  go_req,
                                  torque,
