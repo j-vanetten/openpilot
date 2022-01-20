@@ -16,7 +16,7 @@ long_control = cachedParams.get_bool('jvePilot.settings.longControl', 0)
 class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
-    return CarControllerParams.ACCEL_MIN + 0.1, CarControllerParams.ACCEL_MAX * CarInterface.eco_multiplier()
+    return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX * CarInterface.eco_multiplier()
 
   @staticmethod
   def eco_multiplier():

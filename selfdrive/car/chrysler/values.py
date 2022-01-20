@@ -13,7 +13,7 @@ class CarControllerParams:
   STEER_DELTA_DOWN = 3    # no faults on the way down it seems
   STEER_ERROR_MAX = 80
   ACCEL_MAX = 2.  # m/s2, high to not limit stock ACC
-  ACCEL_MIN = -4.  # m/s2
+  ACCEL_MIN = -3.5  # m/s2
 
   ECO_1 = 0.666
   ECO_2 = 0.5

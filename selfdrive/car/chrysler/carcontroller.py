@@ -107,6 +107,8 @@ class CarController():
 
     if not enabled:
       self.torq_adjust = 0
+      self.last_brake = None
+      self.last_torque = None
       return
 
     under_accel_frame_count = 0
@@ -120,20 +122,19 @@ class CarController():
       go_req = long_starting and CS.out.standstill
       stop_req = long_stopping or (CS.out.standstill and aTarget == 0 and not go_req)
 
-      if go_req or CS.out.vEgo < LOW_WINDOW:
+      if go_req:
         under_accel_frame_count = self.under_accel_frame_count = START_ADJUST_ACCEL_FRAMES  # ready to add torq
 
       accel_min, accel_max = self.acc_min_max(CS)
       currently_braking = self.last_brake is not None
       speed_to_far_off = CS.out.vEgo - vTarget > CV.MPH_TO_MS * 2  # gap
-      not_slowing_fast_enough = not currently_braking and speed_to_far_off and vTarget < CS.out.vEgo + CS.out.aEgo  # not going to get there
       engine_brake = aTarget <= 0 and self.torque(CS, aTarget, vTarget) > accel_min and vTarget > LOW_WINDOW
 
-      if not go_req and (aTarget < 0 and (currently_braking or not_slowing_fast_enough)):  # brake
-        self.acc_brake(CS, aTarget, vTarget, speed_to_far_off)
-
-      elif go_req or ((aTarget > 0 or engine_brake) and not currently_braking):  # gas
+      if go_req or ((aTarget > 0 or engine_brake) and not currently_braking):  # gas
         under_accel_frame_count = self.acc_gas(CS, aTarget, vTarget, under_accel_frame_count)
+
+      elif aTarget < 0:  # brake
+        self.acc_brake(CS, aTarget, vTarget, speed_to_far_off)
 
       elif self.last_brake is not None:  # let up on the brake
         self.last_brake += BRAKE_CHANGE
