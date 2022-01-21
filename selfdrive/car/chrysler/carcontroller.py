@@ -10,7 +10,7 @@ from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.cached_params import CachedParams
 from common.op_params import opParams
-from common.params import Params
+from common.params import Params, put_nonblocking
 from cereal import car
 import math
 
@@ -30,7 +30,7 @@ COAST_WINDOW = CV.MPH_TO_MS * 2
 
 # accelerator
 ACCEL_TORQ_SLOW = 40  # add this when going SLOW
-ACCEL_TORQ_MAX = 360
+# ACCEL_TORQ_MAX = 360
 UNDER_ACCEL_MULTIPLIER = 1.
 TORQ_RELEASE_CHANGE = 0.35
 TORQ_ADJUST_THRESHOLD = 0.3
@@ -39,7 +39,7 @@ ADJUST_ACCEL_COOLDOWN = 0.2
 ACCEL_TO_NM = 1200
 
 # braking
-BRAKE_CHANGE = 0.05
+BRAKE_CHANGE = 0.06
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -124,6 +124,7 @@ class CarController():
 
       if go_req:
         under_accel_frame_count = self.under_accel_frame_count = START_ADJUST_ACCEL_FRAMES  # ready to add torq
+        self.last_brake = None
 
       accel_min, accel_max = self.acc_min_max(CS)
       currently_braking = self.last_brake is not None
@@ -199,6 +200,7 @@ class CarController():
     if self.hybrid:
       return CS.hybridAxleTorq["AXLE_TORQ_MIN"], CS.hybridAxleTorq["AXLE_TORQ_MAX"]
 
+    ACCEL_TORQ_MAX = int(self.cachedParams.get_float('jvePilot.settings.longControl.maxTorq', 1000))
     return CS.acc_2["ACC_TORQ"], ACCEL_TORQ_MAX
 
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
@@ -324,13 +326,26 @@ class CarController():
     if self.longControl:
       if pcm_cancel_cmd or CS.button_pressed(ButtonType.cancel) or CS.out.brakePressed:
         CS.accEnabled = False
-      elif CS.button_pressed(ButtonType.accelCruise) or CS.button_pressed(ButtonType.decelCruise) or CS.button_pressed(
-          ButtonType.resumeCruise):
+      elif CS.button_pressed(ButtonType.accelCruise) or \
+          CS.button_pressed(ButtonType.decelCruise) or \
+          CS.button_pressed(ButtonType.resumeCruise):
         CS.accEnabled = True
 
       if CS.reallyEnabled:
         new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, ['ACC_CANCEL'])
         can_sends.append(new_msg)
+
+      accDiff = None
+      if CS.button_pressed(ButtonType.followInc, False):
+        if jvepilot_state.carControl.accEco < 2:
+          accDiff = 1
+      elif CS.button_pressed(ButtonType.followDec, False):
+        if jvepilot_state.carControl.accEco > 0:
+          accDiff = -1
+      if accDiff is not None:
+        jvepilot_state.carControl.accEco += accDiff
+        put_nonblocking("jvePilot.carState.accEco", str(jvepilot_state.carControl.accEco))
+        jvepilot_state.notifyUi = True
 
     else:
       button_counter_offset = 1

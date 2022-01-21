@@ -47,11 +47,11 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
     }
   };
   addItem(new ParamControl("jvePilot.settings.slowInCurves",
-                                  "Slow in Curves",
-                                  "jvePilot will slow in curves so that you don't have to.",
-                                  "../assets/jvepilot/settings/icon_slow_in_curves.png",
-                                  this,
-                                  &slowInCurvesConfigs));
+                           "Slow in Curves",
+                           "jvePilot will slow in curves so that you don't have to.",
+                           "../assets/jvepilot/settings/icon_slow_in_curves.png",
+                           this,
+                           &slowInCurvesConfigs));
   // autoFollow
   QList<struct ConfigButton> autoFollowConfigs = {
     { "jvePilot.settings.autoFollow.speed1-2Bars",
@@ -74,48 +74,57 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
     }
   };
   addItem(new ParamControl("jvePilot.settings.autoFollow",
-                                  "Start with Auto Follow Enabled",
-                                  "When enabled, jvePilot will enable Auto Follow on the start of every drive.",
-                                  "../assets/jvepilot/settings/icon_auto_follow.png",
-                                  this,
-                                  &autoFollowConfigs));
+                           "Start with Auto Follow Enabled",
+                           "When enabled, jvePilot will enable Auto Follow on the start of every drive.",
+                           "../assets/jvepilot/settings/icon_auto_follow.png",
+                           this,
+                           &autoFollowConfigs));
 
   // reverseAccSpeedChange
   addItem(new ParamControl("jvePilot.settings.reverseAccSpeedChange",
-                                  "Reverse ACC +/- Speeds",
-                                  "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 increments."
-                                  " Hold a little longer to change by 1."
-                                  " Disable to keep stock setting.",
-                                  "../assets/jvepilot/settings/icon_acc_speed_change.png",
-                                  this));
+                           "Reverse ACC +/- Speeds",
+                             "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 increments."
+                             " Hold a little longer to change by 1."
+                           " Disable to keep stock setting.",
+                           "../assets/jvepilot/settings/icon_acc_speed_change.png",
+                           this));
 
   // autoResume
   addItem(new ParamControl("jvePilot.settings.autoResume",
-                                  "Auto Resume",
-                                  "When enabled, jvePilot will resume after ACC comes to a stop behind another vehicle.",
-                                  "../assets/jvepilot/settings/icon_auto_resume.png",
-                                  this));
+                           "Auto Resume",
+                           "When enabled, jvePilot will resume after ACC comes to a stop behind another vehicle.",
+                           "../assets/jvepilot/settings/icon_auto_resume.png",
+                           this));
 
   // disableOnGas
   addItem(new ParamControl("jvePilot.settings.disableOnGas",
-                                  "Disable on Gas",
-                                  "When enabled, jvePilot will disengage jvePilot when the gas pedal is pressed.",
-                                  "../assets/jvepilot/settings/icon_gas_pedal.png",
-                                  this));
+                           "Disable on Gas",
+                           "When enabled, jvePilot will disengage jvePilot when the gas pedal is pressed.",
+                           "../assets/jvepilot/settings/icon_gas_pedal.png",
+                           this));
 
   // audioAlertOnSteeringLoss
   addItem(new ParamControl("jvePilot.settings.audioAlertOnSteeringLoss",
-                                  "Audio Alert on Steering Loss",
-                                  "When enabled, jvePilot will play an alert when speed it too low to steer.",
-                                  "../assets/jvepilot/settings/alert_steer_loss.png",
-                                  this));
+                           "Audio Alert on Steering Loss",
+                           "When enabled, jvePilot will play an alert when speed it too low to steer.",
+                           "../assets/jvepilot/settings/alert_steer_loss.png",
+                           this));
 
   // longControl
+  QList<struct ConfigButton> longControlConfigs = {
+    { "jvePilot.settings.longControl.maxTorq",
+      300, 1000,
+      "Max Engine Torque",
+      "Default: 360, Min: 300, Max: 1000\n"
+        "Use this to allow more torque to be requested for acceleration"
+    }
+  };
   addItem(new ParamControl("jvePilot.settings.longControl",
-                                  "Experimental Long Control",
-                                  "When enabled, jvePilot will control gas and brakes.",
-                                  "../assets/jvepilot/settings/long_control.png",
-                                  this));
+                           "Experimental Long Control",
+                           "When enabled, jvePilot will control gas and brakes.",
+                           "../assets/jvepilot/settings/long_control.png",
+                           this,
+                           &longControlConfigs));
 
   // accEco
   QList<struct ConfigButton> ecoConfigs = {
@@ -133,11 +142,11 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
     }
   };
   addItem(new LabelControl("ACC Eco",
-                                  "",
-                                  "Use these settings to tune how much acceleration occurs by limiting how much ACC is set above your current speed.",
-                                  this,
-                                  "../assets/jvepilot/settings/icon_acc_eco.png",
-                                  &ecoConfigs));
+                           "",
+                           "Use these settings to tune how much acceleration occurs by limiting how much ACC is set above your current speed.",
+                           this,
+                           "../assets/jvepilot/settings/icon_acc_eco.png",
+                           &ecoConfigs));
 
   // misc
   QList<struct ConfigButton> miscConfigs = {
@@ -151,11 +160,11 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
     }
   };
   addItem(new LabelControl("jvePilot Control Settings",
-                                  "",
-                                  "Use these settings tune some of jvePilot's control settings.",
-                                  this,
-                                  "../assets/jvepilot/settings/icon_misc.png",
-                                  &miscConfigs));
+                           "",
+                           "Use these settings tune some of jvePilot's control settings.",
+                           this,
+                           "../assets/jvepilot/settings/icon_misc.png",
+                           &miscConfigs));
 }
 
 TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
