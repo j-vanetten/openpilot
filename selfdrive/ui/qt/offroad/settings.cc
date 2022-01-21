@@ -41,7 +41,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
     ,{ "jvePilot.settings.slowInCurves.speedDropOff",
       1, 3,
       "Speed Drop Off",
-      "Default: 2.0\n"
+      "Default: 1.96\n"
         "Experimental. Lower this value to decrease how quickly speed drops as the curve increases."
         "\nTo go faster in turns at higher speeds, decrease this value.  To compensate for this change, you may need to increase the Speed Ratio."
     }

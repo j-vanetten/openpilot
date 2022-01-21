@@ -53,7 +53,7 @@ def manager_init():
     ("jvePilot.settings.reverseAccSpeedChange", "1"),
     ("jvePilot.settings.slowInCurves", "1"),
     ("jvePilot.settings.slowInCurves.speedRatio", "1.0"),
-    ("jvePilot.settings.slowInCurves.speedDropOff", "2.0"),
+    ("jvePilot.settings.slowInCurves.speedDropOff", "1.96"),
     ("jvePilot.settings.slowInCurves.speedDropOffAngle", "0.0"),
 
     ("CompletedTrainingVersion", "0"),
