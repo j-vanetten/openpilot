@@ -179,14 +179,14 @@ class CarController():
 
     can_sends.append(acc_log(self.packer, self.torq_adjust, aTarget, vTarget, long_starting, long_stopping))
 
-    can_sends.append(acc_command(self.packer, acc_2_counter + 2, True,
+    can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
                                  go_req,
                                  torque,
                                  stop_req and acc_2_counter % 2 == 0,
                                  brake,
                                  CS.acc_2))
     if self.hybrid:
-      can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 2, True,
+      can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, True,
                                           torque,
                                           CS.acc_1))
 
@@ -206,7 +206,7 @@ class CarController():
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
     accel_min, accel_max = self.acc_min_max(CS)
     if self.hybrid:
-      aSmoothTarget = (aTarget + CS.out.aEgo) / 2  # always smooth since hybrid has lots of torq
+      aSmoothTarget = (aTarget + CS.out.aEgo) / 2  # always smooth since hybrid has lots of torq?
       cruise = aSmoothTarget * ACCEL_TO_NM
     else:
       rpm = CS.gasRpm
@@ -234,13 +234,12 @@ class CarController():
       self.torq_adjust = max(0., accel_max - cruise)
 
     torque = cruise + self.torq_adjust
-    if self.last_torque is None:
-      self.last_torque = torque / 2
-    if self.last_torque < torque:
-      self.last_torque += ADJUST_ACCEL_COOLDOWN
-    else:
-      self.last_torque -= ADJUST_ACCEL_COOLDOWN
-    self.last_torque = max(accel_min, min(accel_max, torque))
+
+    # use new value if it's higher, or we are accel to much
+    if self.last_torque is None or self.last_torque < torque or CS.out.aEgo > aTarget:
+      self.last_torque = torque
+
+    self.last_torque = max(accel_min, min(accel_max, self.last_torque))
 
     return under_accel_frame_count
 
