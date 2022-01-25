@@ -126,10 +126,9 @@ class CarController():
         under_accel_frame_count = self.under_accel_frame_count = START_ADJUST_ACCEL_FRAMES  # ready to add torq
         self.last_brake = None
 
-      accel_min, accel_max = self.acc_min_max(CS)
       currently_braking = self.last_brake is not None
       speed_to_far_off = CS.out.vEgo - vTarget > CV.MPH_TO_MS * 2  # gap
-      engine_brake = aTarget <= 0 and self.torque(CS, aTarget, vTarget) > accel_min and vTarget > LOW_WINDOW
+      engine_brake = aTarget <= 0 and self.torque(CS, aTarget, vTarget) > CS.torqMin and vTarget > LOW_WINDOW
 
       if go_req or ((aTarget > 0 or engine_brake) and not currently_braking):  # gas
         under_accel_frame_count = self.acc_gas(CS, aTarget, vTarget, under_accel_frame_count)
@@ -144,7 +143,7 @@ class CarController():
 
       elif self.last_torque is not None:  # let up on gas
         self.last_torque -= TORQ_RELEASE_CHANGE
-        if self.last_torque <= max(0, accel_min):
+        if self.last_torque <= max(0, CS.torqMin):
           self.last_torque = None
 
       if stop_req:
@@ -196,15 +195,7 @@ class CarController():
 
     return (VEHICLE_MASS * aTarget * vTarget) / (.105 * CS.gasRpm)
 
-  def acc_min_max(self, CS):
-    if self.hybrid:
-      return CS.hybridAxleTorq["AXLE_TORQ_MIN"], CS.hybridAxleTorq["AXLE_TORQ_MAX"]
-
-    ACCEL_TORQ_MAX = int(self.cachedParams.get_float('jvePilot.settings.longControl.maxTorq', 1000))
-    return CS.acc_2["ACC_TORQ"], ACCEL_TORQ_MAX
-
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
-    accel_min, accel_max = self.acc_min_max(CS)
     if self.hybrid:
       aSmoothTarget = (aTarget + CS.out.aEgo) / 2  # always smooth since hybrid has lots of torq?
       cruise = aSmoothTarget * ACCEL_TO_NM
@@ -230,8 +221,8 @@ class CarController():
       if self.ccframe - self.under_accel_frame_count > START_ADJUST_ACCEL_FRAMES:
         self.torq_adjust += offset * (1 / CarInterface.eco_multiplier())
 
-    if cruise + self.torq_adjust > accel_max:  # keep the adjustment in check
-      self.torq_adjust = max(0., accel_max - cruise)
+    if cruise + self.torq_adjust > CS.torqMax:  # keep the adjustment in check
+      self.torq_adjust = max(0., CS.torqMax - cruise)
 
     torque = cruise + self.torq_adjust
 
@@ -239,7 +230,7 @@ class CarController():
     if self.last_torque is None or self.last_torque < torque or CS.out.aEgo > aTarget:
       self.last_torque = torque
 
-    self.last_torque = max(accel_min, min(accel_max, self.last_torque))
+    self.last_torque = max(CS.torqMin, min(CS.torqMax, self.last_torque))
 
     return under_accel_frame_count
 

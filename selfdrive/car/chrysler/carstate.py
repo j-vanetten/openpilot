@@ -83,8 +83,12 @@ class CarState(CarStateBase):
       ret.cruiseState.available = cp.vl["DASHBOARD"]["CRUISE_STATE"] == 0
       ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] != 0
       if self.hybrid:
-        self.hybridAxleTorq = cp.vl["AXLE_TORQ"]
         self.acc_1 = cp.vl["ACC_1"]
+        self.torqMin = cp.vl["AXLE_TORQ"]["AXLE_TORQ_MIN"]
+        self.torqMax = cp.vl["AXLE_TORQ"]["AXLE_TORQ_MAX"]
+      else:
+        self.torqMin = cp.vl["AXLE_TORQ_ICE"]["AXLE_TORQ_MIN"]
+        self.torqMax = cp.vl["AXLE_TORQ_ICE"]["AXLE_TORQ_MAX"]
     else:
       ret.cruiseState.enabled = cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
       ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3,4]  # the comment below says 3 and 4 are ACC mode
@@ -241,6 +245,11 @@ class CarState(CarStateBase):
         ("FORWARD_2", "ACC_1", 0),
         ("FORWARD_3", "ACC_1", 0),
       ]
+    else:
+      signals += [
+        ("AXLE_TORQ_MIN", "AXLE_TORQ_ICE", 0),
+        ("AXLE_TORQ_MAX", "AXLE_TORQ_ICE", 0),
+      ]
 
     checks = [
       # sig_address, frequency
@@ -269,6 +278,10 @@ class CarState(CarStateBase):
       checks += [
         ("AXLE_TORQ", 50),
         ("ACC_1", 50),
+      ]
+    else:
+      checks += [
+        ("AXLE_TORQ_ICE", 15),
       ]
 
     if CP.enableBsm:
