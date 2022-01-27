@@ -36,6 +36,7 @@ TORQ_RELEASE_CHANGE = 0.35
 TORQ_ADJUST_THRESHOLD = 0.3
 START_ADJUST_ACCEL_FRAMES = 100
 ADJUST_ACCEL_COOLDOWN = 0.2
+MIN_TORQ_CHANGE = 2
 ACCEL_TO_NM = 1200
 
 # braking
@@ -227,8 +228,14 @@ class CarController():
     torque = cruise + self.torq_adjust
 
     # use new value if it's higher, or we are accel to much
-    if self.last_torque is None or self.last_torque < torque or CS.out.aEgo > aTarget:
-      self.last_torque = torque
+    if self.last_torque is None:
+      self.last_torque = torque / 2
+
+    diff = max(abs(torque - self.last_torque) / 25, MIN_TORQ_CHANGE)
+    if torque < self.last_torque:
+      self.last_torque -= diff
+    else:
+      self.last_torque += diff
 
     self.last_torque = max(CS.torqMin, min(CS.torqMax, self.last_torque))
 
