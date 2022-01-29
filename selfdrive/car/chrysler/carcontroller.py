@@ -38,6 +38,7 @@ START_ADJUST_ACCEL_FRAMES = 100
 ADJUST_ACCEL_COOLDOWN = 0.2
 MIN_TORQ_CHANGE = 2
 ACCEL_TO_NM = 1200
+TORQ_BRAKE_MAX = -0.1
 
 # braking
 BRAKE_CHANGE = 0.06
@@ -128,10 +129,10 @@ class CarController():
         self.last_brake = None
 
       currently_braking = self.last_brake is not None
-      speed_to_far_off = CS.out.vEgo - vTarget > CV.MPH_TO_MS * 2  # gap
-      engine_brake = aTarget <= 0 and self.torque(CS, aTarget, vTarget) > CS.torqMin and vTarget > LOW_WINDOW
+      speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # gap
+      engine_brake = TORQ_BRAKE_MAX < aTarget < 0 and not speed_to_far_off and vTarget > LOW_WINDOW
 
-      if go_req or ((aTarget > 0 or engine_brake) and not currently_braking):  # gas
+      if go_req or ((aTarget >= 0 or engine_brake) and not currently_braking):  # gas
         under_accel_frame_count = self.acc_gas(CS, aTarget, vTarget, under_accel_frame_count)
 
       elif aTarget < 0:  # brake
@@ -226,18 +227,7 @@ class CarController():
       self.torq_adjust = max(0., CS.torqMax - cruise)
 
     torque = cruise + self.torq_adjust
-
-    # use new value if it's higher, or we are accel to much
-    if self.last_torque is None:
-      self.last_torque = torque / 2
-
-    diff = max(abs(torque - self.last_torque) / 25, MIN_TORQ_CHANGE)
-    if torque < self.last_torque:
-      self.last_torque -= diff
-    else:
-      self.last_torque += diff
-
-    self.last_torque = max(CS.torqMin, min(CS.torqMax, self.last_torque))
+    self.last_torque = max(CS.torqMin * .95, min(CS.torqMax, torque))
 
     return under_accel_frame_count
 
