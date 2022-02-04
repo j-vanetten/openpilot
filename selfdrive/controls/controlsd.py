@@ -59,6 +59,8 @@ IGNORED_SAFETY_MODES = [SafetyModel.silent, SafetyModel.noOutput]
 
 class Controls:
   def __init__(self, sm=None, pm=None, can_sock=None):
+    self.lastLongControl = None
+
     config_realtime_process(4 if TICI else 3, Priority.CTRL_HIGH)
 
     # Setup sockets
@@ -406,8 +408,12 @@ class Controls:
 
     self.distance_traveled += CS.vEgo * DT_CTRL
 
+    if self.lastLongControl is None or self.lastLongControl != self.CI.CS.longControl:
+      self.jvePilotState.notifyUi = True
+      self.lastLongControl = self.CI.CS.longControl
+
     if self.jvePilotState.notifyUi:
-      self.ui_notify(CS)
+      self.ui_notify(self.CI.CS)
     elif self.sm.updated['jvePilotUIState']:
       self.jvePilotState.carControl.autoFollow = self.sm['jvePilotUIState'].autoFollow == 1
       self.jvePilotState.carControl.accEco = self.sm['jvePilotUIState'].accEco
