@@ -281,7 +281,7 @@ class CarState(CarStateBase):
       ]
     else:
       checks += [
-        ("AXLE_TORQ_ICE", 15),
+        ("AXLE_TORQ_ICE", 50),
       ]
 
     if CP.enableBsm:

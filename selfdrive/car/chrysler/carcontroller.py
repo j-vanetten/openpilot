@@ -226,7 +226,7 @@ class CarController():
       self.torq_adjust = max(0., CS.torqMax - cruise)
 
     torque = cruise + self.torq_adjust
-    self.last_torque = max(CS.torqMin + 1, min(CS.torqMax, torque))
+    self.last_torque = max(CS.torqMin + 5, min(CS.torqMax, torque))
 
     return under_accel_frame_count
 
