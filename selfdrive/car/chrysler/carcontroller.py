@@ -72,7 +72,6 @@ class CarController():
     self.cachedParams = CachedParams()
     self.opParams = opParams()
     self.auto_resume = self.params.get_bool('jvePilot.settings.autoResume')
-    self.longControl = self.params.get_bool('jvePilot.settings.longControl')
     self.minAccSetting = V_CRUISE_MIN_MS if self.params.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
     self.round_to_unit = CV.MS_TO_KPH if self.params.get_bool("IsMetric") else CV.MS_TO_MPH
     self.autoFollowDistanceLock = None
@@ -88,7 +87,7 @@ class CarController():
 
     # *** control msgs ***
     can_sends = []
-    if self.longControl:
+    if CS.longControl:
       self.acc(CS, actuators, can_sends, enabled, c.jvePilotState)
     self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
     self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
@@ -310,15 +309,17 @@ class CarController():
 
     self.button_frame += 1
 
-    if self.longControl:
+    if CS.longControl:
+      buttonEnableIt = False
       if pcm_cancel_cmd or CS.button_pressed(ButtonType.cancel) or CS.out.brakePressed:
         CS.accEnabled = False
       elif CS.button_pressed(ButtonType.accelCruise) or \
           CS.button_pressed(ButtonType.decelCruise) or \
           CS.button_pressed(ButtonType.resumeCruise):
+        buttonEnableIt = True
         CS.accEnabled = True
 
-      if CS.reallyEnabled:
+      if CS.reallyEnabled or buttonEnableIt:
         new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, ['ACC_CANCEL'])
         can_sends.append(new_msg)
 

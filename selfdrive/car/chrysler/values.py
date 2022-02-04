@@ -5,7 +5,6 @@ from cereal import car
 from common.cached_params import CachedParams
 Ecu = car.CarParams.Ecu
 cachedParams = CachedParams()
-long_control = cachedParams.get_bool('jvePilot.settings.longControl', 0)
 
 class CarControllerParams:
   STEER_MAX = 261         # 262 faults

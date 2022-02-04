@@ -37,7 +37,7 @@ class CarState(CarStateBase):
     self.gasRpm = None
     self.accEnabled = False
     self.reallyEnabled = True
-    self.longControl = Params().get_bool('jvePilot.settings.longControl')
+    self.longControl = False
     self.hybrid = CP.carFingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
 
   def update(self, cp, cp_cam):
@@ -77,11 +77,12 @@ class CarState(CarStateBase):
     ret.steeringRateDeg = cp.vl["STEERING"]["STEERING_RATE"]
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["GEAR"]["PRNDL"], None))
 
+    self.longControl = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2] and Params().get_bool('jvePilot.settings.longControl')
     if self.longControl:
-      self.reallyEnabled = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [2, 4]
+      self.reallyEnabled = cp.vl["DASHBOARD"]["CRUISE_STATE"] == 2
       ret.cruiseState.enabled = self.accEnabled
-      ret.cruiseState.available = cp.vl["DASHBOARD"]["CRUISE_STATE"] == 0
-      ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] != 0
+      ret.cruiseState.available = True
+      ret.cruiseState.nonAdaptive = False
       if self.hybrid:
         self.acc_1 = cp.vl["ACC_1"]
         self.torqMin = cp.vl["AXLE_TORQ"]["AXLE_TORQ_MIN"]
@@ -91,12 +92,11 @@ class CarState(CarStateBase):
         self.torqMax = cp.vl["AXLE_TORQ_ICE"]["AXLE_TORQ_MAX"]
     else:
       ret.cruiseState.enabled = cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
-      ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3,4]  # the comment below says 3 and 4 are ACC mode
+      ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3, 4]
       ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2]
 
     self.cruise_error = cp.vl["ACC_2"]["STS"] != 0  # is this the cruise error?
     ret.cruiseState.speed = cp.vl["DASHBOARD"]["ACC_SPEED_CONFIG_KPH"] * CV.KPH_TO_MS
-    # CRUISE_STATE is a three bit msg, 0 is off, 1 and 2 are Non-ACC mode, 3 and 4 are ACC mode, find if there are other states too
     self.dashboard = cp.vl["DASHBOARD"]
 
     ret.steeringTorque = cp.vl["EPS_STATUS"]["TORQUE_DRIVER"]

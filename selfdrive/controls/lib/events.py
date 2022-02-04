@@ -15,7 +15,6 @@ AudibleAlert = car.CarControl.HUDControl.AudibleAlert
 EventName = car.CarEvent.EventName
 
 cachedParams = CachedParams()
-long_control = cachedParams.get_bool("jvePilot.settings.longControl", 0)
 
 # Alert priorities
 class Priority(IntEnum):
@@ -233,8 +232,6 @@ def below_steer_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: 
     AlertStatus.userPrompt, AlertSize.small,
     Priority.MID, VisualAlert.steerRequired, AudibleAlert.prompt if alert else AudibleAlert.none, 0.4)
 
-def wrong_cruise_mode_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> NoEntryAlert:
-  return NoEntryAlert("Unsupported Cruise Mode" if long_control else "Adaptive Cruise Disabled")
 
 def calibration_incomplete_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> Alert:
   return Alert(
@@ -575,7 +572,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
 
   EventName.wrongCruiseMode: {
     ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
-    ET.NO_ENTRY: wrong_cruise_mode_alert,
+    ET.NO_ENTRY: NoEntryAlert("Adaptive Cruise Disabled"),
   },
 
   EventName.steerTempUnavailable: {

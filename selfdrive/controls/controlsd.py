@@ -160,7 +160,6 @@ class Controls:
     self.current_alert_types = [ET.PERMANENT]
     self.logged_comm_issue = False
 
-    self.longControl = params.get_bool('jvePilot.settings.longControl')
     self.v_target = 0.
     self.buttonPressTimes = {}
     self.cachedParams = CachedParams()
@@ -169,7 +168,7 @@ class Controls:
     self.jvePilotState.carControl.autoFollow = params.get_bool('jvePilot.settings.autoFollow')
     self.jvePilotState.carControl.useLaneLines = not params.get_bool('EndToEndToggle')
     self.jvePilotState.carControl.accEco = int(params.get('jvePilot.carState.accEco', encoding='utf8') or "1")
-    self.ui_notify()
+    self.jvePilotState.notifyUi = True
 
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
@@ -408,7 +407,7 @@ class Controls:
     self.distance_traveled += CS.vEgo * DT_CTRL
 
     if self.jvePilotState.notifyUi:
-      self.ui_notify()
+      self.ui_notify(CS)
     elif self.sm.updated['jvePilotUIState']:
       self.jvePilotState.carControl.autoFollow = self.sm['jvePilotUIState'].autoFollow == 1
       self.jvePilotState.carControl.accEco = self.sm['jvePilotUIState'].accEco
@@ -416,12 +415,12 @@ class Controls:
 
     return CS
 
-  def ui_notify(self):
+  def ui_notify(self, CS):
     self.jvePilotState.notifyUi = False
 
     msg = messaging.new_message('jvePilotUIState')
     msg.jvePilotUIState = self.sm['jvePilotUIState']
-    msg.jvePilotUIState.autoFollow = -1 if self.longControl else (1 if self.jvePilotState.carControl.autoFollow else 0)
+    msg.jvePilotUIState.autoFollow = -1 if CS.longControl else (1 if self.jvePilotState.carControl.autoFollow else 0)
     msg.jvePilotUIState.accEco = self.jvePilotState.carControl.accEco
     msg.jvePilotUIState.useLaneLines = self.jvePilotState.carControl.useLaneLines
     self.pm.send('jvePilotState', msg)

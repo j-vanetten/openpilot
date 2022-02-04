@@ -11,7 +11,6 @@ ButtonType = car.CarState.ButtonEvent.Type
 GAS_RESUME_SPEED = 2.
 cachedParams = CachedParams()
 opParams = opParams()
-long_control = cachedParams.get_bool('jvePilot.settings.longControl', 0)
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
@@ -93,9 +92,7 @@ class CarInterface(CarInterfaceBase):
     events = self.create_common_events(ret, extra_gears=[car.CarState.GearShifter.low],
                                        gas_resume_speed=GAS_RESUME_SPEED, pcm_enable=False)
 
-    long_control = cachedParams.get_bool('jvePilot.settings.longControl', 1000)
-
-    if not long_control and ret.brakePressed and ret.vEgo < GAS_RESUME_SPEED:
+    if not self.CS.longControl and ret.brakePressed and ret.vEgo < GAS_RESUME_SPEED:
       events.add(car.CarEvent.EventName.accBrakeHold)
     elif not self.CC.moving_fast:
       events.add(car.CarEvent.EventName.belowSteerSpeed)
@@ -110,7 +107,7 @@ class CarInterface(CarInterfaceBase):
     elif (not ret.cruiseState.enabled) and (ret.vEgo > GAS_RESUME_SPEED or (self.CS.out.cruiseState.enabled and (not ret.standstill))):
       events.add(car.CarEvent.EventName.pcmDisable)  # give up, too fast to resume
 
-    if long_control:
+    if self.CS.longControl:
       if ret.brakePressed and not self.CS.out.brakePressed:
         events.add(car.CarEvent.EventName.pedalPressed)
 
