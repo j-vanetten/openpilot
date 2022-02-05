@@ -77,9 +77,9 @@ class CarState(CarStateBase):
     ret.steeringRateDeg = cp.vl["STEERING"]["STEERING_RATE"]
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["GEAR"]["PRNDL"], None))
 
-    self.longControl = cp.vl["DASHBOARD"]["CRUISE_STATE"] == 0 and Params().get_bool('jvePilot.settings.longControl')
+    self.longControl = cp.vl["DASHBOARD"]["CRUISE_STATE"] == 0 and self.cachedParams.get_bool('jvePilot.settings.longControl', 1000)
     if self.longControl:
-      self.reallyEnabled = cp.vl["DASHBOARD"]["CRUISE_STATE"] == 2
+      self.reallyEnabled = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [2, 4]
       ret.cruiseState.enabled = self.accEnabled
       ret.cruiseState.available = True
       ret.cruiseState.nonAdaptive = False

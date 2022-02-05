@@ -182,7 +182,7 @@ class CarController():
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
                                  go_req,
                                  torque,
-                                 stop_req, # and acc_2_counter % 2 == 0,
+                                 stop_req and acc_2_counter % 2 == 0,
                                  brake,
                                  CS.acc_2))
     if self.hybrid:
@@ -226,7 +226,7 @@ class CarController():
       self.torq_adjust = max(0., CS.torqMax - cruise)
 
     torque = cruise + self.torq_adjust
-    self.last_torque = max(CS.torqMin + 5, min(CS.torqMax, torque))
+    self.last_torque = max(CS.torqMin + 1, min(CS.torqMax, torque))
 
     return under_accel_frame_count
 
@@ -310,16 +310,14 @@ class CarController():
     self.button_frame += 1
 
     if CS.longControl:
-      buttonEnableIt = False
       if pcm_cancel_cmd or CS.button_pressed(ButtonType.cancel) or CS.out.brakePressed:
         CS.accEnabled = False
       elif CS.button_pressed(ButtonType.accelCruise) or \
           CS.button_pressed(ButtonType.decelCruise) or \
           CS.button_pressed(ButtonType.resumeCruise):
-        buttonEnableIt = True
         CS.accEnabled = True
 
-      if CS.reallyEnabled or buttonEnableIt:
+      if CS.reallyEnabled:
         new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, ['ACC_CANCEL'])
         can_sends.append(new_msg)
 
