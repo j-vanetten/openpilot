@@ -8,6 +8,8 @@ const int CHRYSLER_GAS_THRSLD = 30;  // 7% more than 2m/s
 const int CHRYSLER_STANDSTILL_THRSLD = 1;  // real slow
 const CanMsg CHRYSLER_TX_MSGS[] = {{571, 0, 3}, {658, 0, 6}, {678, 0, 8}, {729, 0, 5}, {500, 0, 8}, {625, 0, 8}, {502, 0, 8}};
 
+int cruise_mode = -1;
+
 AddrCheckStruct chrysler_addr_checks[] = {
   {.msg = {{544, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 10000U}, { 0 }, { 0 }}},
   {.msg = {{514, 0, 8, .check_checksum = false, .max_counter = 0U, .expected_timestep = 10000U}, { 0 }, { 0 }}},
@@ -78,10 +80,13 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
       update_sample(&torque_meas, torque_meas_new);
     }
 
+    else if (addr == 501) {
+      cruise_mode = ((GET_BYTE(to_push, 4) & 0x70U) >> 4);
+    }
+
     // enter controls on rising edge of ACC, exit controls on ACC off
     else if (addr == 500) {
-      int cruise_available = ((GET_BYTE(to_push, 2) & 0x18U) >> 3) == 3U;
-      if (cruise_available) {
+      if (cruise_mode == 3 ||cruise_mode == 4) {
         int cruise_engaged = ((GET_BYTE(to_push, 2) & 0x38U) >> 3) == 7U;
         if (cruise_engaged) {
           controls_allowed = 1;
@@ -124,9 +129,9 @@ static int chrysler_tx_hook(CANPacket_t *to_send) {
   }
 
   // ACC_2
-//  if (addr == 500) {
-//    controls_allowed = ((GET_BYTE(to_send, 2) & 0x38U) >> 3) == 7U;
-//  }
+  if (addr == 500) {
+    controls_allowed = cruise_mode == 0 && ((GET_BYTE(to_send, 2) & 0x38U) >> 3) == 7U;
+  }
 
   // LKA STEER
   if (addr == 0x292) {
