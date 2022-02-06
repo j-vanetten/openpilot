@@ -35,8 +35,7 @@ class CarState(CarStateBase):
     self.speedRequested = 0
     self.acc_2 = None
     self.gasRpm = None
-    self.accEnabled = False
-    self.reallyEnabled = True
+    self.longEnabled = False
     self.longControl = False
     self.hybrid = CP.carFingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
 
@@ -79,8 +78,7 @@ class CarState(CarStateBase):
 
     self.longControl = cp.vl["DASHBOARD"]["CRUISE_STATE"] == 0 and self.cachedParams.get_bool('jvePilot.settings.longControl', 1000)
     if self.longControl:
-      self.reallyEnabled = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [2, 4]
-      ret.cruiseState.enabled = self.accEnabled
+      ret.cruiseState.enabled = self.longEnabled
       ret.cruiseState.available = True
       ret.cruiseState.nonAdaptive = False
       if self.hybrid:
@@ -88,7 +86,7 @@ class CarState(CarStateBase):
         self.torqMin = cp.vl["AXLE_TORQ"]["AXLE_TORQ_MIN"]
         self.torqMax = cp.vl["AXLE_TORQ"]["AXLE_TORQ_MAX"]
       else:
-        self.torqMin = cp.vl["AXLE_TORQ_ICE"]["AXLE_TORQ_MIN"]
+        self.torqMin = cp.vl["ACC_2"]["ACC_TORQ"]
         self.torqMax = cp.vl["AXLE_TORQ_ICE"]["AXLE_TORQ_MAX"]
     else:
       ret.cruiseState.enabled = cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.

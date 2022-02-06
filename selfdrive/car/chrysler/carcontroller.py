@@ -311,15 +311,11 @@ class CarController():
 
     if CS.longControl:
       if pcm_cancel_cmd or CS.button_pressed(ButtonType.cancel) or CS.out.brakePressed:
-        CS.accEnabled = False
+        CS.longEnabled = False
       elif CS.button_pressed(ButtonType.accelCruise) or \
           CS.button_pressed(ButtonType.decelCruise) or \
           CS.button_pressed(ButtonType.resumeCruise):
-        CS.accEnabled = True
-
-      if CS.reallyEnabled:
-        new_msg = create_wheel_buttons_command(self.packer, button_counter + 1, ['ACC_CANCEL'])
-        can_sends.append(new_msg)
+        CS.longEnabled = True
 
       accDiff = None
       if CS.button_pressed(ButtonType.followInc, False):
