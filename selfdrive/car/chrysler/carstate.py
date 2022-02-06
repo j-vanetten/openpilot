@@ -89,6 +89,7 @@ class CarState(CarStateBase):
         self.torqMin = cp.vl["ACC_2"]["ACC_TORQ"]
         self.torqMax = cp.vl["AXLE_TORQ_ICE"]["AXLE_TORQ_MAX"]
     else:
+      self.longEnabled = False
       ret.cruiseState.enabled = cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
       ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3, 4]
       ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2]
