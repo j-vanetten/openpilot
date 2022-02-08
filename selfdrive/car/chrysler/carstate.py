@@ -83,6 +83,7 @@ class CarState(CarStateBase):
       ret.cruiseState.nonAdaptive = False
       if self.hybrid:
         self.acc_1 = cp.vl["ACC_1"]
+        self.hybridTorq = cp.vl["AXLE_TORQ"]["AXLE_TORQ"]
         self.torqMin = cp.vl["AXLE_TORQ"]["AXLE_TORQ_MIN"]
         self.torqMax = cp.vl["AXLE_TORQ"]["AXLE_TORQ_MAX"]
       else:
@@ -236,6 +237,7 @@ class CarState(CarStateBase):
       signals += [
         ("AXLE_TORQ_MIN", "AXLE_TORQ", 0),
         ("AXLE_TORQ_MAX", "AXLE_TORQ", 0),
+        ("AXLE_TORQ", "AXLE_TORQ", 0),
 
         ("COUNTER", "ACC_1", 0),
         ("ACC_TORQ_REQ", "ACC_1", 0),

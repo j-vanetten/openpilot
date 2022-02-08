@@ -191,10 +191,9 @@ class CarController():
                                           CS.acc_1))
 
   def torque(self, CS, aTarget, vTarget):
-    if self.hybrid:
-      return aTarget * ACCEL_TO_NM
+    rpm = (VEHICLE_MASS * CS.out.aEgo * CS.out.vEgo) / (.105 * CS.hybridTorq) if CS.hybrid else CS.gasRpm
 
-    return (VEHICLE_MASS * aTarget * vTarget) / (.105 * CS.gasRpm)
+    return (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
 
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
     if self.hybrid:
