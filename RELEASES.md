@@ -1,3 +1,8 @@
+Version jvePilot-0.8.12(v4.0.0)
+========================
+Visit http://bit.ly/jvereadme for more information
+* Add experimental longitudinal control option
+
 Version jvePilot-0.8.12(v3.8.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
