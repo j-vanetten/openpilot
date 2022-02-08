@@ -179,6 +179,12 @@ class CarController():
 
     can_sends.append(acc_log(self.packer, self.torq_adjust, aTarget, vTarget, long_starting, long_stopping))
 
+    can_sends.append(acc_command(self.packer, acc_2_counter, True,
+                                 go_req,
+                                 torque,
+                                 stop_req and acc_2_counter % 2 == 0,
+                                 brake,
+                                 CS.acc_2))
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
                                  go_req,
                                  torque,
@@ -186,6 +192,9 @@ class CarController():
                                  brake,
                                  CS.acc_2))
     if self.hybrid:
+      can_sends.append(acc_hybrid_command(self.packer, acc_2_counter, True,
+                                          torque,
+                                          CS.acc_1))
       can_sends.append(acc_hybrid_command(self.packer, acc_2_counter + 1, True,
                                           torque,
                                           CS.acc_1))
