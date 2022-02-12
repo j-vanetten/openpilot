@@ -35,7 +35,7 @@ UNDER_ACCEL_MULTIPLIER = 1.
 TORQ_RELEASE_CHANGE = 0.35
 TORQ_ADJUST_THRESHOLD = 0.3
 START_ADJUST_ACCEL_FRAMES = 100
-ADJUST_ACCEL_COOLDOWN = 0.2
+ADJUST_ACCEL_COOLDOWN_MAX = 1
 MIN_TORQ_CHANGE = 2
 ACCEL_TO_NM = 1200
 TORQ_BRAKE_MAX = -0.1
@@ -128,8 +128,9 @@ class CarController():
         self.last_brake = None
 
       currently_braking = self.last_brake is not None
-      speed_to_far_off = CS.out.vEgo - vTarget > COAST_WINDOW  # gap
-      engine_brake = TORQ_BRAKE_MAX < aTarget < 0 and not speed_to_far_off and vTarget > LOW_WINDOW
+      speed_to_far_off = abs(CS.out.vEgo - vTarget) > COAST_WINDOW
+      engine_brake = TORQ_BRAKE_MAX < aTarget < 0 and not speed_to_far_off and vTarget > LOW_WINDOW \
+                     and self.torque(CS, aTarget, vTarget) + self.torq_adjust > CS.torqMax
 
       if go_req or ((aTarget >= 0 or engine_brake) and not currently_braking):  # gas
         under_accel_frame_count = self.acc_gas(CS, aTarget, vTarget, under_accel_frame_count)
@@ -172,7 +173,7 @@ class CarController():
       torque = None
 
     if under_accel_frame_count == 0 and self.torq_adjust > 0:  # we are cooling down
-      self.torq_adjust -= ADJUST_ACCEL_COOLDOWN
+      self.torq_adjust -= max(aTarget * -10, ADJUST_ACCEL_COOLDOWN_MAX)
 
     self.under_accel_frame_count = under_accel_frame_count
     self.last_aTarget = CS.out.aEgo
@@ -223,12 +224,13 @@ class CarController():
 
         cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
 
-    # adjust for hills and towing
-    offset = aTarget - CS.out.aEgo
-    if offset > TORQ_ADJUST_THRESHOLD:
-      under_accel_frame_count = self.under_accel_frame_count + 1  # inc under accelerating frame count
-      if self.ccframe - self.under_accel_frame_count > START_ADJUST_ACCEL_FRAMES:
-        self.torq_adjust += offset * (1 / CarInterface.eco_multiplier())
+    if aTarget > 0:
+      # adjust for hills and towing
+      offset = aTarget - CS.out.aEgo
+      if offset > TORQ_ADJUST_THRESHOLD:
+        under_accel_frame_count = self.under_accel_frame_count + 1  # inc under accelerating frame count
+        if self.ccframe - self.under_accel_frame_count > START_ADJUST_ACCEL_FRAMES:
+          self.torq_adjust += offset * (1 / CarInterface.eco_multiplier())
 
     if cruise + self.torq_adjust > CS.torqMax:  # keep the adjustment in check
       self.torq_adjust = max(0., CS.torqMax - cruise)
