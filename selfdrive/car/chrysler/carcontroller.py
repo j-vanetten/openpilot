@@ -9,7 +9,6 @@ from selfdrive.config import Conversions as CV
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.cached_params import CachedParams
-from common.op_params import opParams
 from common.params import Params, put_nonblocking
 from cereal import car
 import math
@@ -23,7 +22,6 @@ AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 
 # LONG PARAMS
-VEHICLE_MASS = 2268
 LOW_WINDOW = CV.MPH_TO_MS * 5
 SLOW_WINDOW = CV.MPH_TO_MS * 20
 COAST_WINDOW = CV.MPH_TO_MS * 2
@@ -65,18 +63,18 @@ class CarController():
     self.under_accel_frame_count = 0
     self.ccframe = 0
     self.hybrid = self.car_fingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
+    self.vehicleMass = CP.mass
 
     self.packer = CANPacker(dbc_name)
 
     self.params = Params()
     self.cachedParams = CachedParams()
-    self.opParams = opParams()
     self.auto_resume = self.params.get_bool('jvePilot.settings.autoResume')
     self.minAccSetting = V_CRUISE_MIN_MS if self.params.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
     self.round_to_unit = CV.MS_TO_KPH if self.params.get_bool("IsMetric") else CV.MS_TO_MPH
     self.autoFollowDistanceLock = None
     self.moving_fast = False
-    self.min_steer_check = self.opParams.get("steer.checkMinimum")
+    self.no_steer_check = self.params.get_bool("jvePilot.settings.steer.noMinimum")
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
     self.ccframe += 1
@@ -192,18 +190,17 @@ class CarController():
                                           CS.acc_1))
 
   def torque(self, CS, aTarget, vTarget):
-    rpm = (VEHICLE_MASS * CS.out.aEgo * CS.out.vEgo) / (.105 * CS.hybridTorq) if CS.hybrid else CS.gasRpm
+    rpm = (self.vehicleMass * CS.out.aEgo * CS.out.vEgo) / (.105 * CS.hybridTorq) if CS.hybrid else CS.gasRpm
 
-    return (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
+    return (self.vehicleMass * aTarget * vTarget) / (.105 * rpm)
 
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
     if self.hybrid:
       aSmoothTarget = (aTarget + CS.out.aEgo) / 2  # always smooth since hybrid has lots of torq?
       cruise = aSmoothTarget * ACCEL_TO_NM
     else:
-      rpm = CS.gasRpm
       if CS.out.vEgo < SLOW_WINDOW:
-        cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
+        cruise = (self.vehicleMass * aTarget * vTarget) / (.105 * CS.gasRpm)
         cruise += ACCEL_TORQ_SLOW * (1 - (CS.out.vEgo / SLOW_WINDOW))
       else:
         vSmoothTarget = (vTarget + CS.out.vEgo) / 2
@@ -213,7 +210,7 @@ class CarController():
         else:
           aSmoothTarget = aTarget
 
-        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
+        cruise = (self.vehicleMass * aSmoothTarget * vSmoothTarget) / (.105 * CS.gasRpm)
 
     if aTarget > 0:
       # adjust for hills and towing
@@ -221,7 +218,7 @@ class CarController():
       if offset > TORQ_ADJUST_THRESHOLD:
         under_accel_frame_count = self.under_accel_frame_count + 1  # inc under accelerating frame count
         if self.ccframe - self.under_accel_frame_count > START_ADJUST_ACCEL_FRAMES:
-          self.torq_adjust += offset * (1 / CarInterface.eco_multiplier())
+          self.torq_adjust += offset * (CarControllerParams.ACCEL_MAX / CarInterface.accel_max(CS))
 
     if cruise + self.torq_adjust > CS.torqMax:  # keep the adjustment in check
       self.torq_adjust = max(0., CS.torqMax - cruise)
@@ -268,7 +265,7 @@ class CarController():
 
     low_steer_models = self.car_fingerprint in (
       CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID)
-    if not self.min_steer_check:
+    if self.no_steer_check:
       self.moving_fast = True
       self.torq_enabled = enabled or low_steer_models
     elif low_steer_models:

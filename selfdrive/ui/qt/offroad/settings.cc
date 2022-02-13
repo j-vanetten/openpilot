@@ -110,18 +110,38 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                            "../assets/jvepilot/settings/alert_steer_loss.png",
                            this));
 
+  // Minimum Steer Check
+  addItem(new ParamControl("jvePilot.settings.steer.noMinimum",
+                           "ADVANCED: Steer to 0",
+                           "If you have a mod that allows steering down to 0, enable this",
+                           "../assets/jvepilot/settings/wp_mod.png",
+                           this));
   // longControl
   QList<struct ConfigButton> longControlConfigs = {
-    { "jvePilot.settings.longControl.maxTorq",
-      300, 1000,
-      "Max Engine Torque",
-      "Default: 360, Min: 300, Max: 1000\n"
-        "Use this to allow more torque to be requested for acceleration"
+    { "jvePilot.settings.longControl.eco0",
+      .5, 2,
+      "Eco Off Max Acceleration (m/s²)",
+      "Default: 2, Min: .5, Max: 2\n"
+        "The higher the number the more acceleration that occurs."
+    },
+    { "jvePilot.settings.longControl.eco1",
+      .5, 2,
+      "Eco 1 Leaf Max Acceleration (m/s²)",
+      "Default: 1.33, Min: .5, Max: 2\n"
+        "The higher the number the more acceleration that occurs."
+    },
+    { "jvePilot.settings.longControl.eco2",
+      .5, 2,
+      "Eco 2 Leaves Acceleration (m/s²)",
+      "Default: 1, Min: .5, Max: 2\n"
+        "The higher the number the more acceleration that occurs."
     }
   };
   addItem(new ParamControl("jvePilot.settings.longControl",
-                           "Experimental Long Control",
-                           "When enabled, jvePilot will control gas and brakes.",
+                           "EXPERIMENTAL: Jeep Long Control",
+                           "Jeep only!"
+                           "\nWhen enabled, jvePilot will perform longitudinal control."
+                           "\nDo not enable ACC or Cruise to use this feature."
                            "../assets/jvepilot/settings/long_control.png",
                            this,
                            &longControlConfigs));
@@ -205,12 +225,6 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "Record and Upload Driver Camera",
       "Upload data from the driver facing camera and help improve the driver monitoring algorithm.",
       "../assets/offroad/icon_monitoring.png",
-    },
-    {
-      "EndToEndToggle",
-      "\U0001f96c Disable use of lanelines (Alpha) \U0001f96c",
-      "In this mode openpilot will ignore lanelines and just drive how it thinks a human would.",
-      "../assets/offroad/icon_road.png",
     },
 #ifdef ENABLE_MAPS
     {

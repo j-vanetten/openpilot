@@ -4,33 +4,37 @@ from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
 from common.cached_params import CachedParams
-from common.op_params import opParams
+from common.params import Params
 
 ButtonType = car.CarState.ButtonEvent.Type
 
 GAS_RESUME_SPEED = 2.
 cachedParams = CachedParams()
-opParams = opParams()
+Params = Params()
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed):
-    return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX * CarInterface.eco_multiplier()
+  def get_pid_accel_limits(CS, CP, current_speed, cruise_speed):
+    return CarControllerParams.ACCEL_MIN, CarInterface.accel_max(CS)
 
   @staticmethod
-  def eco_multiplier():
-    eco_multiplier = 1
-    eco = cachedParams.get_float('jvePilot.carState.accEco', 1000)
-    if eco == 1:
-      eco_multiplier = CarControllerParams.ECO_1
-    elif eco == 2:
-      eco_multiplier = CarControllerParams.ECO_2
+  def accel_max(CS):
+    maxAccel = CarControllerParams.ACCEL_MAX
+    if CS.longControl:
+      eco = cachedParams.get_float('jvePilot.carState.accEco', 1000)
+      if eco == 1:
+        maxAccel = cachedParams.get_float('jvePilot.settings.longControl.eco1', 1000)
+      elif eco == 2:
+        maxAccel = cachedParams.get_float('jvePilot.settings.longControl.eco2', 1000)
+      else:
+        maxAccel = cachedParams.get_float('jvePilot.settings.longControl.eco0', 1000)
 
-    return eco_multiplier
+    return CarControllerParams.ACCEL_MIN, maxAccel
+
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
-    min_steer_check = opParams.get('steer.checkMinimum')
+    no_steer_check = opParams.get('from common.params import Params')
 
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "chrysler"
@@ -55,7 +59,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.centerToFront = ret.wheelbase * 0.44
 
-    if min_steer_check:
+    if not no_steer_check:
       ret.minSteerSpeed = 3.8  # m/s
       if candidate in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
         # TODO allow 2019 cars to steer down to 13 m/s if already engaged.

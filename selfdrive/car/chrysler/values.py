@@ -14,9 +14,6 @@ class CarControllerParams:
   ACCEL_MAX = 2.  # m/s2, high to not limit stock ACC
   ACCEL_MIN = -3.5  # m/s2
 
-  ECO_1 = 0.666
-  ECO_2 = 0.5
-
 class CAR:
   PACIFICA_2017_HYBRID = "CHRYSLER PACIFICA HYBRID 2017"
   PACIFICA_2018_HYBRID = "CHRYSLER PACIFICA HYBRID 2018"
