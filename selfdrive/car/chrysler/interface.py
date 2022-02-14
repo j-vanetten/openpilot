@@ -29,7 +29,7 @@ class CarInterface(CarInterfaceBase):
       else:
         maxAccel = cachedParams.get_float('jvePilot.settings.longControl.eco0', 1000)
 
-    return CarControllerParams.ACCEL_MIN, maxAccel
+    return maxAccel
 
 
   @staticmethod
