@@ -141,7 +141,7 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                            "EXPERIMENTAL: Jeep Long Control",
                            "Jeep only!"
                            "\nWhen enabled, jvePilot will perform longitudinal control."
-                           "\nDo not enable ACC or Cruise to use this feature."
+                           "\nDo not enable ACC or Cruise to use this feature.",
                            "../assets/jvepilot/settings/long_control.png",
                            this,
                            &longControlConfigs));
