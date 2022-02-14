@@ -34,7 +34,7 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
-    no_steer_check = opParams.get('from common.params import Params')
+    no_steer_check = Params.get_bool('jvePilot.settings.steer.noMinimum')
 
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "chrysler"
