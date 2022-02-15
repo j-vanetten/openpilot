@@ -180,7 +180,7 @@ class CarController():
 
     can_sends.append(acc_log(self.packer, self.torq_adjust, aTarget, vTarget, long_starting, long_stopping))
 
-    offset = acc_2_counter % 2
+    offset = 1 + (acc_2_counter % 2)
     can_sends.append(acc_command(self.packer, acc_2_counter + offset, True,
                                  go_req,
                                  torque,
