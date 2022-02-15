@@ -1,3 +1,4 @@
+from cereal import car
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
                                                create_wheel_buttons_command, create_lkas_heartbit
@@ -52,14 +53,14 @@ class CarController():
 
     #*** control msgs ***
     can_sends = []
-    self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
+    actuators = self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
     self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
 
-    return can_sends
+    return actuators, can_sends
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
-      return
+      return car.CarControl.Actuators.new_message()
     self.prev_frame = CS.frame
 
     self.lkas_frame += 1
@@ -68,7 +69,6 @@ class CarController():
       lkas_counter = (self.prev_lkas_counter + 1) % 16  # Predict the next frame
     self.prev_lkas_counter = lkas_counter
 
-    # *** compute control surfaces ***
     # steer torque
     new_steer = int(round(actuators.steer * CarControllerParams.STEER_MAX))
     apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last,
@@ -109,6 +109,11 @@ class CarController():
 
     new_msg = create_lkas_command(self.packer, int(apply_steer), self.torq_enabled, lkas_counter)
     can_sends.append(new_msg)
+
+    new_actuators = actuators.copy()
+    new_actuators.steer = apply_steer / CarControllerParams.STEER_MAX
+
+    return new_actuators
 
   def wheel_button_control(self, CS, can_sends, enabled, gas_resume_speed, jvepilot_state, pcm_cancel_cmd):
     button_counter = jvepilot_state.carState.buttonCounter
