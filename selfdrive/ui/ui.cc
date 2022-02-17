@@ -108,7 +108,6 @@ static void update_sockets(UIState *s) {
 static void update_state(UIState *s) {
   SubMaster &sm = *(s->sm);
   UIScene &scene = s->scene;
-  s->running_time = 1e-9 * (nanos_since_boot() - sm["deviceState"].getDeviceState().getStartedMonoTime());
 
   if (sm.updated("liveCalibration")) {
     auto rpy_list = sm["liveCalibration"].getLiveCalibration().getRpyCalib();
@@ -228,21 +227,21 @@ void UIState::updateStatus() {
 }
 
 UIState::UIState(QObject *parent) : QObject(parent) {
-  pm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({"jvePilotUIState"});
+  pm = std::make_unique<PubMaster, const std::initializer_list<const char *>>({"jvePilotUIState"});
   sm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({"jvePilotState",
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
     "pandaStates", "carParams", "driverMonitoringState", "sensorEvents", "carState", "liveLocationKalman",
     "wideRoadCameraState",
   });
 
-  ui_state.scene.autoFollowEnabled = -1;
-  ui_state.scene.accEco = -1;
+  uiState().scene.autoFollowEnabled = -1;
+  uiState().scene.accEco = -1;
 
   Params params;
   wide_camera = Hardware::TICI() ? params.getBool("EnableWideCamera") : false;
   prime_type = std::atoi(params.get("PrimeType").c_str());
 
-  ui_state.wide_camera = Hardware::TICI() ? Params().getBool("EnableWideCamera") : false;
+  uiState().wide_camera = Hardware::TICI() ? Params().getBool("EnableWideCamera") : false;
 
   // update timer
   timer = new QTimer(this);
