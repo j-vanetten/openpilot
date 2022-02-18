@@ -70,14 +70,14 @@ void OnroadWindow::updateState(const UIState &s) {
 void OnroadWindow::notify_state() {
   MessageBuilder msg;
   auto state = msg.initEvent().initJvePilotUIState();
-  state.setAutoFollow(uiState().scene.autoFollowEnabled);
-  state.setAccEco(uiState().scene.accEco);
-  uiState().pm->send("jvePilotUIState", msg);
+  state.setAutoFollow(uiState()->scene.autoFollowEnabled);
+  state.setAccEco(uiState()->scene.accEco);
+  uiState()->pm->send("jvePilotUIState", msg);
 }
 
 void OnroadWindow::mousePressEvent(QMouseEvent* e) {
-  if (uiState().scene.accEco_btn.contains(e->x(), e->y())) {
-    uiState().scene.accEco = uiState().scene.accEco == 2 ? 0 : uiState().scene.accEco + 1;
+  if (uiState()->scene.accEco_btn.contains(e->x(), e->y())) {
+    uiState()->scene.accEco = uiState()->scene.accEco == 2 ? 0 : uiState()->scene.accEco + 1;
     notify_state();
   } else {
     if (map != nullptr) {
@@ -286,7 +286,7 @@ void OnroadHud::paintEvent(QPaintEvent *event) {
     // eco icon
     drawIcon(p, rect().right() - radius / 2 - bdr_s * 2 - button_bigger, rect().bottom() - footer_h / 2 - button_bigger,
              eco_imgs[accEco], QColor(0, 0, 0, 0), 1.0);
-    uiState().scene.accEco_btn = QRect(
+    uiState()->scene.accEco_btn = QRect(
       rect().right() - radius / 2 - bdr_s * 2 - button_bigger,
       rect().bottom() - footer_h / 2 - button_bigger,
       img_size + button_bigger,
