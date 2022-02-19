@@ -113,8 +113,8 @@ typedef struct UIScene {
   uint64_t started_frame;
 
   // jvePilot
-  int autoFollowEnabled;
-  int accEco;
+  int autoFollowEnabled = -1;
+  int accEco = -1;
 
   QRect accEco_btn;
 } UIScene;
