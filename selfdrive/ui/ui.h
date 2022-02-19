@@ -9,7 +9,6 @@
 #include <QColor>
 #include <QFuture>
 #include <QTransform>
-#include <QTransform>
 
 #include "cereal/messaging/messaging.h"
 #include "selfdrive/common/modeldata.h"
@@ -128,6 +127,9 @@ public:
   void updateStatus();
   inline bool worldObjectsVisible() const {
     return sm->rcv_frame("liveCalibration") > scene.started_frame;
+  };
+  inline bool engaged() const {
+    return scene.started && (*sm)["controlsState"].getControlsState().getEnabled();
   };
 
   int fb_w = 0, fb_h = 0;

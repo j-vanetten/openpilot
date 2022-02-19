@@ -241,8 +241,6 @@ UIState::UIState(QObject *parent) : QObject(parent) {
   wide_camera = Hardware::TICI() ? params.getBool("EnableWideCamera") : false;
   prime_type = std::atoi(params.get("PrimeType").c_str());
 
-  uiState()->wide_camera = Hardware::TICI() ? Params().getBool("EnableWideCamera") : false;
-
   // update timer
   timer = new QTimer(this);
   QObject::connect(timer, &QTimer::timeout, this, &UIState::update);
