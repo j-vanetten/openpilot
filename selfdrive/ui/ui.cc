@@ -234,9 +234,6 @@ UIState::UIState(QObject *parent) : QObject(parent) {
     "wideRoadCameraState",
   });
 
-  uiState()->scene.autoFollowEnabled = -1;
-  uiState()->scene.accEco = -1;
-
   Params params;
   wide_camera = Hardware::TICI() ? params.getBool("EnableWideCamera") : false;
   prime_type = std::atoi(params.get("PrimeType").c_str());
