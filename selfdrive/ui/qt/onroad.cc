@@ -1,3 +1,4 @@
+#include <QMouseEvent>
 #include "selfdrive/ui/qt/onroad.h"
 
 #include <cmath>
