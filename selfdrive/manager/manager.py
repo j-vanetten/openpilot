@@ -37,7 +37,6 @@ def manager_init() -> None:
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
 
   default_params: List[Tuple[str, Union[str, bytes]]] = [
-    ("CommunityFeaturesToggle", "1"),
     ("jvePilot.carState.accEco", "1"),
     ("jvePilot.settings.accEco.speedAheadLevel1", "7"),
     ("jvePilot.settings.accEco.speedAheadLevel2", "5"),
