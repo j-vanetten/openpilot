@@ -4,7 +4,7 @@ from common.numpy_fast import clip
 from opendbc.can.parser import CANParser
 from cereal import car
 from selfdrive.car.interfaces import RadarInterfaceBase
-from selfdrive.car.chrysler.values import DBC
+from selfdrive.car.chrysler.values import DBC, CAR
 
 RADAR_MSGS_C = list(range(0x2c2, 0x2d4+2, 2))  # c_ messages 706,...,724
 RADAR_MSGS_D = list(range(0x2a2, 0x2b4+2, 2))  # d_ messages
@@ -49,6 +49,8 @@ class RadarInterface(RadarInterfaceBase):
     self.updated_messages = set()
     self.trigger_msg = LAST_MSG
 
+    self.yRel_multiplier = 1 if CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019) else -1
+
   def update(self, can_strings):
     vls = self.rcp.update_strings(can_strings)
     self.updated_messages.update(vls)
@@ -75,7 +77,7 @@ class RadarInterface(RadarInterfaceBase):
       if 'LONG_DIST' in cpt:  # c_* message
         azimuth = (cpt['LAT_ANGLE'])
         self.pts[trackId].dRel = math.cos(azimuth) * cpt['LONG_DIST']
-        self.pts[trackId].yRel = math.sin(azimuth) * cpt['LONG_DIST']
+        self.pts[trackId].yRel = math.sin(azimuth) * cpt['LONG_DIST'] * self.yRel_multiplier
       else:  # d_* message
         self.pts[trackId].vRel = cpt['REL_SPEED']
         self.pts[trackId].measured = bool(cpt['MEASURED'])

@@ -1,6 +1,7 @@
 Version jvePilot-0.8.13(v3.9.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Fix radar on Pacifica's to better track lead vehicles
 * Update to 0.8.13
   * Improved driver monitoring
     * Retuned driver pose learner for relaxed driving positions
