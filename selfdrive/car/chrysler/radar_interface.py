@@ -4,7 +4,7 @@ from common.numpy_fast import clip
 from opendbc.can.parser import CANParser
 from cereal import car
 from selfdrive.car.interfaces import RadarInterfaceBase
-from selfdrive.car.chrysler.values import DBC
+from selfdrive.car.chrysler.values import DBC, CAR
 
 RADAR_MSGS_C = list(range(0x2c2, 0x2d4+2, 2))  # c_ messages 706,...,724
 RADAR_MSGS_D = list(range(0x2a2, 0x2b4+2, 2))  # d_ messages
@@ -13,34 +13,25 @@ NUMBER_MSGS = len(RADAR_MSGS_C) + len(RADAR_MSGS_D)
 
 def _create_radar_can_parser(car_fingerprint):
   msg_n = len(RADAR_MSGS_C)
-  # list of [(signal name, message name or number, initial values), (...)]
-  # [('RADAR_STATE', 1024, 0),
-  #  ('LONG_DIST', 1072, 255),
-  #  ('LONG_DIST', 1073, 255),
-  #  ('LONG_DIST', 1074, 255),
-  #  ('LONG_DIST', 1075, 255),
+  # list of [(signal name, message name or number), (...)]
+  # [('RADAR_STATE', 1024),
+  #  ('LONG_DIST', 1072),
+  #  ('LONG_DIST', 1073),
+  #  ('LONG_DIST', 1074),
+  #  ('LONG_DIST', 1075),
 
-  # The factor and offset are applied by the dbc parsing library, so the
-  # default values should be after the factor/offset are applied.
   signals = list(zip(['LONG_DIST'] * msg_n +
                 ['LAT_ANGLE'] * msg_n +
                 ['REL_SPEED'] * msg_n +
                 ['PROBABILITY'] * msg_n +
                 ['MEASURED'] * msg_n,
                 RADAR_MSGS_C * 2 +  # LONG_DIST, LAT_DIST
-                RADAR_MSGS_D * 3,   # REL_SPEED, PROBABILITY, MEASURED
-                [0] * msg_n +  # LONG_DIST
-                [-0.5] * msg_n +    # LAT_DIST
-                [-128] * msg_n +
-                [0] * msg_n +
-                [0] * msg_n))  # REL_SPEED set to 0, factor/offset to this
-  # TODO what are the checks actually used for?
-  # honda only checks the last message,
-  # toyota checks all the messages. Which do we want?
+                RADAR_MSGS_D * 3))  # REL_SPEED, PROBABILITY, MEASURED
+
   checks = list(zip(RADAR_MSGS_C +
-               RADAR_MSGS_D,
-               [20]*msg_n +  # 20Hz (0.05s)
-               [20]*msg_n))  # 20Hz (0.05s)
+                    RADAR_MSGS_D,
+                    [20] * msg_n +  # 20Hz (0.05s)
+                    [20] * msg_n))  # 20Hz (0.05s)
 
   return CANParser(DBC[car_fingerprint]['radar'], signals, checks, 1)
 
@@ -57,6 +48,8 @@ class RadarInterface(RadarInterfaceBase):
     self.rcp = _create_radar_can_parser(CP.carFingerprint)
     self.updated_messages = set()
     self.trigger_msg = LAST_MSG
+
+    self.yRel_multiplier = 1 if CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019) else -1
 
   def update(self, can_strings):
     vls = self.rcp.update_strings(can_strings)
@@ -84,7 +77,7 @@ class RadarInterface(RadarInterfaceBase):
       if 'LONG_DIST' in cpt:  # c_* message
         azimuth = (cpt['LAT_ANGLE'])
         self.pts[trackId].dRel = math.cos(azimuth) * cpt['LONG_DIST']
-        self.pts[trackId].yRel = math.sin(azimuth) * cpt['LONG_DIST']
+        self.pts[trackId].yRel = math.sin(azimuth) * cpt['LONG_DIST'] * self.yRel_multiplier
       else:  # d_* message
         self.pts[trackId].vRel = cpt['REL_SPEED']
         self.pts[trackId].measured = bool(cpt['MEASURED'])

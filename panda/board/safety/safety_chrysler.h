@@ -106,8 +106,9 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
       vehicle_moving = (int)vehicle_speed > CHRYSLER_STANDSTILL_THRSLD;
     }
 
-    else if (addr == 308) {
-      gas_pressed = (GET_BYTE(to_push, 5) & 0x7F) != 0;
+    // exit controls on rising edge of gas press
+    if (addr == 308) {
+      gas_pressed = ((GET_BYTE(to_push, 5) & 0x7FU) != 0U);
     }
 
     else if (addr == 320) {

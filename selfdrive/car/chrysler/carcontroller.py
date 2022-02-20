@@ -1,3 +1,4 @@
+from cereal import car
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_wheel_buttons_command, create_lkas_heartbit, \
@@ -87,10 +88,10 @@ class CarController():
     can_sends = []
     if CS.longControl:
       self.acc(CS, actuators, can_sends, enabled, c.jvePilotState)
-    self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
+    actuators = self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
     self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
 
-    return can_sends
+    return actuators, can_sends
 
   # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
@@ -113,13 +114,12 @@ class CarController():
     under_accel_frame_count = 0
     aTarget = actuators.accel
     vTarget = jvepilot_state.carControl.vTargetFuture
-    long_starting = actuators.longControlState == LongCtrlState.starting
     long_stopping = actuators.longControlState == LongCtrlState.stopping
 
     override_request = CS.out.gasPressed or CS.out.brakePressed
     if not override_request:
-      go_req = long_starting and CS.out.standstill
-      stop_req = long_stopping or (CS.out.standstill and aTarget == 0 and not go_req)
+      stop_req = long_stopping or (CS.out.standstill and aTarget == 0)
+      go_req = not stop_req and CS.out.standstill
 
       if go_req:
         under_accel_frame_count = self.under_accel_frame_count = START_ADJUST_ACCEL_FRAMES  # ready to add torq
@@ -176,7 +176,7 @@ class CarController():
     self.under_accel_frame_count = under_accel_frame_count
     self.last_aTarget = CS.out.aEgo
 
-    can_sends.append(acc_log(self.packer, self.torq_adjust, aTarget, vTarget, long_starting, long_stopping))
+    can_sends.append(acc_log(self.packer, self.torq_adjust, aTarget, vTarget))
 
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
                                  go_req,
@@ -247,7 +247,7 @@ class CarController():
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
-      return
+      return car.CarControl.Actuators.new_message()
     self.prev_frame = CS.frame
 
     self.lkas_frame += 1
@@ -256,7 +256,6 @@ class CarController():
       lkas_counter = (self.prev_lkas_counter + 1) % 16  # Predict the next frame
     self.prev_lkas_counter = lkas_counter
 
-    # *** compute control surfaces ***
     # steer torque
     new_steer = int(round(actuators.steer * CarControllerParams.STEER_MAX))
     apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last,
@@ -298,6 +297,11 @@ class CarController():
 
     new_msg = create_lkas_command(self.packer, int(apply_steer), self.torq_enabled, lkas_counter)
     can_sends.append(new_msg)
+
+    new_actuators = actuators.copy()
+    new_actuators.steer = apply_steer / CarControllerParams.STEER_MAX
+
+    return new_actuators
 
   def wheel_button_control(self, CS, can_sends, enabled, gas_resume_speed, jvepilot_state, pcm_cancel_cmd):
     button_counter = jvepilot_state.carState.buttonCounter
