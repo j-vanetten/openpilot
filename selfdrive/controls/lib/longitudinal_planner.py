@@ -114,7 +114,7 @@ class Planner:
         # find the largest curvature in the solution and use that.
         curv = abs(curvs[-1])
         if curv != 0:
-          self.v_desired_filter = float(min(self.v_desired_filter, self.limit_speed_in_curv(sm, curv)))
+          self.v_desired_filter.x = float(min(self.v_desired_filter.x, self.limit_speed_in_curv(sm, curv)))
 
   def publish(self, sm, pm):
     plan_send = messaging.new_message('longitudinalPlan')
