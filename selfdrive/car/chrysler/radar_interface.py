@@ -4,7 +4,7 @@ from common.numpy_fast import clip
 from opendbc.can.parser import CANParser
 from cereal import car
 from selfdrive.car.interfaces import RadarInterfaceBase
-from selfdrive.car.chrysler.values import DBC
+from selfdrive.car.chrysler.values import DBC, CAR
 
 RADAR_MSGS_C = list(range(0x2c2, 0x2d4+2, 2))  # c_ messages 706,...,724
 RADAR_MSGS_D = list(range(0x2a2, 0x2b4+2, 2))  # d_ messages
@@ -54,11 +54,18 @@ def _address_to_track(address):
 class RadarInterface(RadarInterfaceBase):
   def __init__(self, CP):
     super().__init__(CP)
-    self.rcp = _create_radar_can_parser(CP.carFingerprint)
     self.updated_messages = set()
     self.trigger_msg = LAST_MSG
+    self.no_radar = CP.carFingerprint in (CAR.RAM_1500, CAR.RAM_2500)
+    if self.no_radar:
+      self.rcp = None
+    else:
+      self.rcp = _create_radar_can_parser(CP.carFingerprint)
 
   def update(self, can_strings):
+    if self.no_radar:
+      return super().update(None)
+
     vls = self.rcp.update_strings(can_strings)
     self.updated_messages.update(vls)
 
