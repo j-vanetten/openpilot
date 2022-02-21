@@ -1,8 +1,8 @@
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
-  create_wheel_buttons_command, create_lkas_heartbit, \
+  create_wheel_buttons_command, \
   acc_command, acc_hybrid_command, acc_log
-from selfdrive.car.chrysler.values import CAR, CarControllerParams
+from selfdrive.car.chrysler.values import CAR, CarControllerParams, STEER_MAX_LOOKUP, STEER_DELTA_UP, STEER_DELTA_DOWN
 from selfdrive.car.chrysler.interface import CarInterface
 from opendbc.can.packer import CANPacker
 from selfdrive.config import Conversions as CV
@@ -77,6 +77,9 @@ class CarController():
     self.autoFollowDistanceLock = None
     self.moving_fast = False
     self.min_steer_check = self.opParams.get("steer.checkMinimum")
+    CarControllerParams.STEER_MAX = STEER_MAX_LOOKUP.get(CP.carFingerprint, 1.)
+    CarControllerParams.STEER_DELTA_UP = STEER_DELTA_UP.get(CP.carFingerprint, 1.) 
+    CarControllerParams.STEER_DELTA_DOWN = STEER_DELTA_DOWN.get(CP.carFingerprint, 1.) 
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
     self.ccframe += 1
@@ -274,6 +277,12 @@ class CarController():
     elif low_steer_models:
       self.moving_fast = not CS.out.steerError and CS.lkas_active
       self.torq_enabled = self.torq_enabled or CS.torq_status > 1
+    elif self.car_fingerprint in (CAR.RAM_1500, CAR.RAM_2500):
+      self.moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed  # for status message
+      if CS.out.vEgo > (CS.CP.minSteerSpeed):  # for command high bit
+        self.torq_enabled = True
+      elif CS.out.vEgo < (CS.CP.minSteerSpeed - 0.5):
+        self.torq_enabled = False 
     else:
       self.moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed  # for status message
       if CS.out.vEgo > (CS.CP.minSteerSpeed - 0.5):  # for command high bit
@@ -287,15 +296,14 @@ class CarController():
 
     self.apply_steer_last = apply_steer
 
-    if self.lkas_frame % 10 == 0:  # 0.1s period
-      new_msg = create_lkas_heartbit(self.packer, 0 if jvepilot_state.carControl.useLaneLines else 1, CS.lkasHeartbit)
-      can_sends.append(new_msg)
+    #if self.lkas_frame % 10 == 0:  # 0.1s period
+      #new_msg = create_lkas_heartbit(self.packer, 0 if jvepilot_state.carControl.useLaneLines else 1, CS.lkasHeartbit)
+      #can_sends.append(new_msg)
 
     if self.lkas_frame % 25 == 0:  # 0.25s period
       if CS.lkas_car_model != -1:
         new_msg = create_lkas_hud(
-          self.packer, CS.out.gearShifter, lkas_active, hud_alert,
-          self.hud_count, CS.lkas_car_model)
+          self.packer, lkas_active, hud_alert, self.hud_count, CS, self.car_fingerprint)
         can_sends.append(new_msg)
         self.hud_count += 1
 
@@ -362,7 +370,7 @@ class CarController():
 
       buttons_to_press = list(filter(None, buttons_to_press))
       if buttons_to_press is not None and len(buttons_to_press) > 0:
-        new_msg = create_wheel_buttons_command(self.packer, button_counter + button_counter_offset, buttons_to_press)
+        new_msg = create_wheel_buttons_command(self.packer, button_counter + button_counter_offset, buttons_to_press, self.car_fingerprint)
         can_sends.append(new_msg)
 
   def auto_resume_button(self, CS, gas_resume_speed):
