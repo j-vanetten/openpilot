@@ -82,7 +82,8 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def init(CP, logcan, sendcan):
-    disable_ecu(logcan, sendcan, addr=0x753, com_cont_req=b'\x28\x01\x01')
+    if disable_ecu(logcan, sendcan, addr=0x753, com_cont_req=b'\x28\x01\x01'):
+      sendcan.append([0x753, 0, b"\x85\x02", 0])
 
   # returns a car.CarState
   def update(self, c, can_strings):
