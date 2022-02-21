@@ -105,14 +105,14 @@ class CarController():
     if not counter_change:
       return
 
+    if acc_2_counter == 0:
+      can_sends.append([0x7D0, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", 0])
+
     if not enabled:
       self.torq_adjust = 0
       self.last_brake = None
       self.last_torque = None
       return
-
-    if acc_2_counter == 0:
-      can_sends.append((0x753, 0, b"\x28\x01\x01", 0))
 
     under_accel_frame_count = 0
     aTarget = actuators.accel
