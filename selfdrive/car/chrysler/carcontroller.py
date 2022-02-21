@@ -111,6 +111,9 @@ class CarController():
       self.last_torque = None
       return
 
+    if acc_2_counter == 0:
+      can_sends.append((0x7d0, 0, b"\x02\x3E\x00\x00\x00\x00\x00\x00", 0))
+
     under_accel_frame_count = 0
     aTarget = actuators.accel
     vTarget = jvepilot_state.carControl.vTargetFuture

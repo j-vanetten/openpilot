@@ -5,6 +5,7 @@ from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness,
 from selfdrive.car.interfaces import CarInterfaceBase
 from common.cached_params import CachedParams
 from common.params import Params
+from selfdrive.car.disable_ecu import disable_ecu
 
 ButtonType = car.CarState.ButtonEvent.Type
 
@@ -78,6 +79,10 @@ class CarInterface(CarInterfaceBase):
     ret.enableBsm |= 720 in fingerprint[0]
 
     return ret
+
+  @staticmethod
+  def init(CP, logcan, sendcan):
+    disable_ecu(logcan, sendcan, addr=0x7d0, com_cont_req=b'\x03\x28\x01\x01')
 
   # returns a car.CarState
   def update(self, c, can_strings):
