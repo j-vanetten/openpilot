@@ -6,7 +6,6 @@ from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD, CAR
 from common.cached_params import CachedParams
 from common.params import Params
-from common.op_params import opParams
 import numpy as np
 
 ButtonType = car.CarState.ButtonEvent.Type
