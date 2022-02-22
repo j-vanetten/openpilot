@@ -1,3 +1,4 @@
+from cereal import car
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_wheel_buttons_command, create_lkas_heartbit, \
@@ -9,7 +10,6 @@ from selfdrive.config import Conversions as CV
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.cached_params import CachedParams
-from common.op_params import opParams
 from common.params import Params, put_nonblocking
 from cereal import car
 import math
@@ -23,7 +23,6 @@ AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 
 # LONG PARAMS
-VEHICLE_MASS = 2268
 LOW_WINDOW = CV.MPH_TO_MS * 5
 SLOW_WINDOW = CV.MPH_TO_MS * 20
 COAST_WINDOW = CV.MPH_TO_MS * 2
@@ -65,18 +64,18 @@ class CarController():
     self.under_accel_frame_count = 0
     self.ccframe = 0
     self.hybrid = self.car_fingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
+    self.vehicleMass = CP.mass
 
     self.packer = CANPacker(dbc_name)
 
     self.params = Params()
     self.cachedParams = CachedParams()
-    self.opParams = opParams()
     self.auto_resume = self.params.get_bool('jvePilot.settings.autoResume')
     self.minAccSetting = V_CRUISE_MIN_MS if self.params.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
     self.round_to_unit = CV.MS_TO_KPH if self.params.get_bool("IsMetric") else CV.MS_TO_MPH
     self.autoFollowDistanceLock = None
     self.moving_fast = False
-    self.min_steer_check = self.opParams.get("steer.checkMinimum")
+    self.no_steer_check = self.params.get_bool("jvePilot.settings.steer.noMinimum")
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
     self.ccframe += 1
@@ -89,10 +88,10 @@ class CarController():
     can_sends = []
     if CS.longControl:
       self.acc(CS, actuators, can_sends, enabled, c.jvePilotState)
-    self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
+    actuators = self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
     self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
 
-    return can_sends
+    return actuators, can_sends
 
   # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
@@ -115,13 +114,12 @@ class CarController():
     under_accel_frame_count = 0
     aTarget = actuators.accel
     vTarget = jvepilot_state.carControl.vTargetFuture
-    long_starting = actuators.longControlState == LongCtrlState.starting
     long_stopping = actuators.longControlState == LongCtrlState.stopping
 
     override_request = CS.out.gasPressed or CS.out.brakePressed
     if not override_request:
-      go_req = long_starting and CS.out.standstill
-      stop_req = long_stopping or (CS.out.standstill and aTarget == 0 and not go_req)
+      stop_req = long_stopping or (CS.out.standstill and aTarget == 0)
+      go_req = not stop_req and CS.out.standstill
 
       if go_req:
         under_accel_frame_count = self.under_accel_frame_count = START_ADJUST_ACCEL_FRAMES  # ready to add torq
@@ -178,7 +176,7 @@ class CarController():
     self.under_accel_frame_count = under_accel_frame_count
     self.last_aTarget = CS.out.aEgo
 
-    can_sends.append(acc_log(self.packer, self.torq_adjust, aTarget, vTarget, long_starting, long_stopping))
+    can_sends.append(acc_log(self.packer, self.torq_adjust, aTarget, vTarget))
 
     offset = 1 + (acc_2_counter % 2)
     can_sends.append(acc_command(self.packer, acc_2_counter + offset, True,
@@ -193,18 +191,17 @@ class CarController():
                                           CS.acc_1))
 
   def torque(self, CS, aTarget, vTarget):
-    rpm = (VEHICLE_MASS * CS.out.aEgo * CS.out.vEgo) / (.105 * CS.hybridTorq) if CS.hybrid else CS.gasRpm
+    rpm = (self.vehicleMass * CS.out.aEgo * CS.out.vEgo) / (.105 * CS.hybridTorq) if CS.hybrid else CS.gasRpm
 
-    return (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
+    return (self.vehicleMass * aTarget * vTarget) / (.105 * rpm)
 
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
     if self.hybrid:
       aSmoothTarget = (aTarget + CS.out.aEgo) / 2  # always smooth since hybrid has lots of torq?
       cruise = aSmoothTarget * ACCEL_TO_NM
     else:
-      rpm = CS.gasRpm
       if CS.out.vEgo < SLOW_WINDOW:
-        cruise = (VEHICLE_MASS * aTarget * vTarget) / (.105 * rpm)
+        cruise = (self.vehicleMass * aTarget * vTarget) / (.105 * CS.gasRpm)
         cruise += ACCEL_TORQ_SLOW * (1 - (CS.out.vEgo / SLOW_WINDOW))
       else:
         vSmoothTarget = (vTarget + CS.out.vEgo) / 2
@@ -214,7 +211,7 @@ class CarController():
         else:
           aSmoothTarget = aTarget
 
-        cruise = (VEHICLE_MASS * aSmoothTarget * vSmoothTarget) / (.105 * rpm)
+        cruise = (self.vehicleMass * aSmoothTarget * vSmoothTarget) / (.105 * CS.gasRpm)
 
     if aTarget > 0:
       # adjust for hills and towing
@@ -222,7 +219,7 @@ class CarController():
       if offset > TORQ_ADJUST_THRESHOLD:
         under_accel_frame_count = self.under_accel_frame_count + 1  # inc under accelerating frame count
         if self.ccframe - self.under_accel_frame_count > START_ADJUST_ACCEL_FRAMES:
-          self.torq_adjust += offset * (1 / CarInterface.eco_multiplier())
+          self.torq_adjust += offset * (CarControllerParams.ACCEL_MAX / CarInterface.accel_max(CS))
 
     if cruise + self.torq_adjust > CS.torqMax:  # keep the adjustment in check
       self.torq_adjust = max(0., CS.torqMax - cruise)
@@ -251,7 +248,7 @@ class CarController():
 
   def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
     if self.prev_frame == CS.frame:
-      return
+      return car.CarControl.Actuators.new_message()
     self.prev_frame = CS.frame
 
     self.lkas_frame += 1
@@ -260,7 +257,6 @@ class CarController():
       lkas_counter = (self.prev_lkas_counter + 1) % 16  # Predict the next frame
     self.prev_lkas_counter = lkas_counter
 
-    # *** compute control surfaces ***
     # steer torque
     new_steer = int(round(actuators.steer * CarControllerParams.STEER_MAX))
     apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last,
@@ -269,7 +265,7 @@ class CarController():
 
     low_steer_models = self.car_fingerprint in (
       CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID)
-    if not self.min_steer_check:
+    if self.no_steer_check:
       self.moving_fast = True
       self.torq_enabled = enabled or low_steer_models
     elif low_steer_models:
@@ -302,6 +298,11 @@ class CarController():
 
     new_msg = create_lkas_command(self.packer, int(apply_steer), self.torq_enabled, lkas_counter)
     can_sends.append(new_msg)
+
+    new_actuators = actuators.copy()
+    new_actuators.steer = apply_steer / CarControllerParams.STEER_MAX
+
+    return new_actuators
 
   def wheel_button_control(self, CS, can_sends, enabled, gas_resume_speed, jvepilot_state, pcm_cancel_cmd):
     button_counter = jvepilot_state.carState.buttonCounter

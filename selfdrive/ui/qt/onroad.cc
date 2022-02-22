@@ -1,3 +1,4 @@
+#include <QMouseEvent>
 #include "selfdrive/ui/qt/onroad.h"
 
 #include <cmath>
@@ -42,8 +43,8 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   alerts->raise();
 
   setAttribute(Qt::WA_OpaquePaintEvent);
-  QObject::connect(this, &OnroadWindow::updateStateSignal, this, &OnroadWindow::updateState);
-  QObject::connect(this, &OnroadWindow::offroadTransitionSignal, this, &OnroadWindow::offroadTransition);
+  QObject::connect(uiState(), &UIState::uiUpdate, this, &OnroadWindow::updateState);
+  QObject::connect(uiState(), &UIState::offroadTransition, this, &OnroadWindow::offroadTransition);
 }
 
 void OnroadWindow::updateState(const UIState &s) {
@@ -52,6 +53,8 @@ void OnroadWindow::updateState(const UIState &s) {
   if (s.sm->updated("controlsState") || !alert.equal({})) {
     if (alert.type == "controlsUnresponsive") {
       bgColor = bg_colors[STATUS_ALERT];
+    } else if (alert.type == "controlsUnresponsivePermanent") {
+      bgColor = bg_colors[STATUS_DISENGAGED];
     }
     alerts->updateAlert(alert, bgColor);
   }
@@ -68,14 +71,14 @@ void OnroadWindow::updateState(const UIState &s) {
 void OnroadWindow::notify_state() {
   MessageBuilder msg;
   auto state = msg.initEvent().initJvePilotUIState();
-  state.setAutoFollow(QUIState::ui_state.scene.autoFollowEnabled);
-  state.setAccEco(QUIState::ui_state.scene.accEco);
-  QUIState::ui_state.pm->send("jvePilotUIState", msg);
+  state.setAutoFollow(uiState()->scene.autoFollowEnabled);
+  state.setAccEco(uiState()->scene.accEco);
+  uiState()->pm->send("jvePilotUIState", msg);
 }
 
 void OnroadWindow::mousePressEvent(QMouseEvent* e) {
-  if (QUIState::ui_state.scene.accEco_btn.contains(e->x(), e->y())) {
-    QUIState::ui_state.scene.accEco = QUIState::ui_state.scene.accEco == 2 ? 0 : QUIState::ui_state.scene.accEco + 1;
+  if (uiState()->scene.accEco_btn.contains(e->x(), e->y())) {
+    uiState()->scene.accEco = uiState()->scene.accEco == 2 ? 0 : uiState()->scene.accEco + 1;
     notify_state();
   } else {
     if (map != nullptr) {
@@ -90,12 +93,17 @@ void OnroadWindow::mousePressEvent(QMouseEvent* e) {
 void OnroadWindow::offroadTransition(bool offroad) {
 #ifdef ENABLE_MAPS
   if (!offroad) {
-    if (map == nullptr && (QUIState::ui_state.has_prime || !MAPBOX_TOKEN.isEmpty())) {
+    if (map == nullptr && (uiState()->prime_type || !MAPBOX_TOKEN.isEmpty())) {
       MapWindow * m = new MapWindow(get_mapbox_settings());
-      m->setFixedWidth(topWidget(this)->width() / 2);
-      QObject::connect(this, &OnroadWindow::offroadTransitionSignal, m, &MapWindow::offroadTransition);
-      split->addWidget(m, 0, Qt::AlignRight);
       map = m;
+
+      QObject::connect(uiState(), &UIState::offroadTransition, m, &MapWindow::offroadTransition);
+
+      m->setFixedWidth(topWidget(this)->width() / 2);
+      split->addWidget(m, 0, Qt::AlignRight);
+
+      // Make map visible after adding to split
+      m->offroadTransition(offroad);
     }
   }
 #endif
@@ -176,8 +184,8 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
 
 // OnroadHud
 OnroadHud::OnroadHud(QWidget *parent) : QWidget(parent) {
-  engage_img = QPixmap("../assets/img_chffr_wheel.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-  dm_img = QPixmap("../assets/img_driver_face.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  engage_img = loadPixmap("../assets/img_chffr_wheel.png", {img_size, img_size});
+  dm_img = loadPixmap("../assets/img_driver_face.png", {img_size, img_size});
   eco_imgs[0] = QPixmap("../assets/jvepilot/img_acc_eco_off.png").scaled(img_size + button_bigger, img_size + button_bigger, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   eco_imgs[1] = QPixmap("../assets/jvepilot/img_acc_eco_1.png").scaled(img_size + button_bigger, img_size + button_bigger, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   eco_imgs[2] = QPixmap("../assets/jvepilot/img_acc_eco_2.png").scaled(img_size + button_bigger, img_size + button_bigger, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -281,7 +289,7 @@ void OnroadHud::paintEvent(QPaintEvent *event) {
     // eco icon
     drawIcon(p, rect().right() - radius / 2 - bdr_s * 2 - button_bigger, rect().bottom() - footer_h / 2 - button_bigger,
              eco_imgs[accEco], QColor(0, 0, 0, 0), 1.0);
-    QUIState::ui_state.scene.accEco_btn = QRect(
+    uiState()->scene.accEco_btn = QRect(
       rect().right() - radius / 2 - bdr_s * 2 - button_bigger,
       rect().bottom() - footer_h / 2 - button_bigger,
       img_size + button_bigger,
@@ -326,7 +334,7 @@ void NvgWindow::initializeGL() {
 void NvgWindow::updateFrameMat(int w, int h) {
   CameraViewWidget::updateFrameMat(w, h);
 
-  UIState *s = &QUIState::ui_state;
+  UIState *s = uiState();
   s->fb_w = w;
   s->fb_h = h;
   auto intrinsic_matrix = s->wide_camera ? ecam_intrinsic_matrix : fcam_intrinsic_matrix;
@@ -387,7 +395,7 @@ void NvgWindow::drawLead(QPainter &painter, const cereal::ModelDataV2::LeadDataV
   float g_xo = sz / 5;
   float g_yo = sz / 10;
 
-  QPointF glow[] = {{x + (sz * 1.35) + g_xo, y + sz + g_yo}, {x, y - g_xo}, {x - (sz * 1.35) - g_xo, y + sz + g_yo}};
+  QPointF glow[] = {{x + (sz * 1.35) + g_xo, y + sz + g_yo}, {x, y - g_yo}, {x - (sz * 1.35) - g_xo, y + sz + g_yo}};
   painter.setBrush(QColor(218, 202, 37, 255));
   painter.drawPolygon(glow, std::size(glow));
 
@@ -400,8 +408,8 @@ void NvgWindow::drawLead(QPainter &painter, const cereal::ModelDataV2::LeadDataV
 void NvgWindow::paintGL() {
   CameraViewWidget::paintGL();
 
-  UIState *s = &QUIState::ui_state;
-  if (s->scene.world_objects_visible) {
+  UIState *s = uiState();
+  if (s->worldObjectsVisible()) {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::NoPen);
@@ -431,6 +439,6 @@ void NvgWindow::paintGL() {
 void NvgWindow::showEvent(QShowEvent *event) {
   CameraViewWidget::showEvent(event);
 
-  ui_update_params(&QUIState::ui_state);
+  ui_update_params(uiState());
   prev_draw_t = millis_since_boot();
 }

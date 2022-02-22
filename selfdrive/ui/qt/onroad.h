@@ -108,10 +108,6 @@ private:
   QWidget *map = nullptr;
   QHBoxLayout* split;
 
-signals:
-  void updateStateSignal(const UIState &s);
-  void offroadTransitionSignal(bool offroad);
-
 private slots:
   void notify_state();
   void offroadTransition(bool offroad);
