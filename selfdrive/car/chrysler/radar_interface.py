@@ -49,7 +49,7 @@ class RadarInterface(RadarInterfaceBase):
     self.updated_messages = set()
     self.trigger_msg = LAST_MSG
 
-    self.yRel_multiplier = 1 if CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019) else -1
+    self.yRel_multiplier = -1 if CP.carFingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID) else 1
 
   def update(self, can_strings):
     vls = self.rcp.update_strings(can_strings)
