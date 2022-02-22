@@ -38,7 +38,7 @@ class CarState(CarStateBase):
     self.longEnabled = False
     self.longControl = False
     self.hybrid = CP.carFingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
-    self.e2e = CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019)
+    self.allowLong = CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019)
 
   def update(self, cp, cp_cam):
     no_steer_check = self.params.get_bool('jvePilot.settings.steer.noMinimum')
