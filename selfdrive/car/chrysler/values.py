@@ -1,5 +1,3 @@
-# flake8: noqa
-
 from selfdrive.car import dbc_dict
 from cereal import car
 from common.cached_params import CachedParams
@@ -13,9 +11,6 @@ class CarControllerParams:
   STEER_ERROR_MAX = 80
   ACCEL_MAX = 2.  # m/s2, high to not limit stock ACC
   ACCEL_MIN = -3.5  # m/s2
-
-  ECO_1 = 0.666
-  ECO_2 = 0.5
 
 class CAR:
   PACIFICA_2017_HYBRID = "CHRYSLER PACIFICA HYBRID 2017"

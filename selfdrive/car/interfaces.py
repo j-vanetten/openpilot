@@ -1,6 +1,7 @@
 import os
 import time
-from typing import Dict
+from abc import abstractmethod, ABC
+from typing import Dict, Tuple, List
 
 from cereal import car
 from common.kalman.simple_kalman import KF1D
@@ -23,7 +24,7 @@ ACCEL_MIN = -3.5
 # generic car and radar interfaces
 
 
-class CarInterfaceBase():
+class CarInterfaceBase(ABC):
   def __init__(self, CP, CarController, CarState):
     self.CP = CP
     self.VM = VehicleModel(CP)
@@ -49,12 +50,13 @@ class CarInterfaceBase():
     self.disable_on_gas = params.get('jvePilot.settings.disableOnGas', encoding='utf8') == "1"
 
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed):
+  def get_pid_accel_limits(CS, CP, current_speed, cruise_speed):
     return ACCEL_MIN, ACCEL_MAX
 
   @staticmethod
+  @abstractmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
-    raise NotImplementedError
+    pass
 
   @staticmethod
   def init(CP, logcan, sendcan):
@@ -75,6 +77,7 @@ class CarInterfaceBase():
   def get_std_params(candidate, fingerprint):
     ret = car.CarParams.new_message()
     ret.carFingerprint = candidate
+    ret.unsafeMode = 0  # see panda/board/safety_declarations.h for allowed values
 
     # standard ALC params
     ret.steerControlType = car.CarParams.SteerControlType.torque
@@ -88,13 +91,10 @@ class CarInterfaceBase():
     ret.minEnableSpeed = -1. # enable is done by stock ACC, so ignore this
     ret.steerRatioRear = 0.  # no rear steering, at least on the listed cars aboveA
     ret.openpilotLongitudinalControl = False
-    ret.minSpeedCan = 0.3
-    ret.startAccel = -0.8
     ret.stopAccel = -2.0
-    ret.startingAccelRate = 3.2 # brake_travel/s while releasing on restart
     ret.stoppingDecelRate = 0.8 # brake_travel/s while trying to stop
     ret.vEgoStopping = 0.5
-    ret.vEgoStarting = 0.5
+    ret.vEgoStarting = 0.5  # needs to be >= vEgoStopping to avoid state transition oscillation
     ret.stoppingControl = True
     ret.longitudinalTuning.deadzoneBP = [0.]
     ret.longitudinalTuning.deadzoneV = [0.]
@@ -104,17 +104,18 @@ class CarInterfaceBase():
     ret.longitudinalTuning.kiV = [1.]
     ret.longitudinalActuatorDelayLowerBound = 0.15
     ret.longitudinalActuatorDelayUpperBound = 0.15
+    ret.steerLimitTimer = 1.0
     return ret
 
-  # returns a car.CarState, pass in car.CarControl
-  def update(self, c, can_strings):
-    raise NotImplementedError
+  @abstractmethod
+  def update(self, c: car.CarControl, can_strings: List[bytes]) -> car.CarState:
+    pass
 
-  # return sendcan, pass in a car.CarControl
-  def apply(self, c):
-    raise NotImplementedError
+  @abstractmethod
+  def apply(self, c: car.CarControl) -> Tuple[car.CarControl.Actuators, List[bytes]]:
+    pass
 
-  def create_common_events(self, cs_out, extra_gears=None, gas_resume_speed=-1, pcm_enable=True):
+  def create_common_events(self, cs_out, extra_gears=None, pcm_enable=True, gas_resume_speed=-1):
     events = Events()
 
     if cs_out.doorOpen:
@@ -177,7 +178,7 @@ class CarInterfaceBase():
     return events
 
 
-class RadarInterfaceBase():
+class RadarInterfaceBase(ABC):
   def __init__(self, CP):
     self.pts = {}
     self.delay = 0
@@ -191,7 +192,7 @@ class RadarInterfaceBase():
     return ret
 
 
-class CarStateBase:
+class CarStateBase(ABC):
   def __init__(self, CP):
     self.CP = CP
     self.car_fingerprint = CP.carFingerprint

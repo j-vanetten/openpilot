@@ -217,17 +217,24 @@ Use positive values if your device is to the left of center and negative if it's
 * Min/Max values -1, 1
 
 
-# Advanced settings
+# Advanced and Experimental settings
 These settings are for advanced users doing advanced things. 
-Use SSH and opEdit to change these settings.
 
-### Minimum Steer Check  
-When disabled, jvePilot will no longer put a minimum on steer speed.
+### ADVANCED: Steer to 0
+When enabled, jvePilot will no longer put a minimum on steer speed.
 Requires a mod like a [hardware interceptor](https://github.com/xps-genesis/panda/tree/xps_wp_chrysler_basic).
-* Setting: `steer.checkMinimum`
-* Default: True 
+* Default: False 
 * Vehicle Restart Required: Yes
-* Allowed values: False, True
+
+### EXPERIMENTAL: Jeep Long Control
+This feature is currently only available on Jeeps
+WARNING! This is very experimental! 
+When enabled, jvePilot will be able to perform longitudinal control.
+To use this feature, DO NOT enable ACC or Cruise. 
+Simply start your vehicle and use the +/-, Cancel, and Resume buttons. 
+You will not see any icons or speed settings in the dash. Acceleration and braking is done completely by jvePilot. 
+* Default: False 
+* Vehicle Restart Required: No
 ---
 
 ![](https://user-images.githubusercontent.com/37757984/127420744-89ca219c-8f8e-46d3-bccf-c1cb53b81bb1.png)
