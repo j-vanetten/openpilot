@@ -89,9 +89,12 @@ class CarInterface(CarInterfaceBase):
     if self.CS.button_pressed(ButtonType.cancel):
       events.add(car.CarEvent.EventName.buttonCancel)  # cancel button pressed
     elif ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
-      events.add(car.CarEvent.EventName.pcmEnable)  # cruse is enabled
+      events.add(car.CarEvent.EventName.buttonEnable)  # cruse is enabled
     elif (not ret.cruiseState.enabled) and (ret.vEgo > GAS_RESUME_SPEED or (self.CS.out.cruiseState.enabled and (not ret.standstill))):
-      events.add(car.CarEvent.EventName.pcmDisable)  # give up, too fast to resume
+      if ret.brakePressed:
+        events.add(car.CarEvent.EventName.buttonCancel)
+      else:
+        events.add(car.CarEvent.EventName.pcmDisable)
 
     ret.events = events.to_msg()
 
