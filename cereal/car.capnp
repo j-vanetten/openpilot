@@ -397,8 +397,8 @@ struct CarControl {
       promptRepeat @7;
       promptDistracted @8;
 
-      quiet_engage @9;
-      quiet_disengage @10;
+      quietEngage @9;
+      quietDisengage @10;
     }
   }
 

@@ -527,7 +527,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   },
 
   EventName.buttonEnable: {
-    ET.ENABLE: EngagementAlert(AudibleAlert.quiet_engage),
+    ET.ENABLE: EngagementAlert(AudibleAlert.quietEngage),
   },
 
   EventName.pcmDisable: {
@@ -535,7 +535,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   },
 
   EventName.buttonCancel: {
-    ET.USER_DISABLE: EngagementAlert(AudibleAlert.quiet_disengage),
+    ET.USER_DISABLE: EngagementAlert(AudibleAlert.quietDisengage),
   },
 
   EventName.brakeHold: {
