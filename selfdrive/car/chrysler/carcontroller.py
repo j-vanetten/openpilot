@@ -127,7 +127,7 @@ class CarController():
       currently_braking = self.last_brake is not None
       speed_to_far_off = abs(CS.out.vEgo - vTarget) > COAST_WINDOW
       engine_brake = TORQ_BRAKE_MAX < aTarget < 0 and not speed_to_far_off and vTarget > LOW_WINDOW \
-                     and self.torque(CS, aTarget, vTarget) + self.torq_adjust > CS.torqMax
+                     and self.torque(CS, aTarget, vTarget) + self.torq_adjust > CS.torqMin
 
       if go_req or ((aTarget >= 0 or engine_brake) and not currently_braking):  # gas
         under_accel_frame_count = self.acc_gas(CS, aTarget, vTarget, under_accel_frame_count)
