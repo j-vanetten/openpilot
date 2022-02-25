@@ -15,7 +15,6 @@ AudibleAlert = car.CarControl.HUDControl.AudibleAlert
 EventName = car.CarEvent.EventName
 
 cachedParams = CachedParams()
-ButtonType = car.CarState.ButtonEvent.Type
 
 # Alert priorities
 class Priority(IntEnum):
@@ -260,12 +259,7 @@ def joystick_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, sof
   vals = f"Gas: {round(gb * 100.)}%, Steer: {round(steer * 100.)}%"
   return NormalPermanentAlert("Joystick Mode", vals)
 
-def pcm_disable(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> EngagementAlert:
-  if sm['carState'].brakePressed or any(b.type == ButtonType.cancel and b.pressed for b in sm['carState'].buttonEvents):
-    # user is pressing brake or cancel button
-    return EngagementAlert(AudibleAlert.quietDisengage)
-  else:
-    return EngagementAlert(AudibleAlert.disengage)
+
 
 EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   # ********** events with no alerts **********
@@ -528,19 +522,19 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   # ********** events that affect controls state transitions **********
 
   EventName.pcmEnable: {
-    ET.ENABLE: EngagementAlert(AudibleAlert.quietEngage),
+    ET.ENABLE: EngagementAlert(AudibleAlert.engage),
   },
 
   EventName.buttonEnable: {
-    ET.ENABLE: EngagementAlert(AudibleAlert.quietEngage),
+    ET.ENABLE: EngagementAlert(AudibleAlert.engage),
   },
 
   EventName.pcmDisable: {
-    ET.USER_DISABLE: pcm_disable,
+    ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
   },
 
   EventName.buttonCancel: {
-    ET.USER_DISABLE: pcm_disable,
+    ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
   },
 
   EventName.brakeHold: {
