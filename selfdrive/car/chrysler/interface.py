@@ -92,7 +92,7 @@ class CarInterface(CarInterfaceBase):
       events.add(car.CarEvent.EventName.buttonEnable)  # cruse is enabled
     elif (not ret.cruiseState.enabled) and (ret.vEgo > GAS_RESUME_SPEED or (self.CS.out.cruiseState.enabled and (not ret.standstill))):
       if ret.brakePressed:
-        events.add(car.CarEvent.EventName.buttonCancel)
+        events.add(car.CarEvent.EventName.buttonCancel)  # brake pedal pressed to cancel
       else:
         events.add(car.CarEvent.EventName.pcmDisable)
 
