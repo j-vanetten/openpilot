@@ -30,7 +30,7 @@ protected:
   void setAlert(const Alert &alert);
 
   Alert current_alert = {};
-  QMap<AudibleAlert, QPair<QSoundEffect *, QPair<int, float>>> sounds;
+  QMap<AudibleAlert, std::tuple<QSoundEffect *, int, float>> sounds;
   SubMaster sm;
   uint64_t started_frame;
 };
