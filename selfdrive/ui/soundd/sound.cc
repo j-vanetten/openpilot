@@ -52,7 +52,7 @@ void Sound::update() {
     float volume = util::map_val(sm["carState"].getCarState().getVEgo(), 11.f, 20.f, 0.f, 1.0f);
     volume = QAudio::convertVolume(volume, QAudio::LogarithmicVolumeScale, QAudio::LinearVolumeScale);
     volume = util::map_val(volume, 0.f, 1.f, Hardware::MIN_VOLUME, Hardware::MAX_VOLUME);
-    for (auto &[s, &[loops, volume_adjust]] : sounds) {
+    for (auto &[s, auto &[loops, volume_adjust]] : sounds) {
       s->setVolume(std::round(100 * volume * volume_adjust) / 100);
     }
   }
@@ -73,7 +73,7 @@ void Sound::setAlert(const Alert &alert) {
 
     // play sound
     if (alert.sound != AudibleAlert::NONE) {
-      auto &[s, &[loops, volume_adjust]] = sounds[alert.sound];
+      auto &[s, auto &[loops, volume_adjust]] = sounds[alert.sound];
       s->setLoopCount(loops);
       s->play();
     }
