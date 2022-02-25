@@ -93,7 +93,7 @@ class CarController():
 
     return actuators, can_sends
 
-  # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
+  # T = (mass x accel x velocity)/(.105 x Engine rpm)
   def acc(self, CS, actuators, can_sends, enabled, jvepilot_state):
     acc_2_counter = CS.acc_2['COUNTER']
     if self.last_enabled != enabled:
@@ -191,7 +191,7 @@ class CarController():
                                           CS.acc_1))
 
   def torque(self, CS, aTarget, vTarget):
-    rpm = (self.vehicleMass * CS.out.aEgo * CS.out.vEgo) / (.105 * CS.hybridTorq) if CS.hybrid else CS.gasRpm
+    rpm = 1200 if CS.hybrid else CS.gasRpm
 
     return (self.vehicleMass * aTarget * vTarget) / (.105 * rpm)
 
