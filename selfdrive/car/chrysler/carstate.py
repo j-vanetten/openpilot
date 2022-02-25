@@ -38,9 +38,10 @@ class CarState(CarStateBase):
     self.longControl = False
     self.hybrid = CP.carFingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
     self.allowLong = CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019)
+    self.no_steer_check = self.params.get_bool('jvePilot.settings.steer.noMinimum')
 
   def update(self, cp, cp_cam):
-    no_steer_check = self.params.get_bool('jvePilot.settings.steer.noMinimum')
+
 
     ret = car.CarState.new_message()
 
@@ -102,7 +103,7 @@ class CarState(CarStateBase):
     ret.steeringTorqueEps = cp.vl["EPS_STATUS"]["TORQUE_MOTOR"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
     self.lkas_active = cp.vl["EPS_STATUS"]["LKAS_ACTIVE"] == 1
-    ret.steerError = cp.vl["EPS_STATUS"]["LKAS_STEER_FAULT"] == 1 or (not no_steer_check and not self.lkas_active and ret.vEgo > self.CP.minSteerSpeed)
+    ret.steerError = cp.vl["EPS_STATUS"]["LKAS_STEER_FAULT"] == 1 or (not self.no_steer_check and not self.lkas_active and ret.vEgo > self.CP.minSteerSpeed)
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]["HIGH_BEAM_FLASH"])
 
