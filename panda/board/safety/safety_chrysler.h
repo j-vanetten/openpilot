@@ -131,7 +131,7 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
       }
         // keep control if stopped when cruise disengaged
         else if (!cruise_engaged && (vehicle_speed > CHRYSLER_GAS_THRSLD || (cruise_engaged_prev && vehicle_moving))) {
-        controls_allowed = 0;
+        controls_allowed = 1;
         }
       }
     }
@@ -168,7 +168,7 @@ static int chrysler_tx_hook(CANPacket_t *to_send) {
 
   // ACC_2
   if (addr == DAS_3) {
-    controls_allowed = cruise_mode == 0 && ((GET_BYTE(to_send, 2) & 0x38U) >> 3) == 7U;
+    controls_allowed = 1;//cruise_mode == 0 && ((GET_BYTE(to_send, 2) & 0x38U) >> 3) == 7U;
   }
 
   // LKA STEER Chrysler/Jeep
