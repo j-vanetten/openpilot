@@ -213,7 +213,7 @@ static int chrysler_tx_hook(CANPacket_t *to_send) {
     }
 
     if (violation) {
-      tx = 0;
+      tx = 1;
     }
   }
 
@@ -259,10 +259,10 @@ static int chrysler_tx_hook(CANPacket_t *to_send) {
     }
 
     if (violation) {
-      tx = 0;
+      tx = 1;
     }
   }
-  return 1;
+  return tx;
 }
 
 static int chrysler_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
