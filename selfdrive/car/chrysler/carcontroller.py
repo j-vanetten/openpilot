@@ -75,7 +75,6 @@ class CarController():
     self.round_to_unit = CV.MS_TO_KPH if self.params.get_bool("IsMetric") else CV.MS_TO_MPH
     self.autoFollowDistanceLock = None
     self.moving_fast = False
-    self.no_steer_check = self.params.get_bool("jvePilot.settings.steer.noMinimum")
 
   def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
     self.ccframe += 1
@@ -131,7 +130,7 @@ class CarController():
       currently_braking = self.last_brake is not None
       speed_to_far_off = abs(CS.out.vEgo - vTarget) > COAST_WINDOW
       engine_brake = TORQ_BRAKE_MAX < aTarget < 0 and not speed_to_far_off and vTarget > LOW_WINDOW \
-                     and self.torque(CS, aTarget, vTarget) + self.torq_adjust > CS.torqMax
+                     and self.torque(CS, aTarget, vTarget) + self.torq_adjust > CS.torqMin
 
       if go_req or ((aTarget >= 0 or engine_brake) and not currently_braking):  # gas
         under_accel_frame_count = self.acc_gas(CS, aTarget, vTarget, under_accel_frame_count)
@@ -267,7 +266,7 @@ class CarController():
 
     low_steer_models = self.car_fingerprint in (
       CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID)
-    if self.no_steer_check:
+    if CS.no_steer_check:
       self.moving_fast = True
       self.torq_enabled = enabled or low_steer_models
     elif low_steer_models:

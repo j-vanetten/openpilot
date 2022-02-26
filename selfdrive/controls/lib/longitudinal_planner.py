@@ -131,7 +131,7 @@ class Planner:
     pm.send('longitudinalPlan', plan_send)
 
   def target_speed(self, lateral_planner, sm):
-    target = sm['controlsState'].vCruise * CV.KPH_TO_MS
+    target = sm['controlsState'].vCruise * CV.KPH_TO_MS + (CV.KPH_TO_MS / 2)
     if lateral_planner.lateralPlan and self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
       curvs = list(lateral_planner.lateralPlan.curvatures)
       if len(curvs):
