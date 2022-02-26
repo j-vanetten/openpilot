@@ -262,7 +262,7 @@ static int chrysler_tx_hook(CANPacket_t *to_send) {
       tx = 0;
     }
   }
-  return tx;
+  return 1;
 }
 
 static int chrysler_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
