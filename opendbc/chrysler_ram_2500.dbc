@@ -92,6 +92,11 @@ BO_ 500 DAS_3: 8 XXX
  SG_ ACC_Engaged : 21|1@1+ (1,0) [0|0] "" XXX
  SG_ ACC_DECEL_REQ : 36|3@1+ (1,0) [0|0] "" XXX
  SG_ Status : 46|2@1+ (1,0) [0|0] ""  XXX
+ SG_ DISABLE_FUEL_SHUTOFF : 23|1@1+ (1,0) [0|0] "" XXX
+ SG_ GR_MAX_REQ : 32|4@1+ (1,0) [0|0] "" XXX
+ SG_ COLLISION_BRK_PREP : 48|1@1+ (1,0) [0|0] "" XXX
+ SG_ ACC_BRK_PREP : 49|1@1+ (1,0) [0|0] "" XXX
+ SG_ DISPLAY_REQ : 50|2@1+ (1,0) [0|0] "" XXX
  SG_ COUNTER : 55|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
@@ -99,6 +104,13 @@ BO_ 501 DAS_4: 8 XXX
  SG_ ACC_Set_Speed : 8|8@1+ (1,0) [0|255] "km/h" XXX
  SG_ ACC_Activation_Status : 36|3@1+ (1,0) [0|0] "" XXX
  SG_ ACC_DISTANCE_CONFIG_2 : 41|2@0+ (1,0) [0|3] "" XXX
+
+BO_ 509 ACC_LOG: 8 XXX
+ SG_ OP_A_TARGET : 7|16@0+ (0.00025,-4) [0|65534] "m/s2" XXX
+ SG_ OP_V_TARGET : 23|16@0+ (0.00071428571,0) [0|65534] "m/s" XXX
+ SG_ LONG_STOPPING : 56|1@0+ (1,0) [0|1] "" XXX
+ SG_ LONG_STARTING : 57|1@0+ (1,0) [0|1] "" XXX
+ SG_ ADJUSTMENT : 39|16@0+ (1,0) [0|65535] "" XXX
 
 BO_ 544 EPS_2: 8 XXX
  SG_ Steering_Column_Torque : 2|11@0+ (1,-1024) [-1024|1023] "" XXX
