@@ -17,7 +17,8 @@ CHECK_BUTTONS = {ButtonType.cancel: ["Cruise_Control_Buttons", 'ACC_Cancel'],
                  ButtonType.decelCruise: ["Cruise_Control_Buttons", 'ACC_Decel'],
                  ButtonType.followInc: ["Cruise_Control_Buttons", 'ACC_Distance_Inc'],
                  ButtonType.followDec: ["Cruise_Control_Buttons", 'ACC_Distance_Dec'],
-                 ButtonType.lkasToggle: ["Center_Stack_2", 'LKAS_Button']}
+                 #ButtonType.lkasToggle: ["Center_Stack_2", 'LKAS_Button']
+                 }
 
 PEDAL_GAS_PRESSED_XP = [0, 32, 255]
 PEDAL_BRAKE_PRESSED_XP = [0, 24, 255]
@@ -91,7 +92,7 @@ class CarState(CarStateBase):
     # gear
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["Transmission_Status"]["Gear_State"], None))
 
-    self.longControl = cp_cam.vl["DAS_4"]['ACC_Activation_Status'] == 0 and self.cachedParams.get_bool('jvePilot.settings.longControl', 1000)
+    self.longControl = cp.vl["DAS_4"]['ACC_Activation_Status'] == 0 and self.cachedParams.get_bool('jvePilot.settings.longControl', 1000)
     if self.longControl:
       ret.cruiseState.enabled = self.longEnabled
       ret.cruiseState.available = True
@@ -125,6 +126,8 @@ class CarState(CarStateBase):
   
       self.longEnabled = False
 
+    self.lkas_active = cp.vl["EPS_2"]["LKAS_ACTIVE"] == 1
+
     if self.CP.carFingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019, CAR.JEEP_CHEROKEE):
       self.cruise_error = cp.vl["DAS_3"]["Status"] != 0
       ret.cruiseState.speed = cp.vl["DAS_4"]["ACC_Set_Speed"] * CV.KPH_TO_MS
@@ -145,15 +148,13 @@ class CarState(CarStateBase):
       self.acc_2 = cp_cam.vl['DAS_3']
       ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp_cam.vl["DAS_4"]['ACC_DISTANCE_CONFIG_2'])))
 
-    self.lkas_active = cp.vl["EPS_2"]["LKAS_ACTIVE"] == 1
-
     # blindspot sensors
     if self.CP.enableBsm:
       ret.leftBlindspot = cp.vl["BSM_1"]["Blind_Spot_Monitor_Left"] == 1
       ret.rightBlindspot = cp.vl["BSM_1"]["Blind_Spot_Monitor_Right"] == 1    
 
 
-    self.lkas_counter = cp_cam.vl["DAS_3"]["COUNTER"]
+    self.lkas_counter = cp.vl["DAS_3"]["COUNTER"]
     self.lanelines = cp_cam.vl["DAS_6"]["LKAS_LANE_LINES"]
     self.iconcolor = cp_cam.vl["DAS_6"]["LKAS_ICON_COLOR"]
     self.lkas_car_model = cp_cam.vl["DAS_6"]["CAR_MODEL"] 
@@ -315,6 +316,7 @@ class CarState(CarStateBase):
         ("ACC_STOP", "DAS_3",0),#ACC Engaged
         ("Status", "DAS_3",0),
         ("ACC_TORQ", "DAS_3",0),
+        ("COUNTER", "DAS_3", 0),
         ("ACC_Set_Speed", "DAS_4",0),
         ("ACC_Activation_Status", "DAS_4",0),
         ("ACC_DISTANCE_CONFIG_2", "DAS_4",0),
