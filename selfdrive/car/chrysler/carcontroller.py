@@ -361,7 +361,7 @@ class CarController():
                                   self.hybrid_acc_button(CS, jvepilot_state)]
 
       buttons_to_press = list(filter(None, buttons_to_press))
-      if buttons_to_press is not None and len(buttons_to_press) > 0:
+      if button_counter_offset is not None and len(buttons_to_press) > 0:
         new_msg = create_wheel_buttons_command(self.packer, button_counter + button_counter_offset, buttons_to_press)
         can_sends.append(new_msg)
 
