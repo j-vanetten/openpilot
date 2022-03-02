@@ -74,7 +74,7 @@ class CarState(CarStateBase):
     ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3, 4]  # the comment below says 3 and 4 are ACC mode
     ret.cruiseState.speed = cp.vl["DASHBOARD"]["ACC_SPEED_CONFIG_KPH"] * CV.KPH_TO_MS
     # CRUISE_STATE is a three bit msg, 0 is off, 1 and 2 are Non-ACC mode, 3 and 4 are ACC mode, find if there are other states too
-    ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] in [1, 2]
+    ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] in (1, 2)
     self.dashboard = cp.vl["DASHBOARD"]
 
     ret.steeringTorque = cp.vl["EPS_STATUS"]["TORQUE_DRIVER"]
@@ -144,46 +144,46 @@ class CarState(CarStateBase):
   def get_can_parser(CP):
     signals = [
       # sig_name, sig_address, default
-      ("PRNDL", "GEAR", 0),
-      ("DOOR_OPEN_FL", "DOORS", 0),
-      ("DOOR_OPEN_FR", "DOORS", 0),
-      ("DOOR_OPEN_RL", "DOORS", 0),
-      ("DOOR_OPEN_RR", "DOORS", 0),
-      ("BRAKE_PRESSED_2", "BRAKE_2", 0),
-      ("ACCEL_134", "ACCEL_GAS_134", 0),
-      ("WHEEL_SPEED_FL", "WHEEL_SPEEDS", 0),
-      ("WHEEL_SPEED_RR", "WHEEL_SPEEDS", 0),
-      ("WHEEL_SPEED_RL", "WHEEL_SPEEDS", 0),
-      ("WHEEL_SPEED_FR", "WHEEL_SPEEDS", 0),
-      ("STEER_ANGLE", "STEERING", 0),
-      ("STEERING_RATE", "STEERING", 0),
-      ("TURN_SIGNALS", "STEERING_LEVERS", 0),
-      ("ACC_ENABLED", "ACC_2", 0),
-      ("HIGH_BEAM_FLASH", "STEERING_LEVERS", 0),
-      ("ACC_SPEED_CONFIG_KPH", "DASHBOARD", 0),
-      ("CRUISE_STATE", "DASHBOARD", 0),
-      ("TORQUE_DRIVER", "EPS_STATUS", 0),
-      ("TORQUE_MOTOR", "EPS_STATUS", 0),
-      ("LKAS_ACTIVE", "EPS_STATUS", 1),
-      ("LKAS_STEER_FAULT", "EPS_STATUS", 1),
-      ("TORQ_STATUS", "EPS_STATUS", 1),
-      ("COUNTER", "EPS_STATUS", -1),
-      ("TRACTION_OFF", "TRACTION_BUTTON", 0),
-      ("SEATBELT_DRIVER_UNLATCHED", "SEATBELT_STATUS", 0),
-      ("COUNTER", "WHEEL_BUTTONS", 0),
-      ("ACC_RESUME", "WHEEL_BUTTONS", 0),
-      ("ACC_CANCEL", "WHEEL_BUTTONS", 0),
-      ("ACC_SPEED_INC", "WHEEL_BUTTONS", 0),
-      ("ACC_SPEED_DEC", "WHEEL_BUTTONS", 0),
-      ("ACC_FOLLOW_INC", "WHEEL_BUTTONS", 0),
-      ("ACC_FOLLOW_DEC", "WHEEL_BUTTONS", 0),
-      ("ACC_DISTANCE_CONFIG_2", "DASHBOARD", 0),
-      ("BLIND_SPOT_LEFT", "BLIND_SPOT_WARNINGS", 0),
-      ("BLIND_SPOT_RIGHT", "BLIND_SPOT_WARNINGS", 0),
-      ("TOGGLE_LKAS", "TRACTION_BUTTON", 0),
-      ("VEHICLE_SPEED_KPH", "BRAKE_1", 0),
-      ("BRAKE_VAL_TOTAL", "BRAKE_1", 0),
-      ("ACCEL", "ACCEL_RELATED_120", 0),
+      ("PRNDL", "GEAR"),
+      ("DOOR_OPEN_FL", "DOORS"),
+      ("DOOR_OPEN_FR", "DOORS"),
+      ("DOOR_OPEN_RL", "DOORS"),
+      ("DOOR_OPEN_RR", "DOORS"),
+      ("BRAKE_PRESSED_2", "BRAKE_2"),
+      ("ACCEL_134", "ACCEL_GAS_134"),
+      ("WHEEL_SPEED_FL", "WHEEL_SPEEDS"),
+      ("WHEEL_SPEED_RR", "WHEEL_SPEEDS"),
+      ("WHEEL_SPEED_RL", "WHEEL_SPEEDS"),
+      ("WHEEL_SPEED_FR", "WHEEL_SPEEDS"),
+      ("STEER_ANGLE", "STEERING"),
+      ("STEERING_RATE", "STEERING"),
+      ("TURN_SIGNALS", "STEERING_LEVERS"),
+      ("ACC_ENABLED", "ACC_2"),
+      ("HIGH_BEAM_FLASH", "STEERING_LEVERS"),
+      ("ACC_SPEED_CONFIG_KPH", "DASHBOARD"),
+      ("CRUISE_STATE", "DASHBOARD"),
+      ("TORQUE_DRIVER", "EPS_STATUS"),
+      ("TORQUE_MOTOR", "EPS_STATUS"),
+      ("LKAS_ACTIVE", "EPS_STATUS"),
+      ("LKAS_STEER_FAULT", "EPS_STATUS"),
+      ("TORQ_STATUS", "EPS_STATUS"),
+      ("COUNTER", "EPS_STATUS"),
+      ("TRACTION_OFF", "TRACTION_BUTTON"),
+      ("SEATBELT_DRIVER_UNLATCHED", "SEATBELT_STATUS"),
+      ("COUNTER", "WHEEL_BUTTONS"),
+      ("ACC_RESUME", "WHEEL_BUTTONS"),
+      ("ACC_CANCEL", "WHEEL_BUTTONS"),
+      ("ACC_SPEED_INC", "WHEEL_BUTTONS"),
+      ("ACC_SPEED_DEC", "WHEEL_BUTTONS"),
+      ("ACC_FOLLOW_INC", "WHEEL_BUTTONS"),
+      ("ACC_FOLLOW_DEC", "WHEEL_BUTTONS"),
+      ("ACC_DISTANCE_CONFIG_2", "DASHBOARD"),
+      ("BLIND_SPOT_LEFT", "BLIND_SPOT_WARNINGS"),
+      ("BLIND_SPOT_RIGHT", "BLIND_SPOT_WARNINGS"),
+      ("TOGGLE_LKAS", "TRACTION_BUTTON"),
+      ("VEHICLE_SPEED_KPH", "BRAKE_1"),
+      ("BRAKE_VAL_TOTAL", "BRAKE_1"),
+      ("ACCEL", "ACCEL_RELATED_120"),
     ]
 
     checks = [
@@ -209,10 +209,10 @@ class CarState(CarStateBase):
 
     if CP.enableBsm:
       signals += [
-        ("BLIND_SPOT_RIGHT", "BLIND_SPOT_WARNINGS", 0),
-        ("BLIND_SPOT_LEFT", "BLIND_SPOT_WARNINGS", 0),
+        ("BLIND_SPOT_RIGHT", "BLIND_SPOT_WARNINGS"),
+        ("BLIND_SPOT_LEFT", "BLIND_SPOT_WARNINGS"),
       ]
-      checks += [("BLIND_SPOT_WARNINGS", 2)]
+      checks.append(("BLIND_SPOT_WARNINGS", 2))
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0)
 
@@ -220,19 +220,18 @@ class CarState(CarStateBase):
   def get_cam_can_parser(CP):
     # LKAS_HEARTBIT data needs to be forwarded!
     forward_lkas_heartbit_signals = [
-      ("AUTO_HIGH_BEAM", "LKAS_HEARTBIT", 0),
-      ("FORWARD_1", "LKAS_HEARTBIT", 0),
-      ("FORWARD_2", "LKAS_HEARTBIT", 0),
-      ("FORWARD_3", "LKAS_HEARTBIT", 0),
+      ("AUTO_HIGH_BEAM", "LKAS_HEARTBIT"),
+      ("FORWARD_1", "LKAS_HEARTBIT"),
+      ("FORWARD_2", "LKAS_HEARTBIT"),
+      ("FORWARD_3", "LKAS_HEARTBIT"),
     ]
 
     signals = [
-      # sig_name, sig_address, default
-      ("COUNTER", "LKAS_COMMAND", -1),
-      ("CAR_MODEL", "LKAS_HUD", -1),
-      ("LKAS_LANE_LINES", "LKAS_HUD", -1),
+      # sig_name, sig_address
+      ("COUNTER", "LKAS_COMMAND"),
+      ("CAR_MODEL", "LKAS_HUD"),
+      ("LKAS_LANE_LINES", "LKAS_HUD"),
     ] + forward_lkas_heartbit_signals
-
     checks = [
       ("LKAS_COMMAND", 100),
       ("LKAS_HUD", 4),

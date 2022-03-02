@@ -15,7 +15,7 @@ opParams = opParams()
 class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
-    return 10., 10.  # high limits
+    return -10., 10.  # high limits
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
@@ -105,9 +105,7 @@ class CarInterface(CarInterfaceBase):
   def apply(self, c):
 
     if (self.CS.frame == -1):
-      return []  # if we haven't seen a frame 220, then do not update.
+      return car.CarControl.Actuators.new_message(), []  # if we haven't seen a frame 220, then do not update.
 
-    can_sends = self.CC.update(c.enabled, self.CS, c.actuators, c.cruiseControl.cancel, c.hudControl.visualAlert,
-                               GAS_RESUME_SPEED, c)
-
-    return can_sends
+    return self.CC.update(c.enabled, self.CS, c.actuators, c.cruiseControl.cancel, c.hudControl.visualAlert,
+                          GAS_RESUME_SPEED, c)

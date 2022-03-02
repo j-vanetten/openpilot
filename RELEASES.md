@@ -1,6 +1,30 @@
-Version jvePilot-0.8.12(v3.8.0)
+Version jvePilot-0.8.13(v3.9.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Reverse lateral angle of radar on Pacifica's
+* Update to 0.8.13
+  * Improved driver monitoring
+    * Retuned driver pose learner for relaxed driving positions
+    * Added reliance on driving model to be more scene adaptive
+    * Matched strictness between comma two and comma three
+  * Improved performance in turns by compensating for the road bank angle
+  * Improved camera focus on the comma two
+  * AGNOS 4
+    * ADB support
+    * improved cell auto configuration
+  * NEOS 19
+    * package updates
+    * stability improvements
+  * Subaru ECU firmware fingerprinting thanks to martinl!
+  * Hyundai Santa Fe Plug-in Hybrid 2022 support thanks to sunnyhaibin!
+  * Mazda CX-5 2022 support thanks to Jafaral!
+  * Subaru Impreza 2020 support thanks to martinl!
+  * Toyota Avalon 2022 support thanks to sshane!
+  * Toyota Prius v 2017 support thanks to CT921!
+  * Volkswagen Caravelle 2020 support thanks to jyoung8607!
+
+Version jvePilot-0.8.12(v3.8.0)
+========================
 * Turn Auto Follow into a small icon above ACC Eco button
   * Use buttons to toggle on/off, not screen
 * Fixed radar.  Should get less collision alert
@@ -36,7 +60,6 @@ Visit http://bit.ly/jvereadme for more information
 
 Version jvePilot-0.8.10(v3.7)
 ========================
-Visit http://bit.ly/jvereadme for more information
 * Crude replacement to continue to support stock ACC follow distance profiles
   * OP removed the use of radar to track lead car.  This broke how I was supporting distance profiles.
   * So, to fix, always do +3 mph over OP targeted speed to force stock ACC to keep the distance
