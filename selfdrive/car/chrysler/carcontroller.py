@@ -146,7 +146,7 @@ class CarController():
           self.last_torque = None
 
       if stop_req:
-        brake = self.last_brake = -2.01 if acc_2_counter == 0 else 2.0  # keep from rolling forward when stopped
+        brake = self.last_brake = -2.01 if acc_2_counter == 0 else -2.0  # keep from rolling forward when stopped
         torque = self.last_torque = None
       elif go_req:
         brake = self.last_brake = None
