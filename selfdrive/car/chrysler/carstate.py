@@ -6,7 +6,6 @@ from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD, CAR
 from common.cached_params import CachedParams
 from common.params import Params
-from common.op_params import opParams
 import numpy as np
 
 ButtonType = car.CarState.ButtonEvent.Type
@@ -38,10 +37,11 @@ class CarState(CarStateBase):
     self.longEnabled = False
     self.longControl = False
     self.hybrid = CP.carFingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
-    self.e2e = CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019)
+    self.allowLong = CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019)
+    self.no_steer_check = self.params.get_bool('jvePilot.settings.steer.noMinimum')
 
   def update(self, cp, cp_cam):
-    no_steer_check = self.params.get_bool('jvePilot.settings.steer.noMinimum')
+
 
     ret = car.CarState.new_message()
 
@@ -77,7 +77,7 @@ class CarState(CarStateBase):
     ret.steeringRateDeg = cp.vl["STEERING"]["STEERING_RATE"]
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["GEAR"]["PRNDL"], None))
 
-    self.longControl = self.e2e and cp.vl["DASHBOARD"]["CRUISE_STATE"] == 0 and self.cachedParams.get_bool('jvePilot.settings.longControl', 1000)
+    self.longControl = self.allowLong and cp.vl["DASHBOARD"]["CRUISE_STATE"] == 0 and self.cachedParams.get_bool('jvePilot.settings.longControl', 1000)
     if self.longControl:
       ret.cruiseState.enabled = self.longEnabled
       ret.cruiseState.available = True
@@ -103,7 +103,7 @@ class CarState(CarStateBase):
     ret.steeringTorqueEps = cp.vl["EPS_STATUS"]["TORQUE_MOTOR"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
     self.lkas_active = cp.vl["EPS_STATUS"]["LKAS_ACTIVE"] == 1
-    ret.steerError = cp.vl["EPS_STATUS"]["LKAS_STEER_FAULT"] == 1 or (not no_steer_check and not self.lkas_active and ret.vEgo > self.CP.minSteerSpeed)
+    ret.steerError = cp.vl["EPS_STATUS"]["LKAS_STEER_FAULT"] == 1 or (not self.no_steer_check and not self.lkas_active and ret.vEgo > self.CP.minSteerSpeed)
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]["HIGH_BEAM_FLASH"])
 
