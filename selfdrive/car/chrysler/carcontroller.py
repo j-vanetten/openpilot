@@ -232,8 +232,8 @@ class CarController():
       self.last_brake = min(0., brake_target / 2)
     else:
       tBrake = brake_target
-      if not speed_to_far_off:  # let up on brake as we approach
-        tBrake *= (CS.out.vEgo - vTarget) / COAST_WINDOW
+      if not speed_to_far_off and 0 >= tBrake >= -1:  # let up on brake as we approach
+        tBrake = (tBrake * 1.2) + .2
 
       lBrake = self.last_brake
       if tBrake < lBrake:
