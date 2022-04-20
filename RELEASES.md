@@ -1,7 +1,7 @@
-Version jvePilot-0.8.12(v4.0.0)
+Version jvePilot-0.8.13(v4.0.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
-* Add experimental longitudinal control option
+* Add experimental longitudinal control option for Jeeps
 * Move min steer speed check into jvePilot settings instead of in opEdit
 
 Version jvePilot-0.8.13(v3.9.0)
