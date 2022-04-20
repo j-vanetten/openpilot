@@ -1,5 +1,5 @@
 ![](https://i.imgur.com/b0ZyIx5.jpg)
-# jvePilot Hybrid OpenPilot/ACC for Chrysler/Jeep 
+# jvePilot Hybrid openpilot/ACC for Chrysler/Jeep 
 This fork is only for Chrysler/Jeep vehicles!
 
 [![Buy me a beer!](https://github.com/j-vanetten/openpilot/blob/jvePilot-release/.github/ButMeABeer.png?raw=true)](https://www.buymeacoffee.com/jvePilot)
@@ -24,38 +24,41 @@ Come join us on [Discord](https://discord.gg/r8yaDBdnwH)!
 
 # **Safety Notes**
 * This is my experimental branch, so I'm not responsible for any damage this may cause.
-* jvePilot still does not have direct control of the gas and brakes!
-  Changing the ACC speed does not always result in the vehicle braking unless the difference in speed is large enough.
+* Changes to the ACC speed does not always result in the vehicle braking unless the difference in speed is large enough.
   If the speed difference is small, the vehicle just lets off the gas.
 * ACC can't go slower that 20mph
 * ACC doesn't do a good job at seeing things that are already stopped
-
+* openpilot's Longitudinal control mode does not use any of the built-in safety features that ACC brings 
 ---
 
 # jvePilot 
 I have a 2018 Grand Cherokee Trailhawk, so I'm only able to confirm features using this vehicle.
-* 2017 Gas Chrysler Pacifica: Confirmed by @debugged-hosting
+* Chrysler Pacifica: Confirmed working by many in the community
 
 ## What is this Fork?
-This is my personal OpenPilot fork that includes features that I feel make it a better driving experience for me and possibly others.
+This is my personal openpilot fork that includes features that I feel make it a better driving experience for me and possibly others.
 
 ## Benefits of jvePilot
+### Better ACC
 * Smother driving in traffic as jvePilot will do a better job at predicting traffic and adjust ACC speed accordingly
-* ACC braking by setting the cruse speed lower that the target to help slow the vehicle sooner
-* Slow for cars cutting in before ACC does
-* Slow in a turn, so you don't have to change the set speed yourself (Speeds are configurable)
+* ACC braking by setting the cruse speed much lower that the target to help slow the vehicle sooner
 * Auto resume after ACC comes to a stop behind vehicle (Can be disabled)
 * Auto follow feature to adjust the follow distance based on speed (Speeds are configurable)
-* ACC Eco to limit the throttle when accelerating  
+* Slow for cars cutting in before ACC does
+
+### Better driving experience
+* Slow in a turn, so you don't have to change the set speed yourself (Speeds are configurable)
+* Eco to limit the throttle when accelerating  
 * Pressing the gas does not disengage jvePilot (Can be disabled)
 * Syncs jvePilot display speed with the vehicle speedometer 
 * Use LKAS button in the dash to disable lane line driving and instead use the new KL driving model. [Read about KL model here](https://blog.comma.ai/end-to-end-lateral-planning).
 * Gas/brake indication using green/red colors on speed indicator
 
 ### Longitudinal control
-This fork combines the speed control logic of OpenPilot with the vehicles Adaptive Cruse Control (ACC).
-It does this by changing the ACC speed to match the value OpenPilot calculates as the desired speed.
-This brings some of OpenPilots longitudinal control to these vehicles.
+#### ACC
+This fork combines the speed control logic of openpilot with the vehicles Adaptive Cruse Control (ACC).
+It does this by changing the ACC speed to match the value openpilot calculates as the desired speed.
+This brings some of openpilot's longitudinal control to these vehicles.
 Including things like slowing while cornering and slowing when it detects cut-ins.
 It will also smooth the braking of ACC when driving in traffic.
 
@@ -64,13 +67,30 @@ This fork takes control of the ACC speed setting and adjusts the ACC speed to ma
 It does this by simulating ACC+ and ACC- button presses on the steering wheel to change the ACC speed.
 It is limited as ACC only goes down to 20 mph, so it doesn't help as low speeds.
 
+#### openpilot Longitudinal Control (Experimental and Jeeps only)
+Experimental! Remember, always pay attention and be ready to take control.
+If you have a Jeep, openpilot longitudinal control will be enabled with this settings.  
+Enabling this setting, and you have a Jeep, will allow you to engage jvePilot when you **don't** have ACC enabled.
+You can enable ACC, but jvePilot will yield longitudinal control to ACC and just perform lateral control.
+So, if you want to use openpilot's longitudinal control, don't enable ACC and openpilot will then control the accelerator/brakes along with the steering.
+* For vehicles where the driver had to press and hold the brake if stopped behind another vehicle for more than a second will no longer have to do so. 
+  openpilot will now hold the brake for you. yay!
+* openpilot does not have follow profiles. 
+  So, instead, the follow buttons now change the ECO mode.
+
 ### Auto Resume
+#### ACC
 ACC will come to a stop behind vehicles, however, if stopped too long, it will either stay stopped until resume is pressed, or simply disengage ACC altogether.  
 For the case where ACC simply cancels, the driver has to press and hold the brake to keep the vehicle stopped.
 Auto resume makes life easier by resuming ACC when the vehicle in front of you begin to move, or, you let off the brake after coming to a standstill.
-While stopped, you can still disengage jvePilot by pressing the Cancel button. 
+While stopped, you can still disengage jvePilot by pressing the Cancel button.
+
+#### openpilot Longitudinal Control (Experimental and Jeeps only)
+openpilot will stop and stay stopped.  
+Even on vehicles that required you to press the brake when stopped for more than a second.
 
 ### Auto Follow
+#### ACC
 Auto Follow is a way to automate the changing of the stock follow distance setting.
 It sets the follow distance to closer at slow speeds and increases it the faster you go.
 Setting the follow speed to one/two bars helps with keeping up with cars that take off when stopped or at slow speeds.
@@ -79,31 +99,33 @@ The faster you go, the more distance you want, so you can have more confidence i
 The current enabled state of Auto Follow is as an icon above the ACC Eco button on the jvePilot display.
 Pressing Follow + or - will disable Auto Follow giving you full control to set the follow distance. 
 To re-enable Auto Follow, hold either Follow + or - for half a second. 
+
+#### openpilot Longitudinal Control (Experimental and Jeeps only)
+Auto Follow is not available when using openpilot's longitudinal control due to the fact that openpilot does not support it.
  
 ### ACC Eco
-When enabled, jvePilot will limit how far ahead the ACC setting is above the current speed.  
-This prevents the vehicle from using an aggressive throttle to get up to speed saving on gas/battery.
-
 The ACC Eco button is located in the lower right corner of the display.  
 Tapping the button cycles between off, level 1, and level 2 eco settings.
 Level 2 provides the slowest acceleration and is selected when both leaves are green.    
 Level 1 should provide a balance is selected when only one leaf is green.
-If you feel these settings are not right for you or your vehicle, see the [ACC Eco](#acc-eco) setting to adjust them. 
 Much like your vehicles eco/sport modes, the current setting is persisted between drives.
+If you feel these settings are not right for you or your vehicle, see the [ACC Eco](#acc-eco) setting to adjust them.
 
-## How to use it 
+#### ACC
+When enabled, jvePilot will limit how far ahead the ACC setting is above the current speed.  
+This prevents the vehicle from using an aggressive throttle to get up to speed saving on gas/battery.
+
+#### openpilot Longitudinal Control (Experimental and Jeeps only)
+When enabled, jvePilot will limit the torque give to accelerate.  
+This prevents the vehicle from using an aggressive throttle to get up to speed saving on gas/battery.
+
+## How to use it
 When using this branch, you will be setting the max ACC speed on the jvePilot display instead of the one in the dashboard.
-jvePilot will then set the ACC setting in the dashboard to the targeted speed, but never exceeding the max speed set on the jvePilot display.
 A quick press of the ACC+ and ACC- buttons will change this speed by 5 mph on the jvePilot display, while a long deliberate press (about a 1/2 second press) changes it by 1 mph.
 DO NOT hold the ACC+ or ACC- buttons for longer that a 1 second. Either make quick or long deliberate presses only.
 
-### Where to look when setting ACC speed
-Do not look at the dashboard when setting your ACC max speed.
-Instead, only look at the one on the jvePilot display.
-The reason you need to look at jvePilot is because jvePilot will be changing the one in the dashboard.
-It will be adjusting it as needed, never raising it above the one set on the jvePilot display.
-
-**ONLY look at the MAX speed on jvePilot when setting the ACC speed instead of the dashboard!**
+### Where to look when setting speed
+**ONLY look at the MAX speed on jvePilot when setting the speed instead of the dashboard!**
 
 ---
 
@@ -232,7 +254,7 @@ WARNING! This is very experimental!
 When enabled, jvePilot will be able to perform longitudinal control.
 To use this feature, DO NOT enable ACC or Cruise. 
 Simply start your vehicle and use the +/-, Cancel, and Resume buttons. 
-You will not see any icons or speed settings in the dash. Acceleration and braking is done completely by jvePilot. 
+You will not see any icons or speed settings in the dash. Acceleration and braking is done completely by OpenPilot. 
 * Default: False 
 * Vehicle Restart Required: No
 ---
