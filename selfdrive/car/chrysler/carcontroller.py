@@ -233,7 +233,7 @@ class CarController():
     else:
       tBrake = brake_target
       if not speed_to_far_off and 0 >= tBrake >= -1:  # let up on brake as we approach
-        tBrake = (tBrake * 1.2) + .2
+        tBrake = (tBrake * 1.1) + .1
 
       lBrake = self.last_brake
       if tBrake < lBrake:
