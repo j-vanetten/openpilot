@@ -2,7 +2,11 @@ Version jvePilot-0.8.13(v4.0.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
 * Add experimental longitudinal control option for Jeeps
-* Move min steer speed check into jvePilot settings instead of in opEdit
+* Move WP mod's min steer speed check into jvePilot settings instead of in opEdit
+
+Version jvePilot-0.8.13(v3.10.0)
+========================
+* New radar code from xps's fork
 
 Version jvePilot-0.8.13(v3.9.0)
 ========================
