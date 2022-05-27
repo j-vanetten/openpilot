@@ -1,6 +1,10 @@
-Version jvePilot-0.8.13(v3.9.0)
+Version jvePilot-0.8.13(v3.10.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* New radar code from xps's fork
+
+Version jvePilot-0.8.13(v3.9.0)
+========================
 * Reverse lateral angle of radar on Pacifica's
 * Update to 0.8.13
   * Improved driver monitoring
