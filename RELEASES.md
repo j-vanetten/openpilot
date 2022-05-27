@@ -2,6 +2,7 @@ Version jvePilot-0.8.13(v3.10.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
 * New radar code from xps's fork
+* Restore 9mph min steer on some models 
 
 Version jvePilot-0.8.13(v3.9.0)
 ========================
