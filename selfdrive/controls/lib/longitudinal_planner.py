@@ -61,7 +61,6 @@ class Planner:
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
 
-
   def update(self, sm, lateral_planner):
     v_ego = sm['carState'].vEgo
 
