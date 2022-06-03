@@ -1,7 +1,7 @@
 from cereal import car
+from common.conversions import Conversions as CV
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
-from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD
 from common.cached_params import CachedParams
@@ -75,6 +75,7 @@ class CarState(CarStateBase):
     ret.cruiseState.speed = cp.vl["DASHBOARD"]["ACC_SPEED_CONFIG_KPH"] * CV.KPH_TO_MS
     # CRUISE_STATE is a three bit msg, 0 is off, 1 and 2 are Non-ACC mode, 3 and 4 are ACC mode, find if there are other states too
     ret.cruiseState.nonAdaptive = cp.vl["DASHBOARD"]["CRUISE_STATE"] in (1, 2)
+    ret.accFaulted = cp.vl["ACC_2"]["ACC_FAULTED"] != 0
     self.dashboard = cp.vl["DASHBOARD"]
 
     ret.steeringTorque = cp.vl["EPS_STATUS"]["TORQUE_DRIVER"]
@@ -159,6 +160,7 @@ class CarState(CarStateBase):
       ("STEERING_RATE", "STEERING"),
       ("TURN_SIGNALS", "STEERING_LEVERS"),
       ("ACC_ENABLED", "ACC_2"),
+      ("ACC_FAULTED", "ACC_2"),
       ("HIGH_BEAM_FLASH", "STEERING_LEVERS"),
       ("ACC_SPEED_CONFIG_KPH", "DASHBOARD"),
       ("CRUISE_STATE", "DASHBOARD"),
@@ -196,13 +198,12 @@ class CarState(CarStateBase):
       ("ACC_2", 50),
       ("GEAR", 50),
       ("ACCEL_GAS_134", 50),
+      ("WHEEL_BUTTONS", 50),
       ("DASHBOARD", 15),
       ("STEERING_LEVERS", 10),
       ("SEATBELT_STATUS", 2),
       ("DOORS", 1),
       ("TRACTION_BUTTON", 1),
-      ("WHEEL_BUTTONS", 50),
-      ("BLIND_SPOT_WARNINGS", 2),
       ("BRAKE_1", 100),
       ("ACCEL_RELATED_120", 50)
     ]

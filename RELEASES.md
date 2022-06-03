@@ -1,8 +1,25 @@
-Version jvePilot-0.8.13(v3.10.0)
+Version jvePilot-0.8.14(v3.10.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
 * New radar code from xps's fork
 * Restore 9mph min steer on some models 
+* Update to 0.8.13
+  * New driving model
+    * Bigger model, using both of comma three's road-facing cameras
+    * Better at cut-in detection and tight turns
+  * New driver monitoring model
+    * Tweaked network structure to improve output resolution for DSP
+    * Fixed bug in quantization aware training to reduce quantizing errors
+    * Resulted in 7x less MSE and no more random biases at runtime
+  * Added toggle to disable disengaging on the accelerator pedal
+  * comma body support
+  * Audi RS3 support thanks to jyoung8607!
+  * Hyundai Ioniq Plug-in Hybrid 2019 support thanks to sunnyhaibin!
+  * Hyundai Tucson Diesel 2019 support thanks to sunnyhaibin!
+  * Toyota Alphard Hybrid 2021 support
+  * Toyota Avalon Hybrid 2022 support
+  * Toyota RAV4 2022 support
+  * Toyota RAV4 Hybrid 2022 support
 
 Version jvePilot-0.8.13(v3.9.0)
 ========================

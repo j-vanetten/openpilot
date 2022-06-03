@@ -1,4 +1,5 @@
 from cereal import car
+from opendbc.can.packer import CANPacker
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
                                                create_wheel_buttons_command, create_lkas_heartbit
@@ -20,8 +21,10 @@ AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 
 ACC_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 
-class CarController():
+
+class CarController:
   def __init__(self, dbc_name, CP, VM):
+    self.CP = CP
     self.apply_steer_last = 0
     self.prev_frame = -1
     self.lkas_frame = -1
@@ -45,23 +48,26 @@ class CarController():
     self.moving_fast = False
     self.min_steer_check = self.opParams.get("steer.checkMinimum")
 
-  def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
+  def update(self, CC, CS, gas_resume_speed):
+    # def update(self, enabled, CS, actuators, pcm_cancel_cmd, hud_alert, gas_resume_speed, c):
     if CS.button_pressed(ButtonType.lkasToggle, False):
-      c.jvePilotState.carControl.useLaneLines = not c.jvePilotState.carControl.useLaneLines
+      CC.jvePilotState.carControl.useLaneLines = not c.jvePilotState.carControl.useLaneLines
       self.params.put("EndToEndToggle", "0" if c.jvePilotState.carControl.useLaneLines else "1")
-      c.jvePilotState.notifyUi = True
+      CC.jvePilotState.notifyUi = True
 
     #*** control msgs ***
     can_sends = []
-    actuators = self.lkas_control(CS, actuators, can_sends, enabled, hud_alert, c.jvePilotState)
-    self.wheel_button_control(CS, can_sends, enabled, gas_resume_speed, c.jvePilotState, pcm_cancel_cmd)
+    actuators = self.lkas_control(CC, CS, can_sends)
+    self.wheel_button_control(CS, can_sends, CC.enabled, gas_resume_speed, CC.jvePilotState, CC.cruiseControl.cancel)
 
     return actuators, can_sends
 
-  def lkas_control(self, CS, actuators, can_sends, enabled, hud_alert, jvepilot_state):
+  def lkas_control(self, CC, CS, can_sends):
     if self.prev_frame == CS.frame:
       return car.CarControl.Actuators.new_message()
     self.prev_frame = CS.frame
+
+    actuators = CC.actuators
 
     self.lkas_frame += 1
     lkas_counter = CS.lkas_counter
@@ -78,7 +84,7 @@ class CarController():
     low_steer_models = self.car_fingerprint in (CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID)
     if not self.min_steer_check:
       self.moving_fast = True
-      self.torq_enabled = enabled or low_steer_models
+      self.torq_enabled = CC.enabled or low_steer_models
     else:
       self.moving_fast = CS.out.vEgo > CS.CP.minSteerSpeed  # for status message
       if CS.out.vEgo > (CS.CP.minSteerSpeed - 0.5):  # for command high bit
@@ -86,20 +92,20 @@ class CarController():
       elif not low_steer_models and CS.out.vEgo < (CS.CP.minSteerSpeed - 3.0):
         self.torq_enabled = False  # < 14.5m/s stock turns off this bit, but fine down to 13.5
 
-    lkas_active = self.moving_fast and enabled
+    lkas_active = self.moving_fast and CC.enabled
     if not lkas_active:
       apply_steer = 0
 
     self.apply_steer_last = apply_steer
 
     if self.lkas_frame % 10 == 0:  # 0.1s period
-      new_msg = create_lkas_heartbit(self.packer, 0 if jvepilot_state.carControl.useLaneLines else 1, CS.lkasHeartbit)
+      new_msg = create_lkas_heartbit(self.packer, 0 if CC.jvePilotState.carControl.useLaneLines else 1, CS.lkasHeartbit)
       can_sends.append(new_msg)
 
     if self.lkas_frame % 25 == 0:  # 0.25s period
       if CS.lkas_car_model != -1:
         new_msg = create_lkas_hud(
-          self.packer, CS.out.gearShifter, lkas_active, hud_alert,
+          self.packer, CS.out.gearShifter, lkas_active, CC.hudControl.visualAlert,
           self.hud_count, CS.lkas_car_model)
         can_sends.append(new_msg)
         self.hud_count += 1
