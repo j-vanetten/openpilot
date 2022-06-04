@@ -5,7 +5,7 @@ from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_comm
                                                create_wheel_buttons_command, create_lkas_heartbit
 from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from opendbc.can.packer import CANPacker
-from selfdrive.conversions import Conversions as CV
+from common.conversions import Conversions as CV
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.cached_params import CachedParams
