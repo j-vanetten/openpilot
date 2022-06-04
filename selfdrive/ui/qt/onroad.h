@@ -27,9 +27,9 @@ private:
 // container window for the NVG UI
 class NvgWindow : public CameraViewWidget {
   Q_OBJECT
-  Q_PROPERTY(int pedalPressedAmount MEMBER pedalPressedAmount NOTIFY valueChanged);
-  Q_PROPERTY(int accEco MEMBER accEco NOTIFY valueChanged);
-  Q_PROPERTY(bool autoFollowEnabled MEMBER autoFollowEnabled NOTIFY valueChanged);
+  Q_PROPERTY(int pedalPressedAmount MEMBER pedalPressedAmount);
+  Q_PROPERTY(int accEco MEMBER accEco);
+  Q_PROPERTY(bool autoFollowEnabled MEMBER autoFollowEnabled);
 
   Q_PROPERTY(QString speed MEMBER speed);
   Q_PROPERTY(QString speedUnit MEMBER speedUnit);
