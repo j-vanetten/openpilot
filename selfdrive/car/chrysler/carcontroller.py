@@ -202,7 +202,7 @@ class CarController():
         cruise += ACCEL_TORQ_SLOW * (1 - (CS.out.vEgo / SLOW_WINDOW))
       else:
         vSmoothTarget = (vTarget + CS.out.vEgo) / 2
-        accelerating = vTarget - COAST_WINDOW * CV.MS_TO_MPH > CS.out.vEgo and aTarget > 0 and CS.out.aEgo > 0 and CS.out.aEgo > self.last_aTarget
+        accelerating = vTarget - COAST_WINDOW > CS.out.vEgo and aTarget > 0  # and CS.out.aEgo > 0 and CS.out.aEgo > self.last_aTarget
         if accelerating:
           aSmoothTarget = (aTarget + CS.out.aEgo) / 2
         else:
