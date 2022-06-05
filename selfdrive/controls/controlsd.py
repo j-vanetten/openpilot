@@ -396,16 +396,15 @@ class Controls:
       if self.sm['liveLocationKalman'].excessiveResets:
         self.events.add(EventName.localizerMalfunction)
 
-    # Only allow engagement with brake pressed when stopped behind another stopped car
-    # TODO: jvePilot (will this work?)
-    speeds = self.sm['longitudinalPlan'].speeds
-    if len(speeds) > 1:
-      v_future = speeds[-1]
-    else:
-      v_future = 100.0
-    if CS.brakePressed and v_future >= self.CP.vEgoStarting \
-      and self.CP.openpilotLongitudinalControl and CS.vEgo < 0.3:
-      self.events.add(EventName.noTarget)
+    # # Only allow engagement with brake pressed when stopped behind another stopped car
+    # speeds = self.sm['longitudinalPlan'].speeds
+    # if len(speeds) > 1:
+    #   v_future = speeds[-1]
+    # else:
+    #   v_future = 100.0
+    # if CS.brakePressed and v_future >= self.CP.vEgoStarting \
+    #   and self.CP.openpilotLongitudinalControl and CS.vEgo < 0.3:
+    #   self.events.add(EventName.noTarget)
 
   def data_sample(self):
     """Receive data from sockets and update carState"""
@@ -560,8 +559,7 @@ class Controls:
           else:
             self.state = State.enabled
           self.current_alert_types.append(ET.ENABLE)
-          if not self.CP.pcmCruise:
-            self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last, self.is_metric)
+          self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last, self.is_metric)
 
     # Check if openpilot is engaged and actuators are enabled
     self.enabled = self.state in ENABLED_STATES
