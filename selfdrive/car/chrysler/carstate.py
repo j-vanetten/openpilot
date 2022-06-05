@@ -82,7 +82,7 @@ class CarState(CarStateBase):
     ret.steeringTorqueEps = cp.vl["EPS_STATUS"]["TORQUE_MOTOR"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
     self.lkas_active = cp.vl["EPS_STATUS"]["LKAS_ACTIVE"] == 1
-    ret.steerError = cp.vl["EPS_STATUS"]["LKAS_STEER_FAULT"] == 1 or (min_steer_check and not self.lkas_active and ret.vEgo > self.CP.minSteerSpeed)
+    ret.steerFaultPermanent = cp.vl["EPS_STATUS"]["LKAS_STEER_FAULT"] == 1 or (min_steer_check and not self.lkas_active and ret.vEgo > self.CP.minSteerSpeed)
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]["HIGH_BEAM_FLASH"])
 

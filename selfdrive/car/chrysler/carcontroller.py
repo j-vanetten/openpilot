@@ -1,5 +1,3 @@
-from cereal import car
-from opendbc.can.packer import CANPacker
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
                                                create_wheel_buttons_command, create_lkas_heartbit
@@ -12,7 +10,7 @@ from common.cached_params import CachedParams
 from common.op_params import opParams
 from common.params import Params
 from cereal import car
-import cereal.messaging as messaging
+
 ButtonType = car.CarState.ButtonEvent.Type
 
 V_CRUISE_MIN_IMPERIAL_MS = V_CRUISE_MIN_IMPERIAL * CV.KPH_TO_MS
