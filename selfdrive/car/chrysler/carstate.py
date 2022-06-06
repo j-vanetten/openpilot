@@ -1,7 +1,7 @@
 from cereal import car
+from common.conversions import Conversions as CV
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
-from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD, CAR
 from common.cached_params import CachedParams
@@ -97,13 +97,14 @@ class CarState(CarStateBase):
 
     self.cruise_error = cp.vl["ACC_2"]["STS"] != 0  # is this the cruise error?
     ret.cruiseState.speed = cp.vl["DASHBOARD"]["ACC_SPEED_CONFIG_KPH"] * CV.KPH_TO_MS
+    ret.accFaulted = cp.vl["ACC_2"]["ACC_FAULTED"] != 0
     self.dashboard = cp.vl["DASHBOARD"]
 
     ret.steeringTorque = cp.vl["EPS_STATUS"]["TORQUE_DRIVER"]
     ret.steeringTorqueEps = cp.vl["EPS_STATUS"]["TORQUE_MOTOR"]
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
     self.lkas_active = cp.vl["EPS_STATUS"]["LKAS_ACTIVE"] == 1
-    ret.steerError = cp.vl["EPS_STATUS"]["LKAS_STEER_FAULT"] == 1 or (not self.no_steer_check and not self.lkas_active and ret.vEgo > self.CP.minSteerSpeed)
+    ret.steerFaultPermanent = cp.vl["EPS_STATUS"]["LKAS_STEER_FAULT"] == 1 or (not self.no_steer_check and not self.lkas_active and ret.vEgo > self.CP.minSteerSpeed)
 
     ret.genericToggle = bool(cp.vl["STEERING_LEVERS"]["HIGH_BEAM_FLASH"])
 
@@ -185,6 +186,7 @@ class CarState(CarStateBase):
       ("STEERING_RATE", "STEERING"),
       ("TURN_SIGNALS", "STEERING_LEVERS"),
       ("ACC_ENABLED", "ACC_2"),
+      ("ACC_FAULTED", "ACC_2"),
       ("HIGH_BEAM_FLASH", "STEERING_LEVERS"),
       ("ACC_SPEED_CONFIG_KPH", "DASHBOARD"),
       ("CRUISE_STATE", "DASHBOARD"),
@@ -205,8 +207,6 @@ class CarState(CarStateBase):
       ("ACC_FOLLOW_DEC", "WHEEL_BUTTONS"),
       ("ACC_DISTANCE_CONFIG_2", "DASHBOARD"),
       ("LEAD_VEHICLE", "DASHBOARD", 0),
-      ("BLIND_SPOT_LEFT", "BLIND_SPOT_WARNINGS"),
-      ("BLIND_SPOT_RIGHT", "BLIND_SPOT_WARNINGS"),
       ("TOGGLE_LKAS", "TRACTION_BUTTON"),
       ("VEHICLE_SPEED_KPH", "BRAKE_1"),
       ("BRAKE_VAL_TOTAL", "BRAKE_1"),
@@ -261,13 +261,12 @@ class CarState(CarStateBase):
       ("ACC_2", 50),
       ("GEAR", 50),
       ("ACCEL_GAS_134", 50),
+      ("WHEEL_BUTTONS", 50),
       ("DASHBOARD", 15),
       ("STEERING_LEVERS", 10),
       ("SEATBELT_STATUS", 2),
       ("DOORS", 1),
       ("TRACTION_BUTTON", 1),
-      ("WHEEL_BUTTONS", 50),
-      ("BLIND_SPOT_WARNINGS", 2),
       ("BRAKE_1", 100),
       ("ACCEL_RELATED_120", 50),
       ("SENSORS", 50),

@@ -7,7 +7,7 @@ from cereal import car
 from common.kalman.simple_kalman import KF1D
 from common.realtime import DT_CTRL
 from selfdrive.car import gen_empty_fingerprint
-from selfdrive.config import Conversions as CV
+from common.conversions import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX
 from selfdrive.controls.lib.events import Events
 from selfdrive.controls.lib.vehicle_model import VehicleModel
@@ -34,12 +34,17 @@ class CarInterfaceBase(ABC):
     self.low_speed_alert = False
     self.silent_steer_warning = True
 
+    self.CS = None
+    self.can_parsers = []
     if CarState is not None:
       self.CS = CarState(CP)
+
       self.cp = self.CS.get_can_parser(CP)
       self.cp_cam = self.CS.get_cam_can_parser(CP)
+      self.cp_adas = self.CS.get_adas_can_parser(CP)
       self.cp_body = self.CS.get_body_can_parser(CP)
       self.cp_loopback = self.CS.get_loopback_can_parser(CP)
+      self.can_parsers = [self.cp, self.cp_cam, self.cp_adas, self.cp_body, self.cp_loopback]
 
     self.CC = None
     if CarController is not None:
@@ -47,7 +52,6 @@ class CarInterfaceBase(ABC):
 
     params = Params()
     self.disable_auto_resume = params.get('jvePilot.settings.autoResume', encoding='utf8') != "1"
-    self.disable_on_gas = params.get('jvePilot.settings.disableOnGas', encoding='utf8') == "1"
 
   @staticmethod
   def get_pid_accel_limits(CS, CP, current_speed, cruise_speed):
@@ -55,7 +59,7 @@ class CarInterfaceBase(ABC):
 
   @staticmethod
   @abstractmethod
-  def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None):
+  def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None, disable_radar=False):
     pass
 
   @staticmethod
@@ -68,21 +72,17 @@ class CarInterfaceBase(ABC):
     # TODO: something with lateralPlan.curvatureRates
     return desired_angle * (v_ego**2)
 
-  @classmethod
-  def get_steer_feedforward_function(cls):
-    return cls.get_steer_feedforward_default
+  def get_steer_feedforward_function(self):
+    return self.get_steer_feedforward_default
 
   # returns a set of default params to avoid repetition in car specific params
   @staticmethod
   def get_std_params(candidate, fingerprint):
     ret = car.CarParams.new_message()
     ret.carFingerprint = candidate
-    ret.unsafeMode = 0  # see panda/board/safety_declarations.h for allowed values
 
     # standard ALC params
     ret.steerControlType = car.CarParams.SteerControlType.torque
-    ret.steerMaxBP = [0.]
-    ret.steerMaxV = [1.]
     ret.minSteerSpeed = 0.
     ret.wheelSpeedFactor = 1.0
 
@@ -94,28 +94,49 @@ class CarInterfaceBase(ABC):
     ret.stopAccel = -2.0
     ret.stoppingDecelRate = 0.8 # brake_travel/s while trying to stop
     ret.vEgoStopping = 0.5
-    ret.vEgoStarting = 0.5  # needs to be >= vEgoStopping to avoid state transition oscillation
+    ret.vEgoStarting = 0.5
     ret.stoppingControl = True
     ret.longitudinalTuning.deadzoneBP = [0.]
     ret.longitudinalTuning.deadzoneV = [0.]
+    ret.longitudinalTuning.kf = 1.
     ret.longitudinalTuning.kpBP = [0.]
     ret.longitudinalTuning.kpV = [1.]
     ret.longitudinalTuning.kiBP = [0.]
     ret.longitudinalTuning.kiV = [1.]
+    # TODO estimate car specific lag, use .15s for now
     ret.longitudinalActuatorDelayLowerBound = 0.15
     ret.longitudinalActuatorDelayUpperBound = 0.15
     ret.steerLimitTimer = 1.0
     return ret
 
   @abstractmethod
-  def update(self, c: car.CarControl, can_strings: List[bytes]) -> car.CarState:
+  def _update(self, c: car.CarControl) -> car.CarState:
     pass
+
+  def update(self, c: car.CarControl, can_strings: List[bytes]) -> car.CarState:
+    # parse can
+    for cp in self.can_parsers:
+      if cp is not None:
+        cp.update_strings(can_strings)
+
+    # get CarState
+    ret = self._update(c)
+
+    ret.canValid = all(cp.can_valid for cp in self.can_parsers if cp is not None)
+    ret.canTimeout = any(cp.bus_timeout for cp in self.can_parsers if cp is not None)
+
+    # copy back for next iteration
+    reader = ret.as_reader()
+    if self.CS is not None:
+      self.CS.out = reader
+
+    return reader
 
   @abstractmethod
   def apply(self, c: car.CarControl) -> Tuple[car.CarControl.Actuators, List[bytes]]:
     pass
 
-  def create_common_events(self, cs_out, extra_gears=None, pcm_enable=True, gas_resume_speed=-1):
+  def create_common_events(self, cs_out, extra_gears=None, pcm_enable=True, allow_enable=True, gas_resume_speed=-1):
     events = Events()
 
     if cs_out.doorOpen:
@@ -137,6 +158,10 @@ class CarInterfaceBase(ABC):
       events.add(EventName.speedTooHigh)
     if cs_out.brakeHoldActive and self.CP.openpilotLongitudinalControl:
       events.add(EventName.brakeHold)
+    if cs_out.parkingBrake:
+      events.add(EventName.parkBrake)
+    if cs_out.accFaulted:
+      events.add(EventName.accFaulted)
 
     if cs_out.cruiseState.nonAdaptive:
       events.add(EventName.wrongCruiseMode)
@@ -146,13 +171,9 @@ class CarInterfaceBase(ABC):
     if not cs_out.cruiseState.enabled and len(events.names) and cs_out.vEgo <= gas_resume_speed:
       events.add(EventName.pcmDisable)  # added safety.  Disable on anything sus if waiting to resume
 
-    if cs_out.gasPressed and self.disable_on_gas:
-      events.add(EventName.gasPressed)
-
-
     # Handle permanent and temporary steering faults
     self.steering_unpressed = 0 if cs_out.steeringPressed else self.steering_unpressed + 1
-    if cs_out.steerWarning:
+    if cs_out.steerFaultTemporary:
       # if the user overrode recently, show a less harsh alert
       if self.silent_steer_warning or cs_out.standstill or self.steering_unpressed < int(1.5 / DT_CTRL):
         self.silent_steer_warning = True
@@ -161,16 +182,13 @@ class CarInterfaceBase(ABC):
         events.add(EventName.steerTempUnavailable)
     else:
       self.silent_steer_warning = False
-    if cs_out.steerError:
+    if cs_out.steerFaultPermanent:
       events.add(EventName.steerUnavailable)
 
-    if (cs_out.gasPressed and self.disable_on_gas and (not self.CS.out.gasPressed)) or \
-        (cs_out.brakePressed and (not self.CS.out.brakePressed) and not cs_out.standstill):
-      events.add(EventName.pedalPressed)
-
     # we engage when pcm is active (rising edge)
+    # enabling can optionally be blocked by the car interface
     if pcm_enable or self.disable_auto_resume:
-      if cs_out.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
+      if cs_out.cruiseState.enabled and not self.CS.out.cruiseState.enabled and allow_enable:
         events.add(EventName.pcmEnable)
       elif not cs_out.cruiseState.enabled:
         events.add(EventName.pcmDisable)
@@ -180,6 +198,7 @@ class CarInterfaceBase(ABC):
 
 class RadarInterfaceBase(ABC):
   def __init__(self, CP):
+    self.rcp = None
     self.pts = {}
     self.delay = 0
     self.radar_ts = CP.radarTimeStep
@@ -270,6 +289,10 @@ class CarStateBase(ABC):
 
   @staticmethod
   def get_cam_can_parser(CP):
+    return None
+
+  @staticmethod
+  def get_adas_can_parser(CP):
     return None
 
   @staticmethod

@@ -20,12 +20,12 @@ AddrCheckStruct chrysler_addr_checks[] = {
 #define CHRYSLER_ADDR_CHECK_LEN (sizeof(chrysler_addr_checks) / sizeof(chrysler_addr_checks[0]))
 addr_checks chrysler_rx_checks = {chrysler_addr_checks, CHRYSLER_ADDR_CHECK_LEN};
 
-static uint8_t chrysler_get_checksum(CANPacket_t *to_push) {
+static uint32_t chrysler_get_checksum(CANPacket_t *to_push) {
   int checksum_byte = GET_LEN(to_push) - 1U;
   return (uint8_t)(GET_BYTE(to_push, checksum_byte));
 }
 
-static uint8_t chrysler_compute_checksum(CANPacket_t *to_push) {
+static uint32_t chrysler_compute_checksum(CANPacket_t *to_push) {
   /* This function does not want the checksum byte in the input data.
   jeep chrysler canbus checksum from http://illmatics.com/Remote%20Car%20Hacking.pdf */
   uint8_t checksum = 0xFFU;
@@ -55,7 +55,7 @@ static uint8_t chrysler_compute_checksum(CANPacket_t *to_push) {
       shift = shift >> 1;
     }
   }
-  return ~checksum;
+  return (uint8_t)(~checksum);
 }
 
 static uint8_t chrysler_get_counter(CANPacket_t *to_push) {
@@ -80,12 +80,12 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
       update_sample(&torque_meas, torque_meas_new);
     }
 
-    else if (addr == 501) {
+    if (addr == 501) {
       cruise_mode = ((GET_BYTE(to_push, 4) & 0x70U) >> 4);
     }
 
     // enter controls on rising edge of ACC, exit controls on ACC off
-    else if (addr == 500) {
+    if (addr == 500) {
       if (cruise_mode == 3 ||cruise_mode == 4) {
         int cruise_engaged = ((GET_BYTE(to_push, 2) & 0x38U) >> 3) == 7U;
         if (cruise_engaged) {
@@ -99,7 +99,7 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
     }
 
     // update speed
-    else if (addr == 514) {
+    if (addr == 514) {
       int speed_l = (GET_BYTE(to_push, 0) << 4) + (GET_BYTE(to_push, 1) >> 4);
       int speed_r = (GET_BYTE(to_push, 2) << 4) + (GET_BYTE(to_push, 3) >> 4);
       vehicle_speed = (speed_l + speed_r) / 2;
@@ -111,7 +111,8 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
       gas_pressed = ((GET_BYTE(to_push, 5) & 0x7FU) != 0U);
     }
 
-    else if (addr == 320) {
+    // exit controls on rising edge of brake press
+    if (addr == 320) {
       brake_pressed = (GET_BYTE(to_push, 0) & 0x7U) == 5U;
     }
 
@@ -120,7 +121,8 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
   return valid;
 }
 
-static int chrysler_tx_hook(CANPacket_t *to_send) {
+static int chrysler_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
+  UNUSED(longitudinal_allowed);
 
   int tx = 1;
   int addr = GET_ADDR(to_send);
@@ -201,10 +203,9 @@ static int chrysler_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   return bus_fwd;
 }
 
-static const addr_checks* chrysler_init(int16_t param) {
+static const addr_checks* chrysler_init(uint16_t param) {
   UNUSED(param);
   controls_allowed = true;
-  relay_malfunction_reset();
   return &chrysler_rx_checks;
 }
 
