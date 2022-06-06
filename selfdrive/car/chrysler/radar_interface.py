@@ -50,8 +50,6 @@ class RadarInterface(RadarInterfaceBase):
     self.updated_messages = set()
     self.trigger_msg = LAST_MSG
 
-    self.yRel_multiplier = 1 if CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.PACIFICA_2018, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID) else -1
-
   def update(self, can_strings):
     vls = self.rcp.update_strings(can_strings)
     self.updated_messages.update(vls)
@@ -82,7 +80,7 @@ class RadarInterface(RadarInterfaceBase):
         # self.pts[trackId].dRel = math.cos(azimuth) * cpt['LONG_DIST']
         # self.pts[trackId].yRel = math.sin(azimuth) * cpt['LONG_DIST']
         self.pts[trackId].dRel = cpt['LONG_DIST']
-        self.pts[trackId].yRel = math.tan(azimuth) * cpt['LONG_DIST'] * self.yRel_multiplier
+        self.pts[trackId].yRel = math.tan(azimuth) * cpt['LONG_DIST']
       else:  # d_* message
         self.pts[trackId].vRel = cpt['REL_SPEED']
         self.pts[trackId].measured = bool(cpt['MEASURED']) and (cpt['PROBABILITY'] > 250)
