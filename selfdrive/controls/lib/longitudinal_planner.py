@@ -54,6 +54,7 @@ class Planner:
 
     self.cachedParams = CachedParams()
     self.speed_steady = -1
+    self.longControl = False
 
     self.a_desired = init_a
     self.v_desired_filter = FirstOrderFilter(init_v, 2.0, DT_MDL)
@@ -65,8 +66,10 @@ class Planner:
 
   def update(self, sm, lateral_planner):
     v_ego = sm['carState'].vEgo
+    long_control = sm['carState'].cruiseState.nonAdaptive
+    slow_in_curves = self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1"
 
-    v_cruise_kph = self.target_speed(lateral_planner, sm)
+    v_cruise_kph, slowing = self.target_speed(lateral_planner, sm)
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
 
@@ -86,8 +89,12 @@ class Planner:
     # Prevent divergence, smooth in current v_ego
     self.v_desired_filter.x = max(0.0, self.v_desired_filter.update(v_ego))
 
-    accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
-    accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
+    accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)] if long_control and not slowing else [-10., 10.]
+    if slowing:
+      accel_limits_turns = accel_limits
+    else:
+      accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
+
     if force_slow_decel:
       # if required so, force a smooth deceleration
       accel_limits_turns[1] = min(accel_limits_turns[1], AWARENESS_DECEL)
@@ -138,13 +145,16 @@ class Planner:
 
   def target_speed(self, lateral_planner, sm):
     target = sm['controlsState'].vCruise * CV.KPH_TO_MS + (CV.KPH_TO_MS / 2)
+    slowing = False
     if lateral_planner.lateralPlan and self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
       curvs = list(lateral_planner.lateralPlan.curvatures)
       if len(curvs):
         # find the largest curvature in the solution and use that.
         curv = abs(curvs[-1])
         if curv != 0:
-          target = float(min(target, self.limit_speed_in_curv(sm, curv)))
+          limit = self.limit_speed_in_curv(sm, curv)
+          slowing = limit < target
+          target = float(min(target, limit))
         else:
           self.speed_steady = -1
       else:
@@ -152,7 +162,7 @@ class Planner:
     else:
       self.speed_steady = -1
 
-    return target * CV.MS_TO_KPH
+    return target * CV.MS_TO_KPH, slowing
 
   def limit_speed_in_curv(self, sm, curv):
     v_ego = sm['carState'].vEgo
