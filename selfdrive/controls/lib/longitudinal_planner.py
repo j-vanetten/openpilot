@@ -67,7 +67,6 @@ class Planner:
   def update(self, sm, lateral_planner):
     v_ego = sm['carState'].vEgo
     long_control = sm['carState'].cruiseState.nonAdaptive
-    slow_in_curves = self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1"
 
     v_cruise_kph, slowing = self.target_speed(lateral_planner, sm)
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
@@ -153,7 +152,7 @@ class Planner:
         curv = abs(curvs[-1])
         if curv != 0:
           limit = self.limit_speed_in_curv(sm, curv)
-          slowing = limit < target
+          slowing = limit < sm['carState'].vEgo
           target = float(min(target, limit))
         else:
           self.speed_steady = -1
