@@ -152,7 +152,7 @@ class Planner:
         curv = abs(curvs[-1])
         if curv != 0:
           limit = self.limit_speed_in_curv(sm, curv)
-          slowing = limit < sm['carState'].vEgo < target
+          slowing = limit < sm['carState'].vEgo and limit < target
           target = float(min(target, limit))
         else:
           self.speed_steady = -1
