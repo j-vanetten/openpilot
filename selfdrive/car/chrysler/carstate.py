@@ -79,6 +79,7 @@ class CarState(CarStateBase):
 
     self.longControl = self.allowLong and cp.vl["DASHBOARD"]["CRUISE_STATE"] == 0 and self.cachedParams.get_bool('jvePilot.settings.longControl', 1000)
     if self.longControl:
+      ret.jvePilotCarState.longControl = True
       ret.cruiseState.enabled = self.longEnabled
       ret.cruiseState.available = True
       ret.cruiseState.nonAdaptive = False
@@ -90,6 +91,7 @@ class CarState(CarStateBase):
         self.torqMin = cp.vl["ACC_2"]["ACC_TORQ"]
         self.torqMax = cp.vl["AXLE_TORQ_ICE"]["AXLE_TORQ_MAX"]
     else:
+      ret.jvePilotCarState.longControl = False
       self.longEnabled = False
       ret.cruiseState.enabled = cp.vl["ACC_2"]["ACC_ENABLED"] == 1  # ACC is green.
       ret.cruiseState.available = cp.vl["DASHBOARD"]['CRUISE_STATE'] in [3, 4]

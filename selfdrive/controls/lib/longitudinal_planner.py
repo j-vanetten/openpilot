@@ -66,7 +66,7 @@ class Planner:
 
   def update(self, sm, lateral_planner):
     v_ego = sm['carState'].vEgo
-    long_control = sm['carState'].cruiseState.nonAdaptive
+    long_control = sm['carState'].jvePilotCarState.longControl
 
     v_cruise_kph, slowing = self.target_speed(lateral_planner, sm)
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
