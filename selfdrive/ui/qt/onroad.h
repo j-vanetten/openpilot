@@ -11,18 +11,6 @@
 // ***** onroad widgets *****
 class OnroadAlerts : public QWidget {
   Q_OBJECT
-  Q_PROPERTY(int pedalPressedAmount MEMBER pedalPressedAmount NOTIFY valueChanged);
-  Q_PROPERTY(int accEco MEMBER accEco NOTIFY valueChanged);
-  Q_PROPERTY(bool autoFollowEnabled MEMBER autoFollowEnabled NOTIFY valueChanged);
-
-  Q_PROPERTY(QString speed MEMBER speed NOTIFY valueChanged);
-  Q_PROPERTY(QString speedUnit MEMBER speedUnit NOTIFY valueChanged);
-  Q_PROPERTY(QString maxSpeed MEMBER maxSpeed NOTIFY valueChanged);
-  Q_PROPERTY(bool is_cruise_set MEMBER is_cruise_set NOTIFY valueChanged);
-  Q_PROPERTY(bool engageable MEMBER engageable NOTIFY valueChanged);
-  Q_PROPERTY(bool dmActive MEMBER dmActive NOTIFY valueChanged);
-  Q_PROPERTY(bool hideDM MEMBER hideDM NOTIFY valueChanged);
-  Q_PROPERTY(int status MEMBER status NOTIFY valueChanged);
 
 public:
   OnroadAlerts(QWidget *parent = 0) : QWidget(parent) {};
