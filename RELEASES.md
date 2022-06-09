@@ -3,7 +3,7 @@ Version jvePilot-0.8.14(v3.10.0)
 Visit http://bit.ly/jvereadme for more information
 * New radar code from xps's fork
 * Restore 9mph min steer on some models 
-* Update to 0.8.13
+* Update to 0.8.14
   * New driving model
     * Bigger model, using both of comma three's road-facing cameras
     * Better at cut-in detection and tight turns
