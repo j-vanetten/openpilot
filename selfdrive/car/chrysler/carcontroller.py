@@ -168,13 +168,13 @@ class CarController():
       go_req = None
       torque = None
 
-    if under_accel_frame_count == 0 and self.torq_adjust > 0:  # we are cooling down
-      self.torq_adjust -= max(aTarget * -10, ADJUST_ACCEL_COOLDOWN_MAX)
+    if under_accel_frame_count == 0 and aTarget < 0 and self.torq_adjust > 0:  # we are cooling down
+      self.torq_adjust = max(0, self.torq_adjust - max(aTarget * 10, ADJUST_ACCEL_COOLDOWN_MAX))
 
     self.under_accel_frame_count = under_accel_frame_count
     self.last_aTarget = CS.out.aEgo
 
-    can_sends.append(acc_log(self.packer, self.torq_adjust, aTarget, vTarget))
+    can_sends.append(acc_log(self.packer, int(self.torq_adjust), aTarget, vTarget))
 
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
                                  go_req,
@@ -201,11 +201,12 @@ class CarController():
         cruise = (self.vehicleMass * aTarget * vTarget) / (.105 * CS.gasRpm)
         cruise += ACCEL_TORQ_SLOW * (1 - (CS.out.vEgo / SLOW_WINDOW))
       else:
-        vSmoothTarget = (vTarget + CS.out.vEgo) / 2
-        accelerating = vTarget - COAST_WINDOW > CS.out.vEgo and aTarget > 0  # and CS.out.aEgo > 0 and CS.out.aEgo > self.last_aTarget
+        accelerating = aTarget > 0 and vTarget > CS.out.vEgo + SLOW_WINDOW  # and CS.out.aEgo > 0 and CS.out.aEgo > self.last_aTarget
         if accelerating:
+          vSmoothTarget = (vTarget + CS.out.vEgo) / 2
           aSmoothTarget = (aTarget + CS.out.aEgo) / 2
         else:
+          vSmoothTarget = vTarget
           aSmoothTarget = aTarget
 
         cruise = (self.vehicleMass * aSmoothTarget * vSmoothTarget) / (.105 * CS.gasRpm)
@@ -219,7 +220,7 @@ class CarController():
           self.torq_adjust += offset * (CarControllerParams.ACCEL_MAX / CarInterface.accel_max(CS))
 
     if cruise + self.torq_adjust > CS.torqMax:  # keep the adjustment in check
-      self.torq_adjust = max(0., CS.torqMax - cruise)
+      self.torq_adjust = max(0, CS.torqMax - cruise)
 
     torque = cruise + self.torq_adjust
     self.last_torque = max(CS.torqMin + 1, min(CS.torqMax, torque))
@@ -381,8 +382,7 @@ class CarController():
 
     # ACC Braking
     diff = CS.out.vEgo - target
-    if diff > ACC_BRAKE_THRESHOLD and abs(
-        target - jvepilot_state.carControl.vMaxCruise) > ACC_BRAKE_THRESHOLD:  # ignore change in max cruise speed
+    if diff > ACC_BRAKE_THRESHOLD and abs(target - jvepilot_state.carControl.vMaxCruise) > ACC_BRAKE_THRESHOLD:
       target -= diff
 
     # round to nearest unit
