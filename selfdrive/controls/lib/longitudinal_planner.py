@@ -25,6 +25,8 @@ A_CRUISE_MAX_BP = [0., 15., 25., 40.]
 _A_TOTAL_MAX_V = [1.7, 3.2]
 _A_TOTAL_MAX_BP = [20., 40.]
 
+MIN_SLOW_SPEED = 30 * CV.KPH_TO_MS
+SLOW_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 
 def get_max_accel(v_ego):
   return interp(v_ego, A_CRUISE_MAX_BP, A_CRUISE_MAX_VALS)
@@ -151,8 +153,15 @@ class Planner:
         # find the largest curvature in the solution and use that.
         curv = abs(curvs[-1])
         if curv != 0:
+          vEgo = sm['carState'].vEgo
           limit = self.limit_speed_in_curv(sm, curv)
-          slowing = limit < sm['carState'].vEgo and limit < target
+          slowing = limit < vEgo and limit < target
+
+          if slowing:  # Force more braking
+            diff = vEgo - limit
+            if diff > SLOW_BRAKE_THRESHOLD:
+              limit -= diff
+
           target = float(min(target, limit))
         else:
           self.speed_steady = -1
@@ -178,7 +187,7 @@ class Planner:
     speed = model_speed * self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedRatio', 5000)
     speed, self.speed_steady = self.speed_hysteresis(speed, self.speed_steady)
 
-    return speed
+    return max(speed, MIN_SLOW_SPEED)
 
   def speed_hysteresis(self, speed, speed_steady):
     SPEED_HYST_GAP = CV.MPH_TO_MS * 3
