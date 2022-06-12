@@ -203,10 +203,10 @@ class CarController():
       else:
         accelerating = aTarget > 0 and vTarget > CS.out.vEgo + SLOW_WINDOW  # and CS.out.aEgo > 0 and CS.out.aEgo > self.last_aTarget
         if accelerating:
-          vSmoothTarget = (vTarget + CS.out.vEgo) / 2
+          vSmoothTarget = vTarget
           aSmoothTarget = (aTarget + CS.out.aEgo) / 2
         else:
-          vSmoothTarget = vTarget
+          vSmoothTarget = (vTarget + CS.out.vEgo) / 2
           aSmoothTarget = aTarget
 
         cruise = (self.vehicleMass * aSmoothTarget * vSmoothTarget) / (.105 * CS.gasRpm)
