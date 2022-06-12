@@ -18,6 +18,8 @@ class CAR:
   JEEP_CHEROKEE = "JEEP GRAND CHEROKEE V6 2018"  # includes 2017 Trailhawk
   JEEP_CHEROKEE_2019 = "JEEP GRAND CHEROKEE 2019" # includes 2020 Trailhawk
 
+  PRE_2019 = [PACIFICA_2017_HYBRID, PACIFICA_2018_HYBRID, PACIFICA_2018, JEEP_CHEROKEE]
+
 # Unique CAN messages:
 # Only the hybrids have 270: 8
 # Only the gas have 55: 8, 416: 7
