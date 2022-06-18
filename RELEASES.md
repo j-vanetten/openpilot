@@ -1,6 +1,12 @@
-Version jvePilot-0.8.13(v3.9.0)
+Version jvePilot-0.8.13(v3.9.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* New radar code from xps's fork
+* Restore the 9mph min steer on some models (It seems to be a hard minimum) 
+* 2022 Pacifica Hybrid fingerprint (Thanks @TheWizard)
+
+Version jvePilot-0.8.13(v3.9.0)
+========================
 * Reverse lateral angle of radar on Pacifica's
 * Update to 0.8.13
   * Improved driver monitoring
