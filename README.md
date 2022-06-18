@@ -1,6 +1,6 @@
 ![](https://i.imgur.com/b0ZyIx5.jpg)
 # jvePilot Hybrid OpenPilot/ACC for Chrysler/Jeep 
-This fork is only for Chrysler/Jeep vehicles!
+This fork is only for Chrysler/Jeep vehicles and requires a Comma 3 or later device to run. 
 
 [![Buy me a beer!](https://github.com/j-vanetten/openpilot/blob/jvePilot-release/.github/ButMeABeer.png?raw=true)](https://www.buymeacoffee.com/jvePilot)
 
@@ -108,7 +108,8 @@ It will be adjusting it as needed, never raising it above the one set on the jve
 ---
 
 # Install
-The easiest way to install jvePilot is to factory reset and use this Custom Software URL: `https://bit.ly/jvePilot-release`
+
+The easiest way to install jvePilot is to factory reset your [C3](https://www.youtube.com/watch?v=gNnRmEyVSVQ) and use this Custom Software URL: `https://bit.ly/jvePilot-release`
 
 ## Branches
 `/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for daily use. Custom Software URL: `https://bit.ly/jvePilot-release`
