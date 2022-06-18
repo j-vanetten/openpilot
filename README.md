@@ -1,8 +1,10 @@
 ![](https://i.imgur.com/b0ZyIx5.jpg)
-# jvePilot Hybrid OpenPilot/ACC for Chrysler/Jeep 
+# jvePilot Hybrid OpenPilot/ACC for Chrysler/Jeep
+## This is the legacy Comma 2 (C2) branch.  If you have a Comma 3 or newer device, Please check out the [Latest Release](https://github.com/j-vanetten/openpilot)  
+
 This fork is only for Chrysler/Jeep vehicles!
 
-[![Buy me a beer!](https://github.com/j-vanetten/openpilot/blob/jvePilot-release/.github/ButMeABeer.png?raw=true)](https://www.buymeacoffee.com/jvePilot)
+[![Buy me a beer!](https://github.com/j-vanetten/openpilot/blob/jvePilot-c2-release/.github/ButMeABeer.png?raw=true)](https://www.buymeacoffee.com/jvePilot)
 
 Come join us on [Discord](https://discord.gg/r8yaDBdnwH)! 
 
@@ -108,13 +110,14 @@ It will be adjusting it as needed, never raising it above the one set on the jve
 ---
 
 # Install
+The easiest way to install jvePilot is to factory reset ([C2](https://www.youtube.com/watch?v=0MPv_hSH3hk&t=218s) and use this Custom Software URL: `https://bit.ly/jvePilot-c2-release`
 
-The easiest way to install jvePilot is to factory reset ([C2](https://www.youtube.com/watch?v=0MPv_hSH3hk&t=218s)/[C3](https://www.youtube.com/watch?v=gNnRmEyVSVQ)) and use this Custom Software URL: `https://bit.ly/jvePilot-release`
+The easiest way to install jvePilot is to factory reset and use this Custom Software URL: `https://bit.ly/jvePilot-release`
 
 ## Branches
-`/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for daily use. Custom Software URL: `https://bit.ly/jvePilot-release`
+`/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for daily use. Custom Software URL: `https://bit.ly/jvePilot-c2-release`
 
-`/jvePilot-beta` - Sometimes I have people wanting to beta test jvePilot's new features.  Mostly stable, but still can be buggy. Custom Software URL: `https://bit.ly/jvePilot-beta` 
+`/jvePilot-beta` - Sometimes I have people wanting to beta test jvePilot's new features.  Mostly stable, but still can be buggy. Custom Software URL: `https://bit.ly/jvePilot-c2-beta` 
 
 `/feature/*` - These branches are where I'm working on new features.  These are never safe to run as they change all the time.
 
