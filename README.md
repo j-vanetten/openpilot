@@ -1,6 +1,6 @@
 ![](https://i.imgur.com/b0ZyIx5.jpg)
-# jvePilot Hybrid openpilot/ACC for Chrysler/Jeep 
-This fork is only for Chrysler/Jeep vehicles!
+# jvePilot Hybrid OpenPilot/ACC for Chrysler/Jeep 
+This fork is only for Chrysler/Jeep vehicles and requires a Comma 3 or later device to run. Comma 2 users need to use [this branch](https://github.com/j-vanetten/openpilot/tree/jvePilot-c2-release)
 
 [![Buy me a beer!](https://github.com/j-vanetten/openpilot/blob/jvePilot-release/.github/ButMeABeer.png?raw=true)](https://www.buymeacoffee.com/jvePilot)
 
@@ -49,7 +49,6 @@ This is my personal openpilot fork that includes features that I feel make it a 
 ### Better driving experience
 * Slow in a turn, so you don't have to change the set speed yourself (Speeds are configurable)
 * Eco to limit the throttle when accelerating  
-* Pressing the gas does not disengage jvePilot (Can be disabled)
 * Syncs jvePilot display speed with the vehicle speedometer 
 * Use LKAS button in the dash to disable lane line driving and instead use the new KL driving model. [Read about KL model here](https://blog.comma.ai/end-to-end-lateral-planning).
 * Gas/brake indication using green/red colors on speed indicator
@@ -130,7 +129,8 @@ DO NOT hold the ACC+ or ACC- buttons for longer that a 1 second. Either make qui
 ---
 
 # Install
-The easiest way to install jvePilot is to factory reset and use this Custom Software URL: `https://bit.ly/jvePilot-release`
+
+The easiest way to install jvePilot is to factory reset your [C3](https://www.youtube.com/watch?v=gNnRmEyVSVQ) and use this Custom Software URL: `https://bit.ly/jvePilot-release`
 
 ## Branches
 `/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for daily use. Custom Software URL: `https://bit.ly/jvePilot-release`
@@ -175,11 +175,6 @@ Reverse the stock ACC +/- button's 1mph on short press and 5mph on long press.  
 ## Auto Resume
 This feature allows jvePilot to auto resume from an ACC stop.
 * Default: On
-* Vehicle Restart Required: Yes
-
-## Disable on Gas
-When enabled, jvePilot will disengage when you press the gas
-* Default: Off
 * Vehicle Restart Required: Yes
 
 ## Auto Follow

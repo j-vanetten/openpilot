@@ -3,12 +3,13 @@ Version jvePilot-0.8.14(v4.0.0)
 Visit http://bit.ly/jvereadme for more information
 * Add experimental longitudinal control option for Jeeps
 * Move WP mod's min steer speed check into jvePilot settings instead of in opEdit
-* 
+
 Version jvePilot-0.8.14(v3.10.0)
 ========================
 * New radar code from xps's fork
-* Restore 9mph min steer on some models 
-* Update to 0.8.13
+* Restore the 9mph min steer on some models (It seems to be a hard minimum) 
+* 2022 Pacifica Hybrid fingerprint (Thanks @TheWizard)
+* Update to 0.8.14
   * New driving model
     * Bigger model, using both of comma three's road-facing cameras
     * Better at cut-in detection and tight turns

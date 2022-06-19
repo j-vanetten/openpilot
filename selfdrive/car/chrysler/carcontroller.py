@@ -2,8 +2,8 @@ from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_wheel_buttons_command, create_lkas_heartbit, \
   acc_command, acc_hybrid_command, acc_log
-from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from selfdrive.car.chrysler.interface import CarInterface
+from selfdrive.car.chrysler.values import CAR, CarControllerParams, PRE_2019
 from opendbc.can.packer import CANPacker
 from common.conversions import Conversions as CV
 
@@ -263,8 +263,8 @@ class CarController():
                                                    CS.out.steeringTorqueEps, CarControllerParams)
     self.steer_rate_limited = new_steer != apply_steer
 
-    low_steer_models = self.car_fingerprint in (CAR.JEEP_CHEROKEE, CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018, CAR.PACIFICA_2018_HYBRID)
-    if CS.no_steer_check:
+    low_steer_models = self.car_fingerprint in PRE_2019
+    if not CS.no_steer_check:
       self.moving_fast = True
       self.torq_enabled = CC.enabled or low_steer_models
     else:
