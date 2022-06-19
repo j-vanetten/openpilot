@@ -1,6 +1,6 @@
 ![](https://i.imgur.com/b0ZyIx5.jpg)
 # jvePilot Hybrid OpenPilot/ACC for Chrysler/Jeep 
-This fork is only for Chrysler/Jeep vehicles and requires a Comma 3 or later device to run. 
+This fork is only for Chrysler/Jeep vehicles and requires a Comma 3 or later device to run. Comma 2 users need to use [this branch](https://github.com/j-vanetten/openpilot/tree/jvePilot-c2-release)
 
 [![Buy me a beer!](https://github.com/j-vanetten/openpilot/blob/jvePilot-release/.github/ButMeABeer.png?raw=true)](https://www.buymeacoffee.com/jvePilot)
 
