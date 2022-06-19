@@ -4,7 +4,6 @@ Visit http://bit.ly/jvereadme for more information
 * New radar code from xps's fork
 * Restore the 9mph min steer on some models (It seems to be a hard minimum) 
 * 2022 Pacifica Hybrid fingerprint (Thanks @TheWizard)
-* Restore 9mph min steer on some models 
 * Update to 0.8.14
   * New driving model
     * Bigger model, using both of comma three's road-facing cameras
