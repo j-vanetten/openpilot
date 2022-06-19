@@ -1,6 +1,6 @@
 ![](https://i.imgur.com/b0ZyIx5.jpg)
 # jvePilot Hybrid OpenPilot/ACC for Chrysler/Jeep 
-This fork is only for Chrysler/Jeep vehicles!
+This fork is only for Chrysler/Jeep vehicles and requires a Comma 3 or later device to run. Comma 2 users need to use [this branch](https://github.com/j-vanetten/openpilot/tree/jvePilot-c2-release)
 
 [![Buy me a beer!](https://github.com/j-vanetten/openpilot/blob/jvePilot-release/.github/ButMeABeer.png?raw=true)](https://www.buymeacoffee.com/jvePilot)
 
@@ -47,7 +47,6 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 * Auto resume after ACC comes to a stop behind vehicle (Can be disabled)
 * Auto follow feature to adjust the follow distance based on speed (Speeds are configurable)
 * ACC Eco to limit the throttle when accelerating  
-* Pressing the gas does not disengage jvePilot (Can be disabled)
 * Syncs jvePilot display speed with the vehicle speedometer 
 * Use LKAS button in the dash to disable lane line driving and instead use the new KL driving model. [Read about KL model here](https://blog.comma.ai/end-to-end-lateral-planning).
 * Gas/brake indication using green/red colors on speed indicator
@@ -109,7 +108,7 @@ It will be adjusting it as needed, never raising it above the one set on the jve
 
 # Install
 
-The easiest way to install jvePilot is to factory reset ([C2](https://www.youtube.com/watch?v=0MPv_hSH3hk&t=218s)/[C3](https://www.youtube.com/watch?v=gNnRmEyVSVQ)) and use this Custom Software URL: `https://bit.ly/jvePilot-release`
+The easiest way to install jvePilot is to factory reset your [C3](https://www.youtube.com/watch?v=gNnRmEyVSVQ) and use this Custom Software URL: `https://bit.ly/jvePilot-release`
 
 ## Branches
 `/jvePilot-release` - The latest release.  Will contain the latest version I feel is ready for daily use. Custom Software URL: `https://bit.ly/jvePilot-release`
@@ -154,11 +153,6 @@ Reverse the stock ACC +/- button's 1mph on short press and 5mph on long press.  
 ## Auto Resume
 This feature allows jvePilot to auto resume from an ACC stop.
 * Default: On
-* Vehicle Restart Required: Yes
-
-## Disable on Gas
-When enabled, jvePilot will disengage when you press the gas
-* Default: Off
 * Vehicle Restart Required: Yes
 
 ## Auto Follow
@@ -274,8 +268,8 @@ Running in a car
 To use openpilot in a car, you need four things
 * This software. It's free and available right here.
 * One of [the 150+ supported cars](docs/CARS.md). We support Honda, Toyota, Hyundai, Nissan, Kia, Chrysler, Lexus, Acura, Audi, VW, and more. If your car is not supported, but has adaptive cruise control and lane keeping assist, it's likely able to run openpilot.
-* A supported device to run this software. This can be a [comma two](https://comma.ai/shop/products/two), [comma three](https://comma.ai/shop/products/three), or if you like to experiment, a [Ubuntu computer with webcams](https://github.com/commaai/openpilot/tree/master/tools/webcam).
-* A way to connect to your car. With a comma two or three, you need only a [car harness](https://comma.ai/shop/products/car-harness). With an EON Gold or PC, you also need a [black panda](https://comma.ai/shop/products/panda).
+* A supported device to run this software: a [comma three](https://comma.ai/shop/products/three), or if you like to experiment, a [Ubuntu computer with webcams](https://github.com/commaai/openpilot/tree/master/tools/webcam).
+* A way to connect to your car. With a comma three, you need only a [car harness](https://comma.ai/shop/products/car-harness). With a PC, you also need a [black panda](https://comma.ai/shop/products/panda).
 
 We have detailed instructions for [how to install the device in a car](https://comma.ai/setup).
 
