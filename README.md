@@ -47,7 +47,6 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 * Auto resume after ACC comes to a stop behind vehicle (Can be disabled)
 * Auto follow feature to adjust the follow distance based on speed (Speeds are configurable)
 * ACC Eco to limit the throttle when accelerating  
-* Pressing the gas does not disengage jvePilot (Can be disabled)
 * Syncs jvePilot display speed with the vehicle speedometer 
 * Use LKAS button in the dash to disable lane line driving and instead use the new KL driving model. [Read about KL model here](https://blog.comma.ai/end-to-end-lateral-planning).
 * Gas/brake indication using green/red colors on speed indicator
@@ -154,11 +153,6 @@ Reverse the stock ACC +/- button's 1mph on short press and 5mph on long press.  
 ## Auto Resume
 This feature allows jvePilot to auto resume from an ACC stop.
 * Default: On
-* Vehicle Restart Required: Yes
-
-## Disable on Gas
-When enabled, jvePilot will disengage when you press the gas
-* Default: Off
 * Vehicle Restart Required: Yes
 
 ## Auto Follow
