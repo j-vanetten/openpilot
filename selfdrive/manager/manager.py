@@ -45,7 +45,6 @@ def manager_init() -> None:
     ("jvePilot.settings.autoFollow.speed2-3Bars", "30"),
     ("jvePilot.settings.autoFollow.speed3-4Bars", "65"),
     ("jvePilot.settings.autoResume", "1"),
-    ("jvePilot.settings.disableOnGas", "0"),
     ("jvePilot.settings.audioAlertOnSteeringLoss", "1"),
     ("jvePilot.settings.deviceOffset", "0.00"),
     ("jvePilot.settings.reverseAccSpeedChange", "1"),
@@ -54,6 +53,7 @@ def manager_init() -> None:
     ("jvePilot.settings.slowInCurves.speedDropOff", "2.0"),
     ("jvePilot.settings.slowInCurves.speedDropOffAngle", "0.0"),
     ("CompletedTrainingVersion", "0"),
+    ("DisengageOnAccelerator", "1"),
     ("HasAcceptedTerms", "0"),
     ("OpenpilotEnabledToggle", "1"),
   ]
@@ -143,26 +143,16 @@ def manager_thread() -> None:
     ignore.append("pandad")
   ignore += [x for x in os.getenv("BLOCK", "").split(",") if len(x) > 0]
 
-  ensure_running(managed_processes.values(), started=False, not_run=ignore)
-
-  started_prev = False
-  sm = messaging.SubMaster(['deviceState'])
+  sm = messaging.SubMaster(['deviceState', 'carParams'], poll=['deviceState'])
   pm = messaging.PubMaster(['managerState'])
+
+  ensure_running(managed_processes.values(), False, params=params, CP=sm['carParams'], not_run=ignore)
 
   while True:
     sm.update()
-    not_run = ignore[:]
 
     started = sm['deviceState'].started
-    driverview = params.get_bool("IsDriverViewEnabled")
-    ensure_running(managed_processes.values(), started, driverview, not_run)
-
-    # trigger an update after going offroad
-    if started_prev and not started and 'updated' in managed_processes:
-      os.sync()
-      managed_processes['updated'].signal(signal.SIGHUP)
-
-    started_prev = started
+    ensure_running(managed_processes.values(), started, params=params, CP=sm['carParams'], not_run=ignore)
 
     running = ' '.join("%s%s\u001b[0m" % ("\u001b[32m" if p.proc.is_alive() else "\u001b[31m", p.name)
                        for p in managed_processes.values() if p.proc)

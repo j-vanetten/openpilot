@@ -1,8 +1,9 @@
 import math
+
 from cereal import car
+from common.conversions import Conversions as CV
 from common.numpy_fast import clip, interp
 from common.realtime import DT_MDL
-from selfdrive.config import Conversions as CV
 from selfdrive.modeld.constants import T_IDXS
 
 # WARNING: this value was determined based on the model's training distribution,
@@ -18,18 +19,18 @@ LON_MPC_N = 32
 CONTROL_N = 17
 CAR_ROTATION_RADIUS = 0.0
 
-# this corresponds to 80deg/s and 20deg/s steering angle in a toyota corolla
-MAX_CURVATURE_RATES = [0.03762194918267951, 0.003441203371932992]
-MAX_CURVATURE_RATE_SPEEDS = [0, 35]
+# EU guidelines
+MAX_LATERAL_JERK = 5.0
 
+ButtonType = car.CarState.ButtonEvent.Type
 CRUISE_LONG_PRESS = 50
 CRUISE_NEAREST_FUNC = {
-  car.CarState.ButtonEvent.Type.accelCruise: math.ceil,
-  car.CarState.ButtonEvent.Type.decelCruise: math.floor,
+  ButtonType.accelCruise: math.ceil,
+  ButtonType.decelCruise: math.floor,
 }
 CRUISE_INTERVAL_SIGN = {
-  car.CarState.ButtonEvent.Type.accelCruise: +1,
-  car.CarState.ButtonEvent.Type.decelCruise: -1,
+  ButtonType.accelCruise: +1,
+  ButtonType.decelCruise: -1,
 }
 
 
@@ -39,27 +40,15 @@ class MPC_COST_LAT:
   STEER_RATE = 1.0
 
 
-class MPC_COST_LONG:
-  TTC = 5.0
-  DISTANCE = 0.1
-  ACCELERATION = 10.0
-  JERK = 20.0
-
-
 def rate_limit(new_value, last_value, dw_step, up_step):
   return clip(new_value, last_value + dw_step, last_value + up_step)
 
-
-def get_steer_max(CP, v_ego):
-  return interp(v_ego, CP.steerMaxBP, CP.steerMaxV)
-
-
-def update_v_cruise(v_cruise_kph, button_events, enabled, reverse_acc_button_change, is_metric):
+def update_v_cruise(v_cruise_kph, v_ego, gas_pressed, buttonEvents, button_timers, enabled, is_metric, reverse_acc_button_change):
   # handle button presses. TODO: this should be in state_control, but a decelCruise press
   # would have the effect of both enabling and changing speed is checked after the state transition
   v_cruise_min = cruise_min(is_metric)
   if enabled:
-    for b in button_events:
+    for b in buttonEvents:
       short_press = not b.pressed and b.pressedFrames < 30
       long_press = b.pressed and b.pressedFrames == 30 \
                    or ((not reverse_acc_button_change) and b.pressedFrames % 50 == 0 and b.pressedFrames > 50)
@@ -102,9 +91,9 @@ def cruise_min(is_metric):
 
 def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates):
   if len(psis) != CONTROL_N:
-    psis = [0.0 for i in range(CONTROL_N)]
-    curvatures = [0.0 for i in range(CONTROL_N)]
-    curvature_rates = [0.0 for i in range(CONTROL_N)]
+    psis = [0.0]*CONTROL_N
+    curvatures = [0.0]*CONTROL_N
+    curvature_rates = [0.0]*CONTROL_N
 
   # TODO this needs more thought, use .2s extra for now to estimate other delays
   delay = CP.steerActuatorDelay + .2
@@ -118,11 +107,13 @@ def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates):
   curvature_diff_from_psi = psi / (max(v_ego, 1e-1) * delay) - current_curvature
   desired_curvature = current_curvature + 2 * curvature_diff_from_psi
 
-  max_curvature_rate = interp(v_ego, MAX_CURVATURE_RATE_SPEEDS, MAX_CURVATURE_RATES)
+  v_ego = max(v_ego, 0.1)
+  max_curvature_rate = MAX_LATERAL_JERK / (v_ego**2)
   safe_desired_curvature_rate = clip(desired_curvature_rate,
                                           -max_curvature_rate,
                                           max_curvature_rate)
   safe_desired_curvature = clip(desired_curvature,
                                      current_curvature - max_curvature_rate * DT_MDL,
                                      current_curvature + max_curvature_rate * DT_MDL)
+
   return safe_desired_curvature, safe_desired_curvature_rate
