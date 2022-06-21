@@ -270,6 +270,9 @@ void NvgWindow::drawHud(QPainter &p) {
              dm_img, QColor(0, 0, 0, 70), dmActive ? 1.0 : 0.2);
   }
 
+  drawText(p, rect().center().x(), 400, "3");
+  drawText(p, rect().center().x(), 600, "261");
+
   if (accEco >= 0) { // got data yet?
     // Auto Follow
     drawIcon(p,
