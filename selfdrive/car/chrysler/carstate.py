@@ -126,12 +126,12 @@ class CarState(CarStateBase):
         self.params.put("jvePilot.setting.steerMax", str(CarControllerParams.STEER_MAX))
     else:  # RESET
       if self.button_pressed(ButtonType.followInc, False):
-        CarControllerParams.STEER_DELTA_UP = 3
-        CarControllerParams.STEER_DELTA_DOWN = 3
+        CarControllerParams.STEER_DELTA_UP -= 1
+        CarControllerParams.STEER_DELTA_DOWN -= 1
         print(f"STEER_DELTA: {CarControllerParams.STEER_DELTA_UP}")
         self.params.put("jvePilot.setting.steerDelta", str(CarControllerParams.STEER_DELTA_DOWN))
       elif self.button_pressed(ButtonType.followDec, False):
-        CarControllerParams.STEER_MAX = 261
+        CarControllerParams.STEER_MAX -= 1
         print(f"STEER_MAX: {CarControllerParams.STEER_MAX}")
         self.params.put("jvePilot.setting.steerMax", str(CarControllerParams.STEER_MAX))
     ret.jvePilotCarState.steerDelta = CarControllerParams.STEER_DELTA_UP
