@@ -206,6 +206,8 @@ void NvgWindow::updateState(const UIState &s) {
   setProperty("pedalPressedAmount", int(sm["carState"].getCarState().getJvePilotCarState().getPedalPressedAmount() * 255));
   setProperty("accEco", s.scene.accEco);
   setProperty("autoFollowEnabled", s.scene.autoFollowEnabled == 1);
+  setProperty("steerDelta", QString::number(std::nearbyint(sm["carState"].getCarState().getJvePilotCarState().getSteerDelta())));
+  setProperty("steerMax", QString::number(std::nearbyint(sm["carState"].getCarState().getJvePilotCarState().getSteerMax())));
 
   setProperty("is_cruise_set", cruise_set);
   setProperty("speed", QString::number(std::nearbyint(cur_speed)));
@@ -270,8 +272,8 @@ void NvgWindow::drawHud(QPainter &p) {
              dm_img, QColor(0, 0, 0, 70), dmActive ? 1.0 : 0.2);
   }
 
-  drawText(p, rect().center().x(), 400, "3");
-  drawText(p, rect().center().x(), 600, "261");
+  drawText(p, rect().center().x(), 400, steerDelta);
+  drawText(p, rect().center().x(), 600, steerMax);
 
   if (accEco >= 0) { // got data yet?
     // Auto Follow

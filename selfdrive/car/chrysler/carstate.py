@@ -134,6 +134,8 @@ class CarState(CarStateBase):
         CarControllerParams.STEER_MAX = 261
         print(f"STEER_MAX: {CarControllerParams.STEER_MAX}")
         self.params.put("jvePilot.setting.steerMax", str(CarControllerParams.STEER_MAX))
+    ret.jvePilotCarState.steerDelta = CarControllerParams.STEER_DELTA_UP
+    ret.jvePilotCarState.steerMax = CarControllerParams.STEER_MAX
 
     return ret
 

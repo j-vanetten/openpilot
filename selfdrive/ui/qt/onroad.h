@@ -30,6 +30,8 @@ class NvgWindow : public CameraViewWidget {
   Q_PROPERTY(int pedalPressedAmount MEMBER pedalPressedAmount);
   Q_PROPERTY(int accEco MEMBER accEco);
   Q_PROPERTY(bool autoFollowEnabled MEMBER autoFollowEnabled);
+  Q_PROPERTY(QString steerDelta MEMBER steerDelta);
+  Q_PROPERTY(QString steerMax MEMBER steerMax);
 
   Q_PROPERTY(QString speed MEMBER speed);
   Q_PROPERTY(QString speedUnit MEMBER speedUnit);
@@ -54,6 +56,8 @@ private:
   int pedalPressedAmount;
   int accEco;
   bool autoFollowEnabled;
+  QString steerDelta;
+  QString steerMax;
 
   QPixmap engage_img;
   QPixmap dm_img;
