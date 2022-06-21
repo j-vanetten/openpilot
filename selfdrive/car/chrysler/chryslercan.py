@@ -73,7 +73,7 @@ def acc_log(packer, adjustment, aTarget, vTarget):
   }
   return packer.make_can_msg("ACC_LOG", 0, values)
 
-def acc_command(packer, counter, enabled, go, gas, stop, brake, acc_2):
+def acc_command(packer, counter, enabled, go, gas, max, stop, brake, acc_2):
   values = acc_2.copy()  # forward what we parsed
   values['ACC_AVAILABLE'] = 1
   values['ACC_ENABLED'] = enabled
@@ -92,6 +92,9 @@ def acc_command(packer, counter, enabled, go, gas, stop, brake, acc_2):
   if gas is not None:
     values['ACC_TORQ_REQ'] = enabled
     values['ACC_TORQ'] = gas
+
+  if max is not None:
+    values['GR_MAX_REQ'] = 7 if max else 8
 
   return packer.make_can_msg("ACC_2", 0, values)
 

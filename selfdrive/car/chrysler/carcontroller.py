@@ -97,7 +97,7 @@ class CarController():
     acc_2_counter = CS.acc_2['COUNTER']
     if self.last_enabled != enabled:
       self.last_enabled = enabled
-      can_sends.append(acc_command(self.packer, acc_2_counter, enabled, None, None, None, None, CS.acc_2))
+      can_sends.append(acc_command(self.packer, acc_2_counter, enabled, None, None, None, None, None, CS.acc_2))
 
     counter_change = acc_2_counter != self.last_acc_2_counter
     self.last_acc_2_counter = acc_2_counter
@@ -168,8 +168,12 @@ class CarController():
       go_req = None
       torque = None
 
-    if under_accel_frame_count == 0 and aTarget < 0 and self.torq_adjust > 0:  # we are cooling down
-      self.torq_adjust = max(0, self.torq_adjust - max(aTarget * 10, ADJUST_ACCEL_COOLDOWN_MAX))
+    max_torque = False
+    if under_accel_frame_count == 0:
+      if aTarget < 0 and self.torq_adjust > 0:  # we are cooling down
+        self.torq_adjust = max(0, self.torq_adjust - max(aTarget * 10, ADJUST_ACCEL_COOLDOWN_MAX))
+    elif CS.out.aEgo < 0.5 and torque > CS.torqMax * 0.95:
+      max_torque = True
 
     self.under_accel_frame_count = under_accel_frame_count
     self.last_aTarget = CS.out.aEgo
@@ -179,6 +183,7 @@ class CarController():
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
                                  go_req,
                                  torque,
+                                 max_torque,
                                  stop_req and acc_2_counter % 2 == 0,
                                  brake,
                                  CS.acc_2))

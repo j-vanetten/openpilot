@@ -15,6 +15,8 @@ class CarControllerParams:
   STEER_DELTA_UP = 3      # 3 is stock. 100 is fine. 200 is too much it seems
   STEER_DELTA_DOWN = 3    # no faults on the way down it seems
   STEER_ERROR_MAX = 80
+  ACCEL_MAX = 2.  # m/s2, high to not limit stock ACC
+  ACCEL_MIN = -3.5  # m/s2
 
 class CAR:
   PACIFICA_2017_HYBRID = "CHRYSLER PACIFICA HYBRID 2017"
