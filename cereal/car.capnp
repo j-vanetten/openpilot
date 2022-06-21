@@ -14,8 +14,8 @@ struct JvePilotState {
     accFollowDistance @0 :UInt8;
     buttonCounter @1 :UInt8;
     pedalPressedAmount @2 :Float32;
-    steerDelta @5 :Int16;
-    steerMax @6 :Int16;
+    steerDelta @3 :Int16;
+    steerMax @4 :Int16;
   }
 
   struct CarControl {
