@@ -83,6 +83,8 @@ private:
 };
 
 std::unordered_map<std::string, uint32_t> keys = {
+    {"jvePilot.setting.steerDelta", PERSISTENT},
+    {"jvePilot.setting.steerMax", PERSISTENT},
     {"jvePilot.carState.accEco", PERSISTENT},
     {"jvePilot.settings.accEco.speedAheadLevel1", PERSISTENT},
     {"jvePilot.settings.accEco.speedAheadLevel2", PERSISTENT},

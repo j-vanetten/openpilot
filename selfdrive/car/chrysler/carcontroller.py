@@ -74,6 +74,9 @@ class CarController:
     self.prev_lkas_counter = lkas_counter
 
     # steer torque
+    CarControllerParams.STEER_MAX = int(self.params.get("jvePilot.setting.steerMax"))
+    CarControllerParams.STEER_DELTA_UP = int(self.params.get("jvePilot.setting.steerDelta"))
+    CarControllerParams.STEER_DELTA_DOWN = int(self.params.get("jvePilot.setting.steerDelta"))
     new_steer = int(round(actuators.steer * CarControllerParams.STEER_MAX))
     apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last,
                                                    CS.out.steeringTorqueEps, CarControllerParams)

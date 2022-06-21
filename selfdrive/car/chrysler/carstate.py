@@ -3,9 +3,10 @@ from common.conversions import Conversions as CV
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD
+from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD, CarControllerParams
 from common.cached_params import CachedParams
 from common.op_params import opParams
+from common.params import Params
 import numpy as np
 
 ButtonType = car.CarState.ButtonEvent.Type
@@ -32,6 +33,7 @@ class CarState(CarStateBase):
     self.lkasHeartbit = None
     self.dashboard = None
     self.speedRequested = 0
+    self.params = Params()
 
   def update(self, cp, cp_cam):
     min_steer_check = self.opParams.get('steer.checkMinimum')
@@ -111,6 +113,27 @@ class CarState(CarStateBase):
     for buttonType in CHECK_BUTTONS:
       self.check_button(button_events, buttonType, bool(cp.vl[CHECK_BUTTONS[buttonType][0]][CHECK_BUTTONS[buttonType][1]]))
     ret.buttonEvents = button_events
+
+    if ret.cruiseState.available:
+      if self.button_pressed(ButtonType.followInc, False):
+        CarControllerParams.STEER_DELTA_UP += 1
+        CarControllerParams.STEER_DELTA_DOWN += 1
+        print(f"STEER_DELTA: {CarControllerParams.STEER_DELTA_UP}")
+        self.params.put("jvePilot.setting.steerDelta", str(CarControllerParams.STEER_DELTA_DOWN))
+      elif self.button_pressed(ButtonType.followDec, False):
+        CarControllerParams.STEER_MAX += 1
+        print(f"STEER_MAX: {CarControllerParams.STEER_MAX}")
+        self.params.put("jvePilot.setting.steerMax", str(CarControllerParams.STEER_MAX))
+    else:  # RESET
+      if self.button_pressed(ButtonType.followInc, False):
+        CarControllerParams.STEER_DELTA_UP = 3
+        CarControllerParams.STEER_DELTA_DOWN = 3
+        print(f"STEER_DELTA: {CarControllerParams.STEER_DELTA_UP}")
+        self.params.put("jvePilot.setting.steerDelta", str(CarControllerParams.STEER_DELTA_DOWN))
+      elif self.button_pressed(ButtonType.followDec, False):
+        CarControllerParams.STEER_MAX = 261
+        print(f"STEER_MAX: {CarControllerParams.STEER_MAX}")
+        self.params.put("jvePilot.setting.steerMax", str(CarControllerParams.STEER_MAX))
 
     return ret
 
