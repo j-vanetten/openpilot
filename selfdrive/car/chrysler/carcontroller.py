@@ -168,12 +168,12 @@ class CarController():
       go_req = None
       torque = None
 
-    max_torque = False
+    max_gear = 8
     if under_accel_frame_count == 0:
       if aTarget < 0 and self.torq_adjust > 0:  # we are cooling down
         self.torq_adjust = max(0, self.torq_adjust - max(aTarget * 10, ADJUST_ACCEL_COOLDOWN_MAX))
     elif CS.out.aEgo < 0.5 and torque > CS.torqMax * 0.95:
-      max_torque = True
+      max_gear = 7
 
     self.under_accel_frame_count = under_accel_frame_count
     self.last_aTarget = CS.out.aEgo
@@ -183,7 +183,7 @@ class CarController():
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
                                  go_req,
                                  torque,
-                                 max_torque,
+                                 max_gear,
                                  stop_req and acc_2_counter % 2 == 0,
                                  brake,
                                  CS.acc_2))

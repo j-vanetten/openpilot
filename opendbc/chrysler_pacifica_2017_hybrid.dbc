@@ -400,6 +400,11 @@ BO_ 512 NEW_MSG_200: 8 XXX
  SG_ COUNTER : 51|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 
+BO_ 680 TCM_A7: 8 ECM
+ SG_ CurrentGear : 16|4@1+ (1,0) [0|0] ""  ECM,DASM,CBC
+ SG_ CurrentGearForDisplay : 20|4@1+ (1,0) [0|0] ""  ECM,IC
+ SG_ TargetGear : 24|4@1+ (1,0) [0|0] ""  ECM,DASM,CBC
+
 CM_ SG_ 258 UNKNOWN_STEERING "never goes above 4. see if human-applied torque";
 CM_ SG_ 258 STEER_ANGLE "positive is left (counter-clockwise)";
 CM_ SG_ 514 SPEED_LEFT "TODO find upper limit";
