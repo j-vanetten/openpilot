@@ -1,6 +1,10 @@
-Version jvePilot-0.8.14(v3.10.0)
+Version jvePilot-0.8.14(v3.10.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Fix disengage on accelerator option
+
+Version jvePilot-0.8.14(v3.10.0)
+========================
 * New radar code from xps's fork
 * Restore the 9mph min steer on some models (It seems to be a hard minimum) 
 * 2022 Pacifica Hybrid fingerprint (Thanks @TheWizard)
