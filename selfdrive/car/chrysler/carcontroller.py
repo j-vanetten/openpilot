@@ -172,8 +172,10 @@ class CarController():
     if under_accel_frame_count == 0:
       if aTarget < 0 and self.torq_adjust > 0:  # we are cooling down
         self.torq_adjust = max(0, self.torq_adjust - max(aTarget * 10, ADJUST_ACCEL_COOLDOWN_MAX))
-    elif CS.out.aEgo < 0.5 and torque > CS.torqMax * 0.95:
-      max_gear = 7
+    elif under_accel_frame_count > START_ADJUST_ACCEL_FRAMES and CS.out.vEgo < vTarget - COAST_WINDOW and CS.out.aEgo < 0.1 and torque > CS.torqMax * 0.98:
+      if CS.currentGear > 3 and CS.rpm < 4500:
+        max_gear = CS.currentGear - 1
+        under_accel_frame_count = 0
 
     self.under_accel_frame_count = under_accel_frame_count
     self.last_aTarget = CS.out.aEgo

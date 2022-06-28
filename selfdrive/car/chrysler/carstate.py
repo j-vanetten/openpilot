@@ -32,6 +32,7 @@ class CarState(CarStateBase):
     self.lkasHeartbit = None
     self.dashboard = None
     self.speedRequested = 0
+    self.currentGear = 1
     self.acc_2 = None
     self.gasRpm = None
     self.longEnabled = False
@@ -87,9 +88,11 @@ class CarState(CarStateBase):
         self.acc_1 = cp.vl["ACC_1"]
         self.torqMin = cp.vl["AXLE_TORQ"]["AXLE_TORQ_MIN"]
         self.torqMax = cp.vl["AXLE_TORQ"]["AXLE_TORQ_MAX"]
+        self.currentGear = 1
       else:
         self.torqMin = cp.vl["ACC_2"]["ACC_TORQ"]
         self.torqMax = cp.vl["AXLE_TORQ_ICE"]["AXLE_TORQ_MAX"]
+        self.currentGear = cp.vl['TCM_A7']["CurrentGear"]
     else:
       ret.jvePilotCarState.longControl = False
       self.longEnabled = False
@@ -251,6 +254,7 @@ class CarState(CarStateBase):
       signals += [
         ("AXLE_TORQ_MIN", "AXLE_TORQ_ICE", 0),
         ("AXLE_TORQ_MAX", "AXLE_TORQ_ICE", 0),
+        ("CurrentGear", "TCM_A7", 0),
       ]
 
     checks = [
@@ -283,6 +287,7 @@ class CarState(CarStateBase):
     else:
       checks += [
         ("AXLE_TORQ_ICE", 50),
+        ("TCM_A7", 50),
       ]
 
     if CP.enableBsm:
