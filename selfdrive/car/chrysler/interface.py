@@ -50,7 +50,7 @@ class CarInterface(CarInterfaceBase):
 
     if candidate in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019):
       ret.wheelbase = 2.91  # in meters
-      ret.steerRatio = 12.7
+      ret.steerRatio = 16.7
       ret.steerActuatorDelay = 0.2  # in seconds
       ret.enableBsm = True
 
