@@ -65,6 +65,7 @@ class CarController():
     self.ccframe = 0
     self.hybrid = self.car_fingerprint in (CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2019_HYBRID)
     self.vehicleMass = CP.mass
+    self.max_gear = None
 
     self.packer = CANPacker(dbc_name)
 
@@ -108,6 +109,7 @@ class CarController():
       self.torq_adjust = 0
       self.last_brake = None
       self.last_torque = None
+      self.max_gear = None
       return
 
     under_accel_frame_count = 0
@@ -163,19 +165,21 @@ class CarController():
     else:
       self.last_torque = None
       self.last_brake = None
+      self.max_gear = None
       stop_req = None
       brake = None
       go_req = None
       torque = None
 
-    max_gear = 8
     if under_accel_frame_count == 0:
+      self.max_gear = None
       if aTarget < 0 and self.torq_adjust > 0:  # we are cooling down
         self.torq_adjust = max(0, self.torq_adjust - max(aTarget * 10, ADJUST_ACCEL_COOLDOWN_MAX))
-    elif under_accel_frame_count > START_ADJUST_ACCEL_FRAMES and CS.out.vEgo < vTarget - COAST_WINDOW and CS.out.aEgo < 0.1 and torque > CS.torqMax * 0.98:
-      if CS.currentGear > 3 and CS.rpm < 4500:
-        max_gear = CS.currentGear - 1
-        under_accel_frame_count = 0
+    elif under_accel_frame_count > START_ADJUST_ACCEL_FRAMES:
+      if CS.out.vEgo < vTarget - COAST_WINDOW and CS.out.aEgo < 0.1 and torque > CS.torqMax * 0.98: # Time to downshift?
+        if CS.currentGear > 3 and CS.gasRpm < 4500:
+          self.max_gear = CS.currentGear - 1
+          under_accel_frame_count = 0
 
     self.under_accel_frame_count = under_accel_frame_count
     self.last_aTarget = CS.out.aEgo
@@ -185,7 +189,7 @@ class CarController():
     can_sends.append(acc_command(self.packer, acc_2_counter + 1, True,
                                  go_req,
                                  torque,
-                                 max_gear,
+                                 self.max_gear,
                                  stop_req and acc_2_counter % 2 == 0,
                                  brake,
                                  CS.acc_2))
