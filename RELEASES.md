@@ -7,7 +7,6 @@ Visit http://bit.ly/jvereadme for more information
 Version jvePilot-0.8.14(v3.10.1)
 ========================
 * Fix disengage on accelerator option
-* Correct steer ratios
 
 Version jvePilot-0.8.14(v3.10.0)
 ========================
