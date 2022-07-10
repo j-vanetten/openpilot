@@ -176,7 +176,9 @@ class CarController():
       if aTarget < 0 and self.torq_adjust > 0:  # we are cooling down
         self.torq_adjust = max(0, self.torq_adjust - max(aTarget * 10, ADJUST_ACCEL_COOLDOWN_MAX))
     elif under_accel_frame_count > START_ADJUST_ACCEL_FRAMES:
-      if CS.out.vEgo < vTarget - COAST_WINDOW and CS.out.aEgo < 0.1 and torque > CS.torqMax * 0.98: # Time to downshift?
+      if CS.out.vEgo < vTarget - COAST_WINDOW / CarInterface.accel_max(CS) \
+          and CS.out.aEgo < CarInterface.accel_max(CS) / 5 \
+          and torque > CS.torqMax * 0.98:  # Time to downshift?
         if CS.currentGear > 3 and CS.gasRpm < 4500:
           self.max_gear = CS.currentGear - 1
           under_accel_frame_count = 0
