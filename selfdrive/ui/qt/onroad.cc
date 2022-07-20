@@ -1,3 +1,4 @@
+#include <QMouseEvent>
 #include "selfdrive/ui/qt/onroad.h"
 
 #include <cmath>
@@ -6,6 +7,7 @@
 
 #include "common/timing.h"
 #include "selfdrive/ui/qt/util.h"
+#include "selfdrive/ui/qt/api.h"
 #ifdef ENABLE_MAPS
 #include "selfdrive/ui/qt/maps/map.h"
 #include "selfdrive/ui/qt/maps/map_helpers.h"
@@ -61,13 +63,26 @@ void OnroadWindow::updateState(const UIState &s) {
   }
 }
 
+void OnroadWindow::notify_state() {
+  MessageBuilder msg;
+  auto state = msg.initEvent().initJvePilotUIState();
+  state.setAutoFollow(uiState()->scene.autoFollowEnabled);
+  state.setAccEco(uiState()->scene.accEco);
+  uiState()->pm->send("jvePilotUIState", msg);
+}
+
 void OnroadWindow::mousePressEvent(QMouseEvent* e) {
-  if (map != nullptr) {
-    bool sidebarVisible = geometry().x() > 0;
-    map->setVisible(!sidebarVisible && !map->isVisible());
+  if (uiState()->scene.accEco_btn.contains(e->x(), e->y())) {
+    uiState()->scene.accEco = uiState()->scene.accEco == 2 ? 0 : uiState()->scene.accEco + 1;
+    notify_state();
+  } else {
+    if (map != nullptr) {
+      bool sidebarVisible = geometry().x() > 0;
+      map->setVisible(!sidebarVisible && !map->isVisible());
+    }
+    // propagation event to parent(HomeWindow)
+    QWidget::mousePressEvent(e);
   }
-  // propagation event to parent(HomeWindow)
-  QWidget::mousePressEvent(e);
 }
 
 void OnroadWindow::offroadTransition(bool offroad) {
@@ -167,6 +182,12 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
 NvgWindow::NvgWindow(VisionStreamType type, QWidget* parent) : fps_filter(UI_FREQ, 3, 1. / UI_FREQ), CameraViewWidget("camerad", type, true, parent) {
   engage_img = loadPixmap("../assets/img_chffr_wheel.png", {img_size, img_size});
   dm_img = loadPixmap("../assets/img_driver_face.png", {img_size, img_size});
+
+  eco_imgs[0] = QPixmap("../assets/jvepilot/img_acc_eco_off.png").scaled(img_size + button_bigger, img_size + button_bigger, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  eco_imgs[1] = QPixmap("../assets/jvepilot/img_acc_eco_1.png").scaled(img_size + button_bigger, img_size + button_bigger, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  eco_imgs[2] = QPixmap("../assets/jvepilot/img_acc_eco_2.png").scaled(img_size + button_bigger, img_size + button_bigger, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  auto_follow_imgs[0] = QPixmap("../assets/jvepilot/auto_follow_off.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  auto_follow_imgs[1] = QPixmap("../assets/jvepilot/auto_follow_on.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
 void NvgWindow::updateState(const UIState &s) {
@@ -194,6 +215,10 @@ void NvgWindow::updateState(const UIState &s) {
   setProperty("speedLimit", speed_limit);
   setProperty("has_us_speed_limit", nav_alive && speed_limit_sign == cereal::NavInstruction::SpeedLimitSign::MUTCD);
   setProperty("has_eu_speed_limit", nav_alive && speed_limit_sign == cereal::NavInstruction::SpeedLimitSign::VIENNA);
+
+  setProperty("pedalPressedAmount", int(sm["carState"].getCarState().getJvePilotCarState().getPedalPressedAmount() * 255));
+  setProperty("accEco", s.scene.accEco);
+  setProperty("autoFollowEnabled", s.scene.autoFollowEnabled == 1);
 
   setProperty("is_cruise_set", cruise_set);
   setProperty("is_metric", s.scene.is_metric);
@@ -360,6 +385,11 @@ void NvgWindow::drawHud(QPainter &p) {
   // current speed
   configFont(p, "Inter", 176, "Bold");
   drawText(p, rect().center().x(), 210, speedStr);
+  if (pedalPressedAmount < 0) {
+    drawText(p, rect().center().x(), 210, speedStr, QColor(200, 0, 0, -pedalPressedAmount));
+  } else if (pedalPressedAmount > 0) {
+    drawText(p, rect().center().x(), 210, speedStr, QColor(0, 200, 0, pedalPressedAmount));
+  }
   configFont(p, "Inter", 66, "Regular");
   drawText(p, rect().center().x(), 290, speedUnit, 200);
 
@@ -374,15 +404,38 @@ void NvgWindow::drawHud(QPainter &p) {
     drawIcon(p, radius / 2 + (bdr_s * 2), rect().bottom() - footer_h / 2,
              dm_img, blackColor(70), dmActive ? 1.0 : 0.2);
   }
+
+  if (accEco >= 0) { // got data yet?
+    // Auto Follow
+    drawIcon(p,
+             rect().right() - radius / 2 - bdr_s * 2,
+             rect().bottom() - footer_h / 2 - button_bigger - radius,
+             auto_follow_imgs[autoFollowEnabled], QColor(0, 0, 0, 0), 1.0);
+
+    // eco icon
+    drawIcon(p, rect().right() - radius / 2 - bdr_s * 2 - button_bigger, rect().bottom() - footer_h / 2 - button_bigger,
+             eco_imgs[accEco], QColor(0, 0, 0, 0), 1.0);
+    uiState()->scene.accEco_btn = QRect(
+      rect().right() - radius / 2 - bdr_s * 2 - button_bigger,
+      rect().bottom() - footer_h / 2 - button_bigger,
+      img_size + button_bigger,
+      img_size + button_bigger);
+  }
+
   p.restore();
 }
 
-void NvgWindow::drawText(QPainter &p, int x, int y, const QString &text, int alpha) {
+void NvgWindow::drawText(QPainter &p, int x, int y, const QString &text, QColor color) {
   QRect real_rect = getTextRect(p, 0, text);
   real_rect.moveCenter({x, y - real_rect.height() / 2});
 
-  p.setPen(QColor(0xff, 0xff, 0xff, alpha));
+  p.setPen(color);
   p.drawText(real_rect.x(), real_rect.bottom(), text);
+}
+
+
+void NvgWindow::drawText(QPainter &p, int x, int y, const QString &text, int alpha) {
+  drawText(p, x, y, text, QColor(0xff, 0xff, 0xff, alpha));
 }
 
 void NvgWindow::drawIcon(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity) {
@@ -427,10 +480,13 @@ void NvgWindow::drawLaneLines(QPainter &painter, const UIState *s) {
   painter.save();
 
   const UIScene &scene = s->scene;
-  // lanelines
-  for (int i = 0; i < std::size(scene.lane_line_vertices); ++i) {
-    painter.setBrush(QColor::fromRgbF(1.0, 1.0, 1.0, std::clamp<float>(scene.lane_line_probs[i], 0.0, 0.7)));
-    painter.drawPolygon(scene.lane_line_vertices[i]);
+
+  if (uiState()->scene.use_lane_lines) {
+    // lanelines
+    for (int i = 0; i < std::size(scene.lane_line_vertices); ++i) {
+      painter.setBrush(QColor::fromRgbF(1.0, 1.0, 1.0, std::clamp<float>(scene.lane_line_probs[i], 0.0, 0.7)));
+      painter.drawPolygon(scene.lane_line_vertices[i]);
+    }
   }
 
   // road edges

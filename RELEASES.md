@@ -1,203 +1,255 @@
-Version 0.8.15 (2022-07-20)
+Version jvePilot-0.8.15(v3.11.0)
 ========================
-* New driving model
-  * Path planning uses end-to-end output instead of lane lines at all times
-  * Reduced ping pong
-  * Improved lane centering
-* New lateral controller based on physical wheel torque model
-  * Much smoother control that's consistent across the speed range
-  * Effective feedforward that uses road roll
-  * Simplified tuning, all car-specific parameters can be derived from data
-  * Used on select Toyota and Hyundai models at first
-  * Significantly improved control on TSS-P Prius
-* New driver monitoring model
-  * Bigger model, covering full interior view from driver camera
-  * Works with a wider variety of mounting angles
-  * 3x more unique comma three training data than previous
-* Navigation improvements
-  * Speed limits shown while navigating
-  * Faster position fix by using raw GPS measurements
-* UI updates
-  * Multilanguage support for settings and home screen
-  * New font
-  * Refreshed max speed design
-  * More consistent camera view perspective across cars
-* Reduced power usage: device runs cooler and fan spins less
-* AGNOS 5
-  * Support VSCode remote SSH target
-  * Support for delta updates to reduce data usage on future OS updates
-* Chrysler ECU firmware fingerprinting thanks to realfast!
-* Honda Civic 2022 support
-* Hyundai Tucson 2021 support thanks to bluesforte!
-* Kia EV6 2022 support
-* Lexus NX Hybrid 2020 support thanks to AlexandreSato!
-* Ram 1500 2019-21 support thanks to realfast!
+Visit http://bit.ly/jvereadme for more information
+* Fix disengage on accelerator option
+* Update to 0.8.14
+  * New driving model
+    * Path planning uses end-to-end output instead of lane lines at all times
+    * Reduced ping pong
+    * Improved lane centering
+  * New lateral controller based on physical wheel torque model
+    * Much smoother control that's consistent across the speed range
+    * Effective feedforward that uses road roll
+    * Simplified tuning, all car-specific parameters can be derived from data
+    * Used on select Toyota and Hyundai models at first
+    * Significantly improved control on TSS-P Prius
+  * New driver monitoring model
+    * Bigger model, covering full interior view from driver camera
+    * Works with a wider variety of mounting angles
+    * 3x more unique comma three training data than previous
+  * Navigation improvements
+    * Speed limits shown while navigating
+    * Faster position fix by using raw GPS measurements
+  * UI updates
+    * Multilanguage support for settings and home screen
+    * New font
+    * Refreshed max speed design
+    * More consistent camera view perspective across cars
+  * Reduced power usage: device runs cooler and fan spins less
+  * AGNOS 5
+    * Support VSCode remote SSH target
+    * Support for delta updates to reduce data usage on future OS updates
+  * Chrysler ECU firmware fingerprinting thanks to realfast!
+  * Honda Civic 2022 support
+  * Hyundai Tucson 2021 support thanks to bluesforte!
+  * Kia EV6 2022 support
+  * Lexus NX Hybrid 2020 support thanks to AlexandreSato!
+  * Ram 1500 2019-21 support thanks to realfast!
 
-Version 0.8.14 (2022-06-01)
+Version jvePilot-0.8.14(v3.10.0)
 ========================
- * New driving model
-   * Bigger model, using both of comma three's road-facing cameras
-   * Better at cut-in detection and tight turns
- * New driver monitoring model
-   * Tweaked network structure to improve output resolution for DSP
-   * Fixed bug in quantization aware training to reduce quantizing errors
-   * Resulted in 7x less MSE and no more random biases at runtime
- * Added toggle to disable disengaging on the accelerator pedal
- * comma body support
- * Audi RS3 support thanks to jyoung8607!
- * Hyundai Ioniq Plug-in Hybrid 2019 support thanks to sunnyhaibin!
- * Hyundai Tucson Diesel 2019 support thanks to sunnyhaibin!
- * Toyota Alphard Hybrid 2021 support
- * Toyota Avalon Hybrid 2022 support
- * Toyota RAV4 2022 support
- * Toyota RAV4 Hybrid 2022 support
+* New radar code from xps's fork
+* Restore the 9mph min steer on some models (It seems to be a hard minimum) 
+* 2022 Pacifica Hybrid fingerprint (Thanks @TheWizard)
+* Update to 0.8.14
+  * New driving model
+    * Bigger model, using both of comma three's road-facing cameras
+    * Better at cut-in detection and tight turns
+  * New driver monitoring model
+    * Tweaked network structure to improve output resolution for DSP
+    * Fixed bug in quantization aware training to reduce quantizing errors
+    * Resulted in 7x less MSE and no more random biases at runtime
+  * Added toggle to disable disengaging on the accelerator pedal
+  * comma body support
+  * Audi RS3 support thanks to jyoung8607!
+  * Hyundai Ioniq Plug-in Hybrid 2019 support thanks to sunnyhaibin!
+  * Hyundai Tucson Diesel 2019 support thanks to sunnyhaibin!
+  * Toyota Alphard Hybrid 2021 support
+  * Toyota Avalon Hybrid 2022 support
+  * Toyota RAV4 2022 support
+  * Toyota RAV4 Hybrid 2022 support
 
-Version 0.8.13 (2022-02-18)
+Version jvePilot-0.8.13(v3.9.0)
 ========================
- * Improved driver monitoring
-   * Retuned driver pose learner for relaxed driving positions
-   * Added reliance on driving model to be more scene adaptive
-   * Matched strictness between comma two and comma three
- * Improved performance in turns by compensating for the road bank angle
- * Improved camera focus on the comma two
- * AGNOS 4
-   * ADB support
-   * improved cell auto configuration
- * NEOS 19
-   * package updates
-   * stability improvements
- * Subaru ECU firmware fingerprinting thanks to martinl!
- * Hyundai Santa Fe Plug-in Hybrid 2022 support thanks to sunnyhaibin!
- * Mazda CX-5 2022 support thanks to Jafaral!
- * Subaru Impreza 2020 support thanks to martinl!
- * Toyota Avalon 2022 support thanks to sshane!
- * Toyota Prius v 2017 support thanks to CT921!
- * Volkswagen Caravelle 2020 support thanks to jyoung8607!
+* Reverse lateral angle of radar on Pacifica's
+* Update to 0.8.13
+  * Improved driver monitoring
+    * Retuned driver pose learner for relaxed driving positions
+    * Added reliance on driving model to be more scene adaptive
+    * Matched strictness between comma two and comma three
+  * Improved performance in turns by compensating for the road bank angle
+  * Improved camera focus on the comma two
+  * AGNOS 4
+    * ADB support
+    * improved cell auto configuration
+  * NEOS 19
+    * package updates
+    * stability improvements
+  * Subaru ECU firmware fingerprinting thanks to martinl!
+  * Hyundai Santa Fe Plug-in Hybrid 2022 support thanks to sunnyhaibin!
+  * Mazda CX-5 2022 support thanks to Jafaral!
+  * Subaru Impreza 2020 support thanks to martinl!
+  * Toyota Avalon 2022 support thanks to sshane!
+  * Toyota Prius v 2017 support thanks to CT921!
+  * Volkswagen Caravelle 2020 support thanks to jyoung8607!
 
-Version 0.8.12 (2021-12-15)
+Version jvePilot-0.8.12(v3.8.0)
 ========================
- * New driving model
-   * Improved behavior around exits
-   * Better pose accuracy at high speeds, allowing max speed of 90mph
-   * Fully incorporated comma three data into all parts of training stack
- * Improved follow distance
- * Better longitudinal policy, especially in low speed traffic
- * New alert sounds
- * AGNOS 3
-   * Display burn in mitigation
-   * Improved audio amplifier configuration
-   * System reliability improvements
-   * Update Python to 3.8.10
- * Raw logs upload moved to connect.comma.ai
- * Fixed HUD alerts on newer Honda Bosch thanks to csouers!
- * Audi Q3 2020-21 support thanks to jyoung8607!
- * Lexus RC 2020 support thanks to ErichMoraga!
+* Turn Auto Follow into a small icon above ACC Eco button
+  * Use buttons to toggle on/off, not screen
+* Fixed radar.  Should get less collision alert
+* Update to 0.8.12
+  * New driving model
+    * Improved behavior around exits
+    * Better pose accuracy at high speeds, allowing max speed of 90mph
+    * Fully incorporated comma three data into all parts of training stack
+  * Improved follow distance
+  * Better longitudinal policy, especially in low speed traffic
+  * New alert sounds
+  * AGNOS 3
+    * Display burn in mitigation
+    * Improved audio amplifier configuration
+    * System reliability improvements
+    * Update Python to 3.8.10
+  * Raw logs upload moved to connect.comma.ai
+  * Fixed HUD alerts on newer Honda Bosch thanks to csouers!
+  * Audi Q3 2020-21 support thanks to jyoung8607!
+  * Lexus RC 2020 support thanks to ErichMoraga!
+* Update to 0.8.11
+  * Support for CAN FD on the red panda
+  * Support for an external panda on the comma three
+  * Navigation: Show more detailed instructions when approaching maneuver
+  * Fixed occasional steering faults on GM cars thanks to jyoung8607!
+  * Nissan ECU firmware fingerprinting thanks to robin-reckmann, martinl, and razem-io!
+  * Cadillac Escalade ESV 2016 support thanks to Gibby!
+  * Genesis G70 2020 support thanks to tecandrew!
+  * Hyundai Santa Fe Hybrid 2022 support thanks to sunnyhaibin!
+  * Mazda CX-9 2021 support thanks to Jacar!
+  * Volkswagen Polo 2020 support thanks to jyoung8607!
+  * Volkswagen T-Roc 2021 support thanks to jyoung8607!
 
-Version 0.8.11 (2021-11-29)
+Version jvePilot-0.8.10(v3.7)
 ========================
- * Support for CAN FD on the red panda
- * Support for an external panda on the comma three
- * Navigation: Show more detailed instructions when approaching maneuver
- * Fixed occasional steering faults on GM cars thanks to jyoung8607!
- * Nissan ECU firmware fingerprinting thanks to robin-reckmann, martinl, and razem-io!
- * Cadillac Escalade ESV 2016 support thanks to Gibby!
- * Genesis G70 2020 support thanks to tecandrew!
- * Hyundai Santa Fe Hybrid 2022 support thanks to sunnyhaibin!
- * Mazda CX-9 2021 support thanks to Jacar!
- * Volkswagen Polo 2020 support thanks to jyoung8607!
- * Volkswagen T-Roc 2021 support thanks to jyoung8607!
+* Crude replacement to continue to support stock ACC follow distance profiles
+  * OP removed the use of radar to track lead car.  This broke how I was supporting distance profiles.
+  * So, to fix, always do +3 mph over OP targeted speed to force stock ACC to keep the distance
+* Speed turns green when gas applied, red when braking
+* Fix for White Panda mod on 2017/2018 models
+* Fix bug where left turns were not slowing
+* Update to 0.8.10
+  * New driving model
+    * Trained on one million minutes!!!
+    * Fixed lead training making lead predictions significantly more accurate
+    * Fixed several localizer dataset bugs and loss function bugs, overall improved accuracy
+  * New driver monitoring model
+    * Trained on latest data from both comma two and comma three
+    * Increased model field of view by 40% on comma three
+    * Improved model stability on masked users
+    * Improved pose prediction with reworked ground-truth stack
+  * Lateral and longitudinal planning MPCs now in ACADOS
+  * Combined longitudinal MPCs
+    * All longitudinal planning now happens in a single MPC system
+    * Fixed instability in MPC problem to prevent sporadic CPU usage
+  * AGNOS 2: minor stability improvements and builder repo open sourced
+  * tools: new and improved replay thanks to deanlee!
+  * Moved community-supported cars outside of the Community Features toggle
+  * Improved FW fingerprinting reliability for Hyundai/Kia/Genesis
+  * Added prerequisites for longitudinal control on Hyundai/Kia/Genesis and Honda Bosch
+  * Audi S3 2015 support thanks to jyoung8607!
+  * Honda Freed 2020 support thanks to belm0!
+  * Hyundai Ioniq Hybrid 2020-2022 support thanks to sunnyhaibin!
+  * Hyundai Santa Fe 2022 support thanks to sunnyhaibin!
+  * Kia K5 2021 support thanks to sunnyhaibin!
+  * Škoda Kamiq 2021 support thanks to jyoung8607!
+  * Škoda Karoq 2019 support thanks to jyoung8607!
+  * Volkswagen Arteon 2021 support thanks to jyoung8607!
+  * Volkswagen California 2021 support thanks to jyoung8607!
+  * Volkswagen Taos 2022 support thanks to jyoung8607!
 
-Version 0.8.10 (2021-11-01)
+* Version jvePilot-0.8.9(v3.6.1)
 ========================
- * New driving model
-   * Trained on one million minutes!!!
-   * Fixed lead training making lead predictions significantly more accurate
-   * Fixed several localizer dataset bugs and loss function bugs, overall improved accuracy
- * New driver monitoring model
-   * Trained on latest data from both comma two and comma three
-   * Increased model field of view by 40% on comma three
-   * Improved model stability on masked users
-   * Improved pose prediction with reworked ground-truth stack
- * Lateral and longitudinal planning MPCs now in ACADOS
- * Combined longitudinal MPCs
-   * All longitudinal planning now happens in a single MPC system
-   * Fixed instability in MPC problem to prevent sporadic CPU usage
- * AGNOS 2: minor stability improvements and builder repo open sourced
- * tools: new and improved replay thanks to deanlee!
- * Moved community-supported cars outside of the Community Features toggle
- * Improved FW fingerprinting reliability for Hyundai/Kia/Genesis
- * Added prerequisites for longitudinal control on Hyundai/Kia/Genesis and Honda Bosch
- * Audi S3 2015 support thanks to jyoung8607!
- * Honda Freed 2020 support thanks to belm0!
- * Hyundai Ioniq Hybrid 2020-2022 support thanks to sunnyhaibin!
- * Hyundai Santa Fe 2022 support thanks to sunnyhaibin!
- * Kia K5 2021 support thanks to sunnyhaibin!
- * Škoda Kamiq 2021 support thanks to jyoung8607!
- * Škoda Karoq 2019 support thanks to jyoung8607!
- * Volkswagen Arteon 2021 support thanks to jyoung8607!
- * Volkswagen California 2021 support thanks to jyoung8607!
- * Volkswagen Taos 2022 support thanks to jyoung8607!
+* Add option to alert when steering is lost do to low speeds
+* Fix for White Panda mod lkas fault when jvePilot is not engaged.
+* Radar updates thanks to xps!
+* Code cleanup related so controls
+* Slow in Curves tweaks to allow speeding up while existing curve instead of after
 
-Version 0.8.9 (2021-09-14)
+Version jvePilot-0.8.9(v3.6)
 ========================
- * Improved fan control on comma three
- * AGNOS 1.5: improved stability
- * Honda e 2020 support
+* Fix UI buttons on comma three
+* Fix occasional comma three controls not starting error
+* Use speed from dashboard instead of calculated from wheel rpm
+* 2018 and earlier vehicles can now steer down a little more
+* Update to 0.8.9
+  * Improved fan control on comma three
+  * AGNOS 1.5: improved stability
+  * Honda e 2020 support
 
-Version 0.8.8 (2021-08-27)
+Version jvePilot-0.8.8(v3.5.1)
 ========================
- * New driving model with improved laneless performance
-   * Trained on 5000+ hours of diverse driving data from 3000+ users in 40+ countries
-   * Better anti-cheating methods during simulator training ensure the model hugs less when in laneless mode
-   * All new desire ground-truthing stack makes the model better at lane changes
- * New driver monitoring model: improved performance on comma three
- * NEOS 18 for comma two: update packages
- * AGNOS 1.3 for comma three: fix display init at high temperatures
- * Improved auto-exposure on comma three
- * Improved longitudinal control on Honda Nidec cars
+* Improved/more acceleration that model was providing
+* Jeep Grand Cherokee Trackhawk 2018 fingerprint thanks to adamrb!
+* Update to version 0.8.8
+  * New driving model with improved laneless performance
+    * Trained on 5000+ hours of diverse driving data from 3000+ users in 40+ countries
+    * Better anti-cheating methods during simulator training ensure the model hugs less when in laneless mode
+    * All new desire ground-truthing stack makes the model better at lane changes
+  * New driver monitoring model: improved performance on comma three
+  * NEOS 18 for comma two: update packages
+  * AGNOS 1.3 for comma three: fix display init at high temperatures
+  * Improved auto-exposure on comma three
+  * Improved longitudinal control on Honda Nidec cars
  * Hyundai Kona Hybrid 2020 support thanks to haram-KONA!
- * Hyundai Sonata Hybrid 2021 support thanks to Matt-Wash-Burn!
- * Kia Niro Hybrid 2021 support thanks to tetious!
+  * Hyundai Sonata Hybrid 2021 support thanks to Matt-Wash-Burn!
+  * Kia Niro Hybrid 2021 support thanks to tetious!
 
-Version 0.8.7 (2021-07-31)
+Version jvePilot-0.8.7(v3.5)
 ========================
- * comma three support!
- * Navigation alpha for the comma three!
- * Volkswagen T-Cross 2021 support thanks to jyoung8607!
+* ACC Braking
+* Update to version 0.8.7
+  * comma three support!
+  * Navigation alpha for the comma three!
+  * Volkswagen T-Cross 2021 support thanks to jyoung8607!
+* Update to version 0.8.6
+  * Revamp lateral and longitudinal planners
+    * Refactor planner output API to be more readable and verbose
+    * Planners now output desired trajectories for speed, acceleration, curvature, and curvature rate
+    * Use MPC for longitudinal planning when no lead car is present, makes accel and decel smoother
+  * Remove "CHECK DRIVER FACE VISIBILITY" warning
+  * Fixed cruise fault on some TSS2.5 Camrys and international Toyotas
+  * Hyundai Elantra Hybrid 2021 support thanks to tecandrew!
+  * Hyundai Ioniq PHEV 2020 support thanks to YawWashout!
+  * Kia Niro Hybrid 2019 support thanks to jyoung8607!
+  * Škoda Octavia RS 2016 support thanks to jyoung8607!
+  * Toyota Alphard 2020 support thanks to belm0!
+  * Volkswagen Golf SportWagen 2015 support thanks to jona96!
+  * Volkswagen Touran 2017 support thanks to jyoung8607!
 
-Version 0.8.6 (2021-07-21)
+Version jvePilot-0.8.5(v3.4.1)
 ========================
- * Revamp lateral and longitudinal planners
-   * Refactor planner output API to be more readable and verbose
-   * Planners now output desired trajectories for speed, acceleration, curvature, and curvature rate
-   * Use MPC for longitudinal planning when no lead car is present, makes accel and decel smoother
- * Remove "CHECK DRIVER FACE VISIBILITY" warning
- * Fixed cruise fault on some TSS2.5 Camrys and international Toyotas
- * Hyundai Elantra Hybrid 2021 support thanks to tecandrew!
- * Hyundai Ioniq PHEV 2020 support thanks to YawWashout!
- * Kia Niro Hybrid 2019 support thanks to jyoung8607!
- * Škoda Octavia RS 2016 support thanks to jyoung8607!
- * Toyota Alphard 2020 support thanks to belm0!
- * Volkswagen Golf SportWagen 2015 support thanks to jona96!
- * Volkswagen Touran 2017 support thanks to jyoung8607!
+* Fix auto high beams
 
-Version 0.8.5 (2021-06-11)
+Version jvePilot-0.8.5(v3.4)
 ========================
- * NEOS update: improved reliability and stability with better voltage regulator configuration
- * Smart model-based Forward Collision Warning
- * CAN-based fingerprinting moved behind community features toggle
- * Improved longitudinal control on Toyotas with a comma pedal
- * Improved auto-brightness using road-facing camera
- * Added "Software" settings page with updater controls
- * Audi Q2 2018 support thanks to jyoung8607!
- * Hyundai Elantra 2021 support thanks to CruiseBrantley!
- * Lexus UX Hybrid 2019-2020 support thanks to brianhaugen2!
- * Toyota Avalon Hybrid 2019 support thanks to jbates9011!
- * SEAT Leon 2017 & 2020 support thanks to jyoung8607!
- * Škoda Octavia 2015 & 2019 support thanks to jyoung8607!
+* Use LKAS button to disable lane lines and use new model (aka 🥬)
+* Update to version 0.8.5
+  * NEOS update: improved reliability and stability with better voltage regulator configuration
+  * Smart model-based Forward Collision Warning
+  * CAN-based fingerprinting moved behind community features toggle
+  * Improved longitudinal control on Toyotas with a comma pedal
+  * Improved auto-brightness using road-facing camera
+  * Added "Software" settings page with updater controls
+  * Audi Q2 2018 support thanks to jyoung8607!
+  * Hyundai Elantra 2021 support thanks to CruiseBrantley!
+  * Lexus UX Hybrid 2019-2020 support thanks to brianhaugen2!
+  * Toyota Avalon Hybrid 2019 support thanks to jbates9011!
+  * SEAT Leon 2017 & 2020 support thanks to jyoung8607!
+  * Škoda Octavia 2015 & 2019 support thanks to jyoung8607!
 
-Version 0.8.4 (2021-05-17)
+Version jvePilot-0.8.4(v3.3) (2021-06-02)
 ========================
+* Fix radar tracking thanks to @xps
+* Metric ACC control.  Starts at 30kph, ACC +/- changes by 5kph
+* Add support for vehicles that have been modified to allow no minimum steer speed.
+* Don't panic using sounds if over speed too high
+
+Version jvePilot-0.8.4(v3.2.2) (2021-05-26)
+========================
+* Fix UI bug
+
+Version jvePilot-0.8.4(v3.2.1) (2021-05-22)
+========================
+* Update to version 0.8.4
  * Delay controls start until system is ready
  * Fuzzy car identification, enabled with Community Features toggle
  * Localizer optimized for increased precision and less CPU usage
@@ -206,8 +258,45 @@ Version 0.8.4 (2021-05-17)
  * Lexus NX 300 2020 support thanks to goesreallyfast!
  * Volkswagen Atlas 2018-19 support thanks to jyoung8607!
 
-Version 0.8.3 (2021-04-01)
+Version jvePilot-0.8.3(v3.2) (2021-05-08)
 ========================
+* Predict LKAS control frame
+* Fix math used for device offset
+* More UI fixes
+
+Version jvePilot-0.8.3(v3.1.1) (2021-05-07)
+========================
+* Enable some toggles by default
+* Divide by zero protection in slow in curvature code
+
+Version jvePilot-0.8.3(v3.1) (2021-05-04)
+========================
+* Move everything to the UI. No more opEdit. All settings will need to be reset in the UI.
+* Curvature drop off setting
+
+Version jvePilot-0.8.3(v3.0) (2021-04-22)
+========================
+* ACC Eco
+* Fix Auto Follow ping/pong
+* Code changes to better consolidate state/control messaging
+* Option to reverse 1mph or 5mph on short ACC +/- presses
+
+Version jvePilot-0.8.3(v2.2) (2021-04-11)
+========================
+* Change follow distance based on speed
+* Add another option to control amount of slowing in curves
+* Add option to adjust the displayed speed
+* jvePilot branding
+* jvePilot-release as a tested branch
+
+Version jvePilot-0.8.3(v2.1) (2021-04-01)
+========================
+* Report blind spot indicators to openpilot so auto lane change can abort if something is detected
+* Enable Longitudinal Control flag.  Enabled lead car tracking
+
+Version jvePilot-0.8.3(v2.0) (2021-04-01)
+========================
+* Update to openpilot v0.8.3
  * New model
    * Trained on new diverse dataset from 2000+ users from 30+ countries
    * Trained with improved segnet from the comma-pencil community project
@@ -219,6 +308,21 @@ Version 0.8.3 (2021-04-01)
  * Kia Ceed 2019 support thanks to ZanZaD13!
  * Kia Seltos 2021 support thanks to speedking456!
  * Added support for many Volkswagen and Škoda models thanks to jyoung8607!
+
+Version jvePilot-0.8.2(v2.0) (2021-03-28)
+========================
+* Auto resume feature added (set `disable_auto_resume`to `True` to disable)
+* Added back feature that keep jvePilot engaged while pressing gas (set `disengage_on_gas` to `True` to disable)
+
+Version jvePilot-0.8.2(v1.1) (2021-03-12)
+========================
+* Protect from missing curvature data
+* Remove disengage_on_gas option until it's working again
+
+Version jvePilot-0.8.2(v1) (2021-02-28)
+========================
+* OpenPilot v0.8.2
+* Read curvature values directly from modal and use the largest curvature to calculate max speed.
 
 Version 0.8.2 (2021-02-26)
 ========================

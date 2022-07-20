@@ -61,10 +61,20 @@ def create_lkas_command(packer, CP, apply_steer, lkas_control_bit, frame):
   }
   return packer.make_can_msg("LKAS_COMMAND", 0, values, frame % 0x10)
 
+def create_lkas_heartbit(packer, value, lkasHeartbit):
+  # LKAS_HEARTBIT (697) LKAS heartbeat
+  values = lkasHeartbit.copy()  # forward what we parsed
+  values["LKAS_DISABLED"] = value
+  return packer.make_can_msg("LKAS_HEARTBIT", 0, values)
 
-def create_cruise_buttons(packer, frame, bus, cancel=False, resume=False):
+def create_wheel_buttons_command(packer, counter, buttons):
+  # WHEEL_BUTTONS (571) Message sent
   values = {
-    "ACC_Cancel": cancel,
-    "ACC_Resume": resume,
+    "COUNTER": counter % 0x10,
   }
-  return packer.make_can_msg("CRUISE_BUTTONS", bus, values, frame % 0x10)
+
+  for b in buttons:
+    if b is not None:
+      values[b] = 1
+
+  return packer.make_can_msg("CRUISE_BUTTONS", 0, values)

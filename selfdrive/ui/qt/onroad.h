@@ -27,6 +27,10 @@ private:
 // container window for the NVG UI
 class NvgWindow : public CameraViewWidget {
   Q_OBJECT
+  Q_PROPERTY(int pedalPressedAmount MEMBER pedalPressedAmount);
+  Q_PROPERTY(int accEco MEMBER accEco);
+  Q_PROPERTY(bool autoFollowEnabled MEMBER autoFollowEnabled);
+
   Q_PROPERTY(float speed MEMBER speed);
   Q_PROPERTY(QString speedUnit MEMBER speedUnit);
   Q_PROPERTY(float setSpeed MEMBER setSpeed);
@@ -47,7 +51,14 @@ public:
 
 private:
   void drawIcon(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity);
+  void drawText(QPainter &p, int x, int y, const QString &text, QColor color);
   void drawText(QPainter &p, int x, int y, const QString &text, int alpha = 255);
+
+  QPixmap eco_imgs[3];
+  QPixmap auto_follow_imgs[2];
+  int pedalPressedAmount;
+  int accEco;
+  bool autoFollowEnabled;
 
   QPixmap engage_img;
   QPixmap dm_img;
@@ -100,6 +111,7 @@ private:
   QHBoxLayout* split;
 
 private slots:
+  void notify_state();
   void offroadTransition(bool offroad);
   void updateState(const UIState &s);
 };

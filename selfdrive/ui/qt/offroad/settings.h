@@ -50,6 +50,12 @@ private:
   Params params;
 };
 
+class JvePilotTogglesPanel : public ListWidget {
+  Q_OBJECT
+public:
+  explicit JvePilotTogglesPanel(QWidget *parent = nullptr);
+};
+
 class TogglesPanel : public ListWidget {
   Q_OBJECT
 public:

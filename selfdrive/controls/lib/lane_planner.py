@@ -4,7 +4,7 @@ from common.filter_simple import FirstOrderFilter
 from common.numpy_fast import interp
 from common.realtime import DT_MDL
 from system.swaglog import cloudlog
-
+from common.cached_params import CachedParams
 
 TRAJECTORY_SIZE = 33
 # camera offset is meters from center car to camera
@@ -35,6 +35,7 @@ class LanePlanner:
 
     self.camera_offset = -CAMERA_OFFSET if wide_camera else CAMERA_OFFSET
     self.path_offset = -PATH_OFFSET if wide_camera else PATH_OFFSET
+    self.cachedParams = CachedParams()
 
   def parse_model(self, md):
     lane_lines = md.laneLines
@@ -42,8 +43,9 @@ class LanePlanner:
       self.ll_t = (np.array(lane_lines[1].t) + np.array(lane_lines[2].t))/2
       # left and right ll x is the same
       self.ll_x = lane_lines[1].x
-      self.lll_y = np.array(lane_lines[1].y) + self.camera_offset
-      self.rll_y = np.array(lane_lines[2].y) + self.camera_offset
+      device_offset = self.cachedParams.get_float('jvePilot.settings.deviceOffset', 5000)
+      self.lll_y = np.array(lane_lines[1].y) + (self.camera_offset + device_offset)
+      self.rll_y = np.array(lane_lines[2].y) + (self.camera_offset + device_offset)
       self.lll_prob = md.laneLineProbs[1]
       self.rll_prob = md.laneLineProbs[2]
       self.lll_std = md.laneLineStds[1]

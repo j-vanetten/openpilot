@@ -8,6 +8,7 @@ from common.numpy_fast import clip
 from common.realtime import sec_since_boot, config_realtime_process, Priority, Ratekeeper, DT_CTRL
 from common.profiler import Profiler
 from common.params import Params, put_nonblocking
+from common.cached_params import CachedParams
 import cereal.messaging as messaging
 from common.conversions import Conversions as CV
 from panda import ALTERNATIVE_EXPERIENCE
@@ -69,7 +70,7 @@ class Controls:
     # Setup sockets
     self.pm = pm
     if self.pm is None:
-      self.pm = messaging.PubMaster(['sendcan', 'controlsState', 'carState',
+      self.pm = messaging.PubMaster(['jvePilotState', 'sendcan', 'controlsState', 'carState',
                                      'carControl', 'carEvents', 'carParams'])
 
     self.camera_packets = ["roadCameraState", "driverCameraState", "wideRoadCameraState"]
@@ -101,10 +102,11 @@ class Controls:
         ignore += ['driverCameraState', 'managerState']
       if params.get_bool('WideCameraOnly'):
         ignore += ['roadCameraState']
-      self.sm = messaging.SubMaster(['deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
-                                     'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
-                                     'managerState', 'liveParameters', 'radarState'] + self.camera_packets + joystick_packet,
-                                    ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan'])
+      self.sm = messaging.SubMaster(
+        ['jvePilotUIState', 'deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
+         'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
+         'managerState', 'liveParameters', 'radarState'] + self.camera_packets + joystick_packet,
+        ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan'])
 
     # set alternative experiences from parameters
     self.disengage_on_accelerator = params.get_bool("DisengageOnAccelerator")
@@ -178,6 +180,15 @@ class Controls:
     self.desired_curvature = 0.0
     self.desired_curvature_rate = 0.0
 
+    self.buttonPressTimes = {}
+    self.cachedParams = CachedParams()
+    self.reverse_acc_button_change = self.cachedParams.get('jvePilot.settings.reverseAccSpeedChange', 0) == "1"
+    self.jvePilotState = car.JvePilotState.new_message()
+    self.jvePilotState.carControl.autoFollow = params.get_bool('jvePilot.settings.autoFollow')
+    self.jvePilotState.carControl.useLaneLines = params.get_bool('jvePilot.settings.useLaneLines')
+    self.jvePilotState.carControl.accEco = int(params.get('jvePilot.carState.accEco', encoding='utf8') or "1")
+    self.ui_notify()
+
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
 
@@ -218,7 +229,7 @@ class Controls:
 
     # Disable on rising edge of accelerator or brake. Also disable on brake when speed > 0
     if (CS.gasPressed and not self.CS_prev.gasPressed and self.disengage_on_accelerator) or \
-      (CS.brakePressed and (not self.CS_prev.brakePressed or not CS.standstill)):
+      (CS.brakePressed and (not self.CS_prev.brakePressed and not CS.standstill)):
       self.events.add(EventName.pedalPressed)
 
     if CS.gasPressed:
@@ -390,15 +401,15 @@ class Controls:
       if self.sm['liveLocationKalman'].excessiveResets:
         self.events.add(EventName.localizerMalfunction)
 
-    # Only allow engagement with brake pressed when stopped behind another stopped car
-    speeds = self.sm['longitudinalPlan'].speeds
-    if len(speeds) > 1:
-      v_future = speeds[-1]
-    else:
-      v_future = 100.0
-    if CS.brakePressed and v_future >= self.CP.vEgoStarting \
-      and self.CP.openpilotLongitudinalControl and CS.vEgo < 0.3:
-      self.events.add(EventName.noTarget)
+    # # Only allow engagement with brake pressed when stopped behind another stopped car
+    # speeds = self.sm['longitudinalPlan'].speeds
+    # if len(speeds) > 1:
+    #   v_future = speeds[-1]
+    # else:
+    #   v_future = 100.0
+    # if CS.brakePressed and v_future >= self.CP.vEgoStarting \
+    #   and self.CP.openpilotLongitudinalControl and CS.vEgo < 0.3:
+    #   self.events.add(EventName.noTarget)
 
   def data_sample(self):
     """Receive data from sockets and update carState"""
@@ -443,7 +454,24 @@ class Controls:
 
     self.distance_traveled += CS.vEgo * DT_CTRL
 
+    if self.jvePilotState.notifyUi:
+      self.ui_notify()
+    elif self.sm.updated['jvePilotUIState']:
+      self.jvePilotState.carControl.autoFollow = self.sm['jvePilotUIState'].autoFollow
+      self.jvePilotState.carControl.accEco = self.sm['jvePilotUIState'].accEco
+      put_nonblocking("jvePilot.carState.accEco", str(self.sm['jvePilotUIState'].accEco))
+
     return CS
+
+  def ui_notify(self):
+    self.jvePilotState.notifyUi = False
+
+    msg = messaging.new_message('jvePilotUIState')
+    msg.jvePilotUIState = self.sm['jvePilotUIState']
+    msg.jvePilotUIState.autoFollow = self.jvePilotState.carControl.autoFollow
+    msg.jvePilotUIState.accEco = self.jvePilotState.carControl.accEco
+    msg.jvePilotUIState.useLaneLines = self.jvePilotState.carControl.useLaneLines
+    self.pm.send('jvePilotState', msg)
 
   def state_transition(self, CS):
     """Compute conditional state transitions and execute actions on state transitions"""
@@ -451,9 +479,10 @@ class Controls:
     self.v_cruise_kph_last = self.v_cruise_kph
 
     # if stock cruise is completely disabled, then we can use our own set speed logic
-    if not self.CP.pcmCruise:
+    if not self.CP.pcmCruise or not self.CP.pcmCruiseSpeed:
       self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.vEgo, CS.gasPressed, CS.buttonEvents,
-                                          self.button_timers, self.enabled, self.is_metric)
+                                          self.button_timers, self.enabled, self.is_metric,
+                                          self.reverse_acc_button_change)
     else:
       if CS.cruiseState.available:
         self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
@@ -536,8 +565,7 @@ class Controls:
           else:
             self.state = State.enabled
           self.current_alert_types.append(ET.ENABLE)
-          if not self.CP.pcmCruise:
-            self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last)
+          self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last, self.is_metric)
 
     # Check if openpilot is engaged and actuators are enabled
     self.enabled = self.state in ENABLED_STATES
@@ -563,6 +591,9 @@ class Controls:
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
                      CS.vEgo > self.CP.minSteerSpeed and not CS.standstill
     CC.longActive = self.active and not self.events.any(ET.OVERRIDE) and self.CP.openpilotLongitudinalControl
+
+    CC.jvePilotState.carState = CS.jvePilotCarState
+    CC.jvePilotState.carControl = self.jvePilotState.carControl
 
     actuators = CC.actuators
     actuators.longControlState = self.LoC.long_control_state
@@ -668,6 +699,14 @@ class Controls:
     if len(speeds):
       CC.cruiseControl.resume = self.enabled and CS.cruiseState.standstill and speeds[-1] > 0.1
 
+    # target the future speed
+    v_max_speed = float(self.v_cruise_kph * CV.KPH_TO_MS)
+    CC.jvePilotState.carControl.vMaxCruise = v_max_speed
+    v_target_future = 0
+    if len(speeds) > 0:
+      v_target_future = min(speeds) if CC.actuators.accel < 0 else max(speeds)
+    CC.jvePilotState.carControl.vTargetFuture = min(v_max_speed, v_target_future)
+
     hudControl = CC.hudControl
     hudControl.setSpeed = float(self.v_cruise_kph * CV.KPH_TO_MS)
     hudControl.speedVisible = self.enabled
@@ -690,8 +729,9 @@ class Controls:
       r_lane_change_prob = desire_prediction[Desire.laneChangeRight - 1]
 
       lane_lines = model_v2.laneLines
-      l_lane_close = left_lane_visible and (lane_lines[1].y[0] > -(1.08 + CAMERA_OFFSET))
-      r_lane_close = right_lane_visible and (lane_lines[2].y[0] < (1.08 - CAMERA_OFFSET))
+      device_offset = self.cachedParams.get_float('jvePilot.settings.deviceOffset', 5000)
+      l_lane_close = left_lane_visible and (lane_lines[1].y[0] > -(1.08 + (CAMERA_OFFSET + device_offset)))
+      r_lane_close = right_lane_visible and (lane_lines[2].y[0] < (1.08 - (CAMERA_OFFSET + device_offset)))
 
       hudControl.leftLaneDepart = bool(l_lane_change_prob > LANE_DEPARTURE_THRESHOLD and l_lane_close)
       hudControl.rightLaneDepart = bool(r_lane_change_prob > LANE_DEPARTURE_THRESHOLD and r_lane_close)
@@ -716,6 +756,8 @@ class Controls:
       self.last_actuators, can_sends = self.CI.apply(CC)
       self.pm.send('sendcan', can_list_to_can_capnp(can_sends, msgtype='sendcan', valid=CS.canValid))
       CC.actuatorsOutput = self.last_actuators
+      self.jvePilotState.carControl = CC.jvePilotState.carControl
+      self.jvePilotState.notifyUi = CC.jvePilotState.notifyUi
 
     force_decel = (self.sm['driverMonitoringState'].awarenessStatus < 0.) or \
                   (self.state == State.softDisabling)

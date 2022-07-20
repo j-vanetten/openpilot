@@ -18,6 +18,7 @@ const int CHRYSLER_RAM_MAX_RATE_DOWN = 6;
 #define DAS_3                      500  // ACC engagement states from DASM
 #define DAS_6                      678  // LKAS HUD and auto headlight control from DASM
 #define LKAS_COMMAND               658  // LKAS controls from DASM
+#define LKAS_HEARTBIT              729  // LKAS HEARTBIT from DASM
 #define CRUISE_BUTTONS             571  // Cruise control buttons
 
 // CAN messages for the 5h gen RAM DT platform
@@ -34,6 +35,7 @@ const CanMsg CHRYSLER_TX_MSGS[] = {
   {CRUISE_BUTTONS, 0, 3},
   {LKAS_COMMAND, 0, 6},
   {DAS_6, 0, 8},
+  {LKAS_HEARTBIT, 0, 5},
 };
 
 const CanMsg CHRYSLER_RAM_TX_MSGS[] = {
@@ -135,7 +137,8 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
       if (cruise_engaged && !cruise_engaged_prev) {
         controls_allowed = 1;
       }
-      if (!cruise_engaged) {
+      // keep control if stopped when cruise disengaged
+      else if (!cruise_engaged && vehicle_moving) {
         controls_allowed = 0;
       }
       cruise_engaged_prev = cruise_engaged;
@@ -235,15 +238,15 @@ static int chrysler_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     }
   }
 
-  // FORCE CANCEL: only the cancel button press is allowed
-  if ((addr == CRUISE_BUTTONS) || (addr == CRUISE_BUTTONS_RAM)) {
-    const bool is_cancel = GET_BYTE(to_send, 0) == 1U;
-    const bool is_resume = GET_BYTE(to_send, 0) == 0x10U;
-    const bool allowed = is_cancel || (is_resume && controls_allowed);
-    if (!allowed) {
-      tx = 0;
-    }
-  }
+//  // FORCE CANCEL: only the cancel button press is allowed
+//  if ((addr == CRUISE_BUTTONS) || (addr == CRUISE_BUTTONS_RAM)) {
+//    const bool is_cancel = GET_BYTE(to_send, 0) == 1U;
+//    const bool is_resume = GET_BYTE(to_send, 0) == 0x10U;
+//    const bool allowed = is_cancel || (is_resume && controls_allowed);
+//    if (!allowed) {
+//      tx = 0;
+//    }
+//  }
 
   return tx;
 }
@@ -258,7 +261,7 @@ static int chrysler_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   }
 
   // forward all messages from camera except LKAS messages
-  const bool is_lkas = (!chrysler_ram && ((addr == LKAS_COMMAND) || (addr == DAS_6))) ||
+  const bool is_lkas = (!chrysler_ram && ((addr == LKAS_COMMAND) || (addr == DAS_6) || (addr == LKAS_HEARTBIT))) ||
                        (chrysler_ram && ((addr == LKAS_COMMAND_RAM) || (addr == DAS_6_RAM)));
   if ((bus_num == 2) && !is_lkas){
     bus_fwd = 0;
