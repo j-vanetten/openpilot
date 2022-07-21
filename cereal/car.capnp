@@ -12,8 +12,7 @@ struct JvePilotState {
 
   struct CarState {
     accFollowDistance @0 :UInt8;
-    buttonCounter @1 :UInt8;
-    pedalPressedAmount @2 :Float32;
+    pedalPressedAmount @1 :Float32;
   }
 
   struct CarControl {
@@ -368,9 +367,9 @@ struct CarControl {
 
   struct CruiseControl {
     cancel @0: Bool;
-    override @1: Bool;
-    speedOverride @2: Float32;
-    accelOverride @3: Float32;
+    resume @1: Bool;
+    speedOverrideDEPRECATED @2: Float32;
+    accelOverrideDEPRECATED @3: Float32;
   }
 
   struct HUDControl {
@@ -443,6 +442,7 @@ struct CarParams {
   maxSteeringAngleDeg @54 :Float32;
   safetyConfigs @62 :List(SafetyConfig);
   alternativeExperience @65 :Int16;      # panda flag for features like no disengage on gas
+  maxLateralAccel @68 :Float32;
 
   steerMaxBPDEPRECATED @11 :List(Float32);
   steerMaxVDEPRECATED @12 :List(Float32);
@@ -480,7 +480,6 @@ struct CarParams {
   directAccelControl @30 :Bool; # Does the car have direct accel control or just gas/brake
   stoppingControl @31 :Bool; # Does the car allows full control even at lows speeds when stopping
   stopAccel @60 :Float32; # Required acceleraton to keep vehicle stationary
-  steerRateCost @33 :Float32; # Lateral MPC cost on steering rate
   steerControlType @34 :SteerControlType;
   radarOffCan @35 :Bool; # True when radar objects aren't visible on CAN
   stoppingDecelRate @52 :Float32; # m/s^2/s while trying to stop
@@ -526,6 +525,7 @@ struct CarParams {
     ki @2 :Float32;
     friction @3 :Float32;
     kf @4 :Float32;
+    steeringAngleDeadzoneDeg @5 :Float32;
   }
 
   struct LongitudinalPIDTuning {
@@ -616,8 +616,11 @@ struct CarParams {
   struct CarFw {
     ecu @0 :Ecu;
     fwVersion @1 :Data;
-    address @2: UInt32;
-    subAddress @3: UInt8;
+    address @2 :UInt32;
+    subAddress @3 :UInt8;
+    responseAddress @4 :UInt32;
+    request @5 :List(Data);
+    brand @6 :Text;
   }
 
   enum Ecu {
@@ -658,6 +661,7 @@ struct CarParams {
   }
 
   enableCameraDEPRECATED @4 :Bool;
+  steerRateCostDEPRECATED @33 :Float32;
   pcmCruiseSpeed @39 :Bool; # repurposed for jvePilot
   hasStockCameraDEPRECATED @57 :Bool;
   safetyParamDEPRECATED @10 :Int16;
