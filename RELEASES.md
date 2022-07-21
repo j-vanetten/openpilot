@@ -2,7 +2,7 @@ Version jvePilot-0.8.15(v3.11.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
 * Fix disengage on accelerator option
-* Update to 0.8.14
+* Update to 0.8.15
   * New driving model
     * Path planning uses end-to-end output instead of lane lines at all times
     * Reduced ping pong
