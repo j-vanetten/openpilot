@@ -135,6 +135,15 @@ FW_VERSIONS: Dict[str, Dict[Tuple[capnp.lib.capnp._EnumModule, int, Optional[int
     (Ecu.engine, 0x7e0, None): [],
     (Ecu.transmission, 0x7e1, None): [],
     (Ecu.gateway, 0x18DACBF1, None): [],
+  },
+    CAR.PACIFICA_2018: {
+    (Ecu.combinationMeter, 0x742, None): [b'68227902AF'],
+    (Ecu.srs, 0x744, None): [b'68211617AF'],
+    (Ecu.esp, 0x747, None): [b'68222747AG'],
+    (Ecu.fwdCamera, 0x753, None): [b'68226356AF'],
+    (Ecu.fwdCamera, 0x764, None): [b'68223694AD'],
+    (Ecu.eps, 0x75A, None): [b'68288891AE'],
+    (Ecu.transmission, 0x7e1, None): [b'68277370AJ'],
   }
 }
 
