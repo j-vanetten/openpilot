@@ -2,22 +2,21 @@
 from cereal import car
 from common.params import Params
 from common.realtime import Priority, config_realtime_process
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 from selfdrive.controls.lib.longitudinal_planner import Planner
 from selfdrive.controls.lib.lateral_planner import LateralPlanner
-from selfdrive.hardware import TICI
 import cereal.messaging as messaging
 
 
 def plannerd_thread(sm=None, pm=None):
-  config_realtime_process(5 if TICI else 2, Priority.CTRL_LOW)
+  config_realtime_process(5, Priority.CTRL_LOW)
 
   cloudlog.info("plannerd is waiting for CarParams")
   params = Params()
   CP = car.CarParams.from_bytes(params.get("CarParams", block=True))
   cloudlog.info("plannerd got CarParams: %s", CP.carName)
 
-  wide_camera = params.get_bool('EnableWideCamera') if TICI else False
+  wide_camera = params.get_bool('WideCameraOnly')
 
   longitudinal_planner = Planner(CP)
   lateral_planner = LateralPlanner(CP, wide_camera=wide_camera)
