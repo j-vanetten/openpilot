@@ -11,7 +11,7 @@ from common.params import Params
 from cereal import car
 from selfdrive.car.chrysler.interface import GAS_RESUME_SPEED
 
-
+GearShifter = car.CarState.GearShifter
 ButtonType = car.CarState.ButtonEvent.Type
 
 V_CRUISE_MIN_IMPERIAL_MS = V_CRUISE_MIN_IMPERIAL * CV.KPH_TO_MS
@@ -59,7 +59,7 @@ class CarController:
 
     # EPS faults if LKAS re-enables too quickly
     lkas_control_bit = lkas_control_bit and (self.frame - self.last_lkas_falling_edge > 200)
-    lkas_active = CC.latActive and self.lkas_control_bit_prev
+    lkas_active = CC.latActive and self.lkas_control_bit_prev and CS.out.gearShifter == GearShifter.drive
 
     # *** control msgs ***
 
