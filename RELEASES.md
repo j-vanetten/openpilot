@@ -1,3 +1,9 @@
+Version jvePilot-0.8.15(v3.11.2)
+========================
+Visit http://bit.ly/jvereadme for more information
+* Add some more v2 fingerprints
+* Only allow steer torque while in drive
+
 Version jvePilot-0.8.15(v3.11.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
