@@ -27,7 +27,7 @@ class CarController:
     self.steer_rate_limited = False
 
     self.hud_count = 0
-    self.last_lkas_falling_edge = 0
+    self.next_lkas_control_change = 0
     self.lkas_control_bit_prev = False
     self.last_button_counter = 0
 
@@ -39,6 +39,7 @@ class CarController:
     self.auto_resume = self.settingsParams.get_bool('jvePilot.settings.autoResume')
     self.minAccSetting = V_CRUISE_MIN_MS if self.settingsParams.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
     self.round_to_unit = CV.MS_TO_KPH if self.settingsParams.get_bool("IsMetric") else CV.MS_TO_MPH
+    self.steerNoMinimum = self.settingsParams.get_bool("jvePilot.settings.steer.noMinimum")
 
     self.autoFollowDistanceLock = None
     self.button_frame = 0
@@ -48,7 +49,7 @@ class CarController:
 
     # TODO: can we make this more sane? why is it different for all the cars?
     lkas_control_bit = self.lkas_control_bit_prev
-    if CS.out.vEgo > self.CP.minSteerSpeed:
+    if CS.out.vEgo > self.CP.minSteerSpeed or self.steerNoMinimum:
       lkas_control_bit = True
     elif self.CP.carFingerprint in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
       if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
@@ -58,8 +59,8 @@ class CarController:
         lkas_control_bit = False
 
     # EPS faults if LKAS re-enables too quickly
-    lkas_control_bit = lkas_control_bit and (self.frame - self.last_lkas_falling_edge > 200)
-    lkas_active = CC.latActive and self.lkas_control_bit_prev and CS.out.gearShifter == GearShifter.drive
+    lkas_control_bit = lkas_control_bit and (self.frame >= self.next_lkas_control_change)
+    lkas_active = CC.latActive and self.lkas_control_bit_prev
 
     # *** control msgs ***
 
@@ -95,7 +96,7 @@ class CarController:
 
     self.frame += 1
     if not lkas_control_bit and self.lkas_control_bit_prev:
-      self.last_lkas_falling_edge = self.frame
+      self.next_lkas_control_change = self.frame + 200
     self.lkas_control_bit_prev = lkas_control_bit
 
     new_actuators = CC.actuators.copy()
