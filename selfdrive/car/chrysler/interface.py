@@ -1,15 +1,36 @@
 #!/usr/bin/env python3
 from cereal import car
 from panda import Panda
+from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.chrysler.values import CAR, DBC, RAM_CARS
 from selfdrive.car.interfaces import CarInterfaceBase
+from common.cached_params import CachedParams
 from common.params import Params
 
 ButtonType = car.CarState.ButtonEvent.Type
 GAS_RESUME_SPEED = 1.
+cachedParams = CachedParams()
 
 class CarInterface(CarInterfaceBase):
+  @staticmethod
+  def get_pid_accel_limits(CS, CP, current_speed, cruise_speed):
+    return CarControllerParams.ACCEL_MIN, CarInterface.accel_max(CS)
+
+  @staticmethod
+  def accel_max(CS):
+    maxAccel = CarControllerParams.ACCEL_MAX
+    if CS.longControl:
+      eco = cachedParams.get_float('jvePilot.carState.accEco', 1000)
+      if eco == 1:
+        maxAccel = cachedParams.get_float('jvePilot.settings.longControl.eco1', 1000)
+      elif eco == 2:
+        maxAccel = cachedParams.get_float('jvePilot.settings.longControl.eco2', 1000)
+      else:
+        maxAccel = cachedParams.get_float('jvePilot.settings.longControl.eco0', 1000)
+
+    return maxAccel
+
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None, disable_radar=False):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
@@ -104,6 +125,9 @@ class CarInterface(CarInterfaceBase):
       if self.low_speed_alert:
         events.add(car.CarEvent.EventName.belowSteerSpeed)
 
+    # if self.CS.cruise_error:
+    #   events.add(car.CarEvent.EventName.brakeUnavailable)
+
     if self.CS.button_pressed(ButtonType.cancel):
       events.add(car.CarEvent.EventName.buttonCancel)  # cancel button pressed
     elif ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
@@ -111,6 +135,9 @@ class CarInterface(CarInterfaceBase):
     elif (not ret.cruiseState.enabled) and (ret.vEgo > GAS_RESUME_SPEED or (self.CS.out.cruiseState.enabled and (not ret.standstill))):
       events.add(car.CarEvent.EventName.pcmDisable)  # give up, too fast to resume
 
+    if self.CS.longControl:
+      if ret.brakePressed and not self.CS.out.brakePressed:
+        events.add(car.CarEvent.EventName.pedalPressed)
     ret.events = events.to_msg()
 
     return ret

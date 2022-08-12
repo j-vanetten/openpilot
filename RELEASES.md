@@ -1,6 +1,10 @@
-Version jvePilot-0.8.15(v3.11.0)
+Version jvePilot-0.8.15(v4.0.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Add experimental longitudinal control option for Jeeps
+
+Version jvePilot-0.8.15(v3.11.0)
+========================
 * Fix disengage on accelerator option
 * Lane less is now the default (Enable LKAS dash button to switch to lane lines)  
 * Update to 0.8.15

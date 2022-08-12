@@ -3,7 +3,8 @@ from common.conversions import Conversions as CV
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD, RAM_CARS
+from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD, RAM_CARS, CAR
+from common.cached_params import CachedParams
 
 import numpy as np
 
@@ -38,6 +39,18 @@ class CarState(CarStateBase):
 
     self.lkasHeartbit = None
 
+    # long control
+    self.longControl = False
+    self.cachedParams = CachedParams()
+    self.das_3 = None
+    self.longEnabled = False
+    self.longControl = False
+    self.gasRpm = None
+    self.allowLong = CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019)
+    self.torqMin = None
+    self.torqMax = None
+    self.currentGear = None
+
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
 
@@ -63,7 +76,7 @@ class CarState(CarStateBase):
       ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["GEAR"]["PRNDL"], None))
     ret.vEgoRaw = cp.vl["ESP_8"]["Vehicle_Speed"] * CV.KPH_TO_MS
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
-    ret.standstill = not ret.vEgoRaw > 0.001
+    ret.standstill = ret.vEgoRaw <= 0.001
     ret.wheelSpeeds = self.get_wheel_speeds(
       cp.vl["ESP_6"]["WHEEL_SPEED_FL"],
       cp.vl["ESP_6"]["WHEEL_SPEED_FR"],
@@ -87,12 +100,29 @@ class CarState(CarStateBase):
     # cruise state
     cp_cruise = cp_cam if self.CP.carFingerprint in RAM_CARS else cp
 
-    ret.cruiseState.available = cp_cruise.vl["DAS_3"]["ACC_AVAILABLE"] == 1
-    ret.cruiseState.enabled = cp_cruise.vl["DAS_3"]["ACC_ACTIVE"] == 1
+    self.longControl = self.allowLong and cp.vl["DAS_4"]["ACC_STATE"] == 0 and self.cachedParams.get_bool('jvePilot.settings.longControl', 1000)
+    if self.longControl:
+      ret.jvePilotCarState.longControl = True
+      ret.cruiseState.enabled = self.longEnabled
+      ret.cruiseState.available = True
+      ret.cruiseState.nonAdaptive = False
+      ret.cruiseState.standstill = False
+      ret.accFaulted = False
+      self.torqMin = cp.vl["DAS_3"]["ACC_TORQ_REQ"]
+      self.torqMax = cp.vl["AXLE_TORQ_ICE"]["AXLE_TORQ_MAX"]
+      self.currentGear = cp.vl['TCM_A7']["CurrentGear"]
+      self.gasRpm = cp.vl["ACCEL_PEDAL_MSG"]["ENGINE_RPM"]
+      self.das_3 = cp.vl['DAS_3']
+    else:
+      ret.jvePilotCarState.longControl = False
+      self.longEnabled = False
+      ret.cruiseState.available = cp_cruise.vl["DAS_3"]["ACC_AVAILABLE"] == 1
+      ret.cruiseState.enabled = cp_cruise.vl["DAS_3"]["ACC_ACTIVE"] == 1
+      ret.cruiseState.nonAdaptive = cp_cruise.vl["DAS_4"]["ACC_STATE"] in (1, 2)  # 1 NormalCCOn and 2 NormalCCSet
+      ret.cruiseState.standstill = cp_cruise.vl["DAS_3"]["ACC_STANDSTILL"] == 1
+      ret.accFaulted = cp_cruise.vl["DAS_3"]["ACC_FAULTED"] != 0
+
     ret.cruiseState.speed = cp_cruise.vl["DAS_4"]["ACC_SET_SPEED_KPH"] * CV.KPH_TO_MS
-    ret.cruiseState.nonAdaptive = cp_cruise.vl["DAS_4"]["ACC_STATE"] in (1, 2)  # 1 NormalCCOn and 2 NormalCCSet
-    ret.cruiseState.standstill = cp_cruise.vl["DAS_3"]["ACC_STANDSTILL"] == 1
-    ret.accFaulted = cp_cruise.vl["DAS_3"]["ACC_FAULTED"] != 0
     self.lkasHeartbit = cp_cam.vl["LKAS_HEARTBIT"]
 
     if self.CP.carFingerprint in RAM_CARS:
@@ -165,6 +195,21 @@ class CarState(CarStateBase):
       ("ACC_SET_SPEED_KPH", "DAS_4"),
       ("ACC_STATE", "DAS_4"),
       ("ACC_DISTANCE_CONFIG_2", "DAS_4"),
+
+      ("ACC_GO", "DAS_3", 0),
+      ("ACC_TORQ", "DAS_3", 0),
+      ("ACC_TORQ_REQ", "DAS_3", 0),
+      ("ACC_DECEL", "DAS_3", 0),
+      ("ACC_DECEL_REQ", "DAS_3", 0),
+      ("ACC_AVAILABLE", "DAS_3", 0),
+      ("DISABLE_FUEL_SHUTOFF", "DAS_3", 0),
+      ("GR_MAX_REQ", "DAS_3", 0),
+      ("STS", "DAS_3", 0),
+      ("COLLISION_BRK_PREP", "DAS_3", 0),
+      ("ACC_BRK_PREP", "DAS_3", 0),
+      ("DISPLAY_REQ", "DAS_3", 0),
+      ("COUNTER", "DAS_3", 0),
+      ("CHECKSUM", "DAS_3", 0),
     ]
     checks = [
       ("DAS_3", 50),
@@ -206,6 +251,12 @@ class CarState(CarStateBase):
       ("Vehicle_Speed", "ESP_8"),
       ("ACCEL", "ACCEL_RELATED_120"),
       ("BRK_PRESSURE", "ESP_8"),
+
+
+      ("ENGINE_RPM", "ACCEL_PEDAL_MSG", 0),
+      ("AXLE_TORQ_MIN", "AXLE_TORQ_ICE", 0),
+      ("AXLE_TORQ_MAX", "AXLE_TORQ_ICE", 0),
+      ("CurrentGear", "TCM_A7", 0),
     ]
 
     checks = [
@@ -222,6 +273,10 @@ class CarState(CarStateBase):
       ("ESP_8", 50),
       ("ACCEL_RELATED_120", 50),
       ("TRACTION_BUTTON", 1),
+
+      ("ACCEL_PEDAL_MSG", 50),
+      ("AXLE_TORQ_ICE", 50),
+      ("TCM_A7", 50),
     ]
 
     if CP.enableBsm:

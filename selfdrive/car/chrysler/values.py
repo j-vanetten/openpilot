@@ -26,6 +26,9 @@ class CAR:
 
 
 class CarControllerParams:
+  ACCEL_MAX = 2.  # m/s2, high to not limit stock ACC
+  ACCEL_MIN = -3.5  # m/s2
+
   def __init__(self, CP):
     self.STEER_MAX = 261  # higher than this faults the EPS on Chrysler/Jeep. Ram DT allows more
     self.STEER_ERROR_MAX = 80

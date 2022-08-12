@@ -83,7 +83,7 @@ class CarInterfaceBase(ABC):
     self.disable_auto_resume = params.get('jvePilot.settings.autoResume', encoding='utf8') != "1"
 
   @staticmethod
-  def get_pid_accel_limits(CP, current_speed, cruise_speed):
+  def get_pid_accel_limits(CS, CP, current_speed, cruise_speed):
     return ACCEL_MIN, ACCEL_MAX
 
   @staticmethod

@@ -16,6 +16,7 @@ const int CHRYSLER_RAM_MAX_RATE_DOWN = 6;
 #define ESP_8                      284  // Brake pedal and vehicle speed
 #define ECM_5                      559  // Throttle position sensor
 #define DAS_3                      500  // ACC engagement states from DASM
+#define DAS_4                      501  // DASHBOARD
 #define DAS_6                      678  // LKAS HUD and auto headlight control from DASM
 #define LKAS_COMMAND               658  // LKAS controls from DASM
 #define LKAS_HEARTBIT              729  // LKAS HEARTBIT from DASM
@@ -36,6 +37,7 @@ const CanMsg CHRYSLER_TX_MSGS[] = {
   {LKAS_COMMAND, 0, 6},
   {DAS_6, 0, 8},
   {LKAS_HEARTBIT, 0, 5},
+  {DAS_3, 0, 8},
 };
 
 const CanMsg CHRYSLER_RAM_TX_MSGS[] = {
@@ -68,6 +70,7 @@ addr_checks chrysler_rx_checks = {chrysler_addr_checks, CHRYSLER_ADDR_CHECK_LEN}
 const uint32_t CHRYSLER_PARAM_RAM_DT = 1U;  // set for Ram DT platform
 
 bool chrysler_ram = false;
+int cruise_mode = -1;
 
 static uint32_t chrysler_get_checksum(CANPacket_t *to_push) {
   int checksum_byte = GET_LEN(to_push) - 1U;
@@ -121,6 +124,9 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
   const int addr = GET_ADDR(to_push);
 
   if (valid) {
+//    if (addr == DAS_4) {
+//      cruise_mode = ((GET_BYTE(to_push, 4) & 0x70U) >> 4); // TODO: Check this
+//    }
 
     // Measured EPS torque
     const int eps_2 = chrysler_ram ? EPS_2_RAM : EPS_2;
@@ -130,19 +136,21 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
     }
 
     // enter controls on rising edge of ACC, exit controls on ACC off
-    const int das_3 = chrysler_ram ? DAS_3_RAM : DAS_3;
-    const int das_3_bus = chrysler_ram ? 2 : 0;
-    if ((bus == das_3_bus) && (addr == das_3)) {
-      int cruise_engaged = GET_BIT(to_push, 21U) == 1U;
-      if (cruise_engaged && !cruise_engaged_prev) {
-        controls_allowed = 1;
-      }
-      // keep control if stopped when cruise disengaged
-      else if (!cruise_engaged && vehicle_moving) {
-        controls_allowed = 0;
-      }
-      cruise_engaged_prev = cruise_engaged;
-    }
+//    const int das_3 = chrysler_ram ? DAS_3_RAM : DAS_3;
+//    const int das_3_bus = chrysler_ram ? 2 : 0;
+//    if ((bus == das_3_bus) && (addr == das_3)) {
+//      if (cruise_mode == 3 || cruise_mode == 4) {
+//        int cruise_engaged = GET_BIT(to_push, 21U) == 1U;
+//        if (cruise_engaged && !cruise_engaged_prev) {
+//          controls_allowed = 1;
+//        }
+//        // keep control if stopped when cruise disengaged
+//        else if (!cruise_engaged && vehicle_moving) {
+//          controls_allowed = 0;
+//        }
+//        cruise_engaged_prev = cruise_engaged;
+//      }
+//    }
 
     // TODO: use the same message for both
     // update speed
@@ -185,6 +193,10 @@ static int chrysler_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     tx = msg_allowed(to_send, CHRYSLER_RAM_TX_MSGS, sizeof(CHRYSLER_RAM_TX_MSGS) / sizeof(CHRYSLER_RAM_TX_MSGS[0]));
   } else {
     tx = msg_allowed(to_send, CHRYSLER_TX_MSGS, sizeof(CHRYSLER_TX_MSGS) / sizeof(CHRYSLER_TX_MSGS[0]));
+  }
+
+  if (addr == DAS_3) {
+    controls_allowed = 1; // cruise_mode == 0 && ((GET_BYTE(to_send, 2) & 0x38U) >> 3) == 7U;
   }
 
   // STEERING
@@ -272,7 +284,7 @@ static int chrysler_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
 static const addr_checks* chrysler_init(uint16_t param) {
   chrysler_ram = GET_FLAG(param, CHRYSLER_PARAM_RAM_DT);
-
+  controls_allowed = 1;
   if (chrysler_ram) {
     chrysler_rx_checks = (addr_checks){chrysler_ram_addr_checks, CHRYSLER_RAM_ADDR_CHECK_LEN};
   } else {

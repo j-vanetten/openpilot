@@ -13,6 +13,7 @@ struct JvePilotState {
   struct CarState {
     accFollowDistance @0 :UInt8;
     pedalPressedAmount @1 :Float32;
+    longControl @2 :Bool;
   }
 
   struct CarControl {

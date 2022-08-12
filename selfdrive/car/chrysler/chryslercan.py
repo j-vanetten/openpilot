@@ -78,3 +78,40 @@ def create_wheel_buttons_command(packer, counter, buttons):
       values[b] = 1
 
   return packer.make_can_msg("CRUISE_BUTTONS", 0, values)
+
+
+def acc_log(packer, adjustment, aTarget, vTarget, stopping, standstill):
+  values = {
+    'OP_A_TARGET': aTarget,
+    'OP_V_TARGET': vTarget,
+    'ADJUSTMENT': adjustment,
+    'STOPPING': stopping,
+    'STANDSTILL': standstill,
+  }
+  return packer.make_can_msg("ACC_LOG", 0, values)
+
+
+def acc_command(packer, counter, enabled, go, gas, max_gear, stop, brake, das_3):
+  values = das_3.copy()  # forward what we parsed
+  values['ACC_AVAILABLE'] = 1
+  values['ACC_ACTIVE'] = enabled
+  values['COUNTER'] = counter % 0x10
+
+  if go is not None:
+    values['ACC_GO'] = go
+
+  if stop is not None:
+    values['ACC_STANDSTILL'] = stop
+
+  if brake is not None:
+    values['ACC_DECEL_REQ'] = enabled
+    values['ACC_DECEL'] = brake
+
+  if gas is not None:
+    values['ACC_TORQ_REQ'] = enabled
+    values['ACC_TORQ'] = gas
+
+  if max_gear is not None:
+    values['GR_MAX_REQ'] = max_gear
+
+  return packer.make_can_msg("DAS_3", 0, values)

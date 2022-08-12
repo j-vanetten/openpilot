@@ -29,7 +29,7 @@ class NvgWindow : public CameraViewWidget {
   Q_OBJECT
   Q_PROPERTY(int pedalPressedAmount MEMBER pedalPressedAmount);
   Q_PROPERTY(int accEco MEMBER accEco);
-  Q_PROPERTY(bool autoFollowEnabled MEMBER autoFollowEnabled);
+  Q_PROPERTY(int autoFollowEnabled MEMBER autoFollowEnabled);
 
   Q_PROPERTY(float speed MEMBER speed);
   Q_PROPERTY(QString speedUnit MEMBER speedUnit);
@@ -58,7 +58,7 @@ private:
   QPixmap auto_follow_imgs[2];
   int pedalPressedAmount;
   int accEco;
-  bool autoFollowEnabled;
+  int autoFollowEnabled;
 
   QPixmap engage_img;
   QPixmap dm_img;

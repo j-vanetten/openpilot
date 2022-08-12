@@ -62,6 +62,8 @@ ENABLED_STATES = (State.preEnabled, *ACTIVE_STATES)
 
 class Controls:
   def __init__(self, sm=None, pm=None, can_sock=None, CI=None):
+    self.lastLongControl = None
+
     config_realtime_process(4, Priority.CTRL_HIGH)
 
     # Ensure the current branch is cached, otherwise the first iteration of controlsd lags
@@ -187,7 +189,7 @@ class Controls:
     self.jvePilotState.carControl.autoFollow = params.get_bool('jvePilot.settings.autoFollow')
     self.jvePilotState.carControl.useLaneLines = params.get_bool('jvePilot.settings.useLaneLines')
     self.jvePilotState.carControl.accEco = int(params.get('jvePilot.carState.accEco', encoding='utf8') or "1")
-    self.ui_notify()
+    self.jvePilotState.notifyUi = True
 
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
@@ -454,21 +456,26 @@ class Controls:
 
     self.distance_traveled += CS.vEgo * DT_CTRL
 
-    if self.jvePilotState.notifyUi:
-      self.ui_notify()
-    elif self.sm.updated['jvePilotUIState']:
-      self.jvePilotState.carControl.autoFollow = self.sm['jvePilotUIState'].autoFollow
-      self.jvePilotState.carControl.accEco = self.sm['jvePilotUIState'].accEco
-      put_nonblocking("jvePilot.carState.accEco", str(self.sm['jvePilotUIState'].accEco))
+    if self.CI.CS is not None:
+      if self.lastLongControl is None or self.lastLongControl != self.CI.CS.longControl:
+        self.jvePilotState.notifyUi = True
+        self.lastLongControl = self.CI.CS.longControl
+
+      if self.jvePilotState.notifyUi:
+        self.ui_notify(self.CI.CS)
+      elif self.sm.updated['jvePilotUIState']:
+        self.jvePilotState.carControl.autoFollow = self.sm['jvePilotUIState'].autoFollow
+        self.jvePilotState.carControl.accEco = self.sm['jvePilotUIState'].accEco
+        put_nonblocking("jvePilot.carState.accEco", str(self.sm['jvePilotUIState'].accEco))
 
     return CS
 
-  def ui_notify(self):
+  def ui_notify(self, CS):
     self.jvePilotState.notifyUi = False
 
     msg = messaging.new_message('jvePilotUIState')
     msg.jvePilotUIState = self.sm['jvePilotUIState']
-    msg.jvePilotUIState.autoFollow = self.jvePilotState.carControl.autoFollow
+    msg.jvePilotUIState.autoFollow = -1 if CS.longControl else (1 if self.jvePilotState.carControl.autoFollow else 0)
     msg.jvePilotUIState.accEco = self.jvePilotState.carControl.accEco
     msg.jvePilotUIState.useLaneLines = self.jvePilotState.carControl.useLaneLines
     self.pm.send('jvePilotState', msg)
@@ -610,7 +617,7 @@ class Controls:
 
     if not self.joystick_mode:
       # accel PID loop
-      pid_accel_limits = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_kph * CV.KPH_TO_MS)
+      pid_accel_limits = self.CI.get_pid_accel_limits(self.CI.CS, self.CP, CS.vEgo, self.v_cruise_kph * CV.KPH_TO_MS)
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
       actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan)
 
@@ -702,9 +709,7 @@ class Controls:
     # target the future speed
     v_max_speed = float(self.v_cruise_kph * CV.KPH_TO_MS)
     CC.jvePilotState.carControl.vMaxCruise = v_max_speed
-    v_target_future = 0
-    if len(speeds) > 0:
-      v_target_future = min(speeds) if CC.actuators.accel < 0 else max(speeds)
+    v_target_future = speeds[-1] if len(speeds) > 0 else 0
     CC.jvePilotState.carControl.vTargetFuture = min(v_max_speed, v_target_future)
 
     hudControl = CC.hudControl

@@ -17,16 +17,19 @@ from system.swaglog import cloudlog
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2  # car smoothly decel at .2m/s^2 when user is distracted
-A_CRUISE_MIN = -10.
-A_CRUISE_MAX = 10.
+A_CRUISE_MIN = -1.2
+A_CRUISE_MAX_VALS = [2., 2., 2., 2.]  # jvePilot wants all the power all the time
+A_CRUISE_MAX_BP = [0., 15., 25., 40.]
 
 # Lookup table for turns
 _A_TOTAL_MAX_V = [1.7, 3.2]
 _A_TOTAL_MAX_BP = [20., 40.]
 
+MIN_SLOW_SPEED = 30 * CV.KPH_TO_MS
+SLOW_BRAKE_THRESHOLD = 2 * CV.MPH_TO_MS
 
 def get_max_accel(v_ego):
-  return A_CRUISE_MAX
+  return interp(v_ego, A_CRUISE_MAX_BP, A_CRUISE_MAX_VALS)
 
 
 def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
@@ -52,6 +55,8 @@ class Planner:
     self.fcw = False
 
     self.cachedParams = CachedParams()
+    self.speed_steady = -1
+    self.longControl = False
 
     self.a_desired = init_a
     self.v_desired_filter = FirstOrderFilter(init_v, 2.0, DT_MDL)
@@ -63,16 +68,17 @@ class Planner:
 
   def update(self, sm, lateral_planner):
     v_ego = sm['carState'].vEgo
+    long_control = sm['carState'].jvePilotCarState.longControl
 
-    v_cruise_kph = sm['controlsState'].vCruise
+    v_cruise_kph, slowing = self.target_speed(lateral_planner, sm)
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
 
-    long_control_off = sm['controlsState'].longControlState == LongCtrlState.off
+    long_control_state = sm['controlsState'].longControlState
     force_slow_decel = sm['controlsState'].forceDecel
 
     # Reset current state when not engaged, or user is controlling the speed
-    reset_state = long_control_off if self.CP.openpilotLongitudinalControl else not sm['controlsState'].enabled
+    reset_state = long_control_state == LongCtrlState.off
 
     # No change cost when user is controlling the speed, or when standstill
     prev_accel_constraint = not (reset_state or sm['carState'].standstill)
@@ -115,14 +121,6 @@ class Planner:
     self.a_desired = float(interp(DT_MDL, T_IDXS[:CONTROL_N], self.a_desired_trajectory))
     self.v_desired_filter.x = self.v_desired_filter.x + DT_MDL * (self.a_desired + a_prev) / 2.0
 
-    if lateral_planner.lateralPlan and self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
-      curvs = list(lateral_planner.lateralPlan.curvatures)
-      if len(curvs):
-        # find the largest curvature in the solution and use that.
-        curv = abs(curvs[-1])
-        if curv != 0:
-          self.v_desired_filter.x = float(min(self.v_desired_filter.x, self.limit_speed_in_curv(sm, curv)))
-
   def publish(self, sm, pm):
     plan_send = messaging.new_message('longitudinalPlan')
 
@@ -144,6 +142,34 @@ class Planner:
 
     pm.send('longitudinalPlan', plan_send)
 
+  def target_speed(self, lateral_planner, sm):
+    target = sm['controlsState'].vCruise * CV.KPH_TO_MS + (CV.KPH_TO_MS / 2)
+    slowing = False
+    if lateral_planner.lateralPlan and self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
+      curvs = list(lateral_planner.lateralPlan.curvatures)
+      if len(curvs):
+        # find the largest curvature in the solution and use that.
+        curv = abs(curvs[-1])
+        if curv != 0:
+          vEgo = sm['carState'].vEgo
+          limit = self.limit_speed_in_curv(sm, curv)
+          slowing = limit < vEgo and limit < target
+
+          if slowing:  # Force more braking
+            diff = vEgo - limit
+            if diff > SLOW_BRAKE_THRESHOLD:
+              limit -= diff
+
+          target = float(min(target, limit))
+        else:
+          self.speed_steady = -1
+      else:
+        self.speed_steady = -1
+    else:
+      self.speed_steady = -1
+
+    return target * CV.MS_TO_KPH, slowing
+
   def limit_speed_in_curv(self, sm, curv):
     v_ego = sm['carState'].vEgo
     a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
@@ -155,4 +181,19 @@ class Planner:
 
     v_curvature = np.sqrt(a_y_max / np.clip(curv, 1e-4, None))
     model_speed = np.min(v_curvature)
-    return model_speed * self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedRatio', 5000)
+
+    speed = model_speed * self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedRatio', 5000)
+    speed, self.speed_steady = self.speed_hysteresis(speed, self.speed_steady)
+
+    return max(speed, MIN_SLOW_SPEED)
+
+  def speed_hysteresis(self, speed, speed_steady):
+    SPEED_HYST_GAP = CV.MPH_TO_MS * 3
+
+    if speed > speed_steady + SPEED_HYST_GAP:
+      speed_steady = speed - SPEED_HYST_GAP
+    elif speed < speed_steady - SPEED_HYST_GAP:
+      speed_steady = speed + SPEED_HYST_GAP
+    speed = speed_steady
+
+    return speed, speed_steady
