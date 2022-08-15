@@ -2,7 +2,7 @@ from opendbc.can.packer import CANPacker
 from common.realtime import DT_CTRL
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, create_lkas_heartbit, create_wheel_buttons_command
-from selfdrive.car.chrysler.values import CAR, RAM_CARS, CarControllerParams
+from selfdrive.car.chrysler.values import CAR, RAM_CARS, PRE_2019, CarControllerParams
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.conversions import Conversions as CV
@@ -48,14 +48,17 @@ class CarController:
     can_sends = []
 
     # TODO: can we make this more sane? why is it different for all the cars?
+    low_steer_models = self.CP.carFingerprint in PRE_2019
     lkas_control_bit = self.lkas_control_bit_prev
-    if CS.out.vEgo > self.CP.minSteerSpeed or self.steerNoMinimum:
+    if self.steerNoMinimum:
+      lkas_control_bit = CS.out.enabled or low_steer_models
+    elif CS.out.vEgo > self.CP.minSteerSpeed:
       lkas_control_bit = True
-    elif self.CP.carFingerprint in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
-      if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
-        lkas_control_bit = False
     elif self.CP.carFingerprint in RAM_CARS:
       if CS.out.vEgo < (self.CP.minSteerSpeed - 0.5):
+        lkas_control_bit = False
+    elif not low_steer_models:
+      if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
         lkas_control_bit = False
 
     # EPS faults if LKAS re-enables too quickly
