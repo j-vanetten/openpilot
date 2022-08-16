@@ -51,7 +51,7 @@ class CarController:
     low_steer_models = self.CP.carFingerprint in PRE_2019
     lkas_control_bit = self.lkas_control_bit_prev
     if self.steerNoMinimum:
-      lkas_control_bit = CS.out.enabled or low_steer_models
+      lkas_control_bit = CC.enabled or low_steer_models
     elif CS.out.vEgo > self.CP.minSteerSpeed:
       lkas_control_bit = True
     elif self.CP.carFingerprint in RAM_CARS:
