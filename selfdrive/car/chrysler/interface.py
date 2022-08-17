@@ -86,7 +86,7 @@ class CarInterface(CarInterfaceBase):
       raise ValueError(f"Unsupported car: {candidate}")
 
     if Params().get_bool("jvePilot.settings.steer.noMinimum"):
-      ret.minSteerSpeed = -999
+      ret.minSteerSpeed = -0.1
 
     ret.centerToFront = ret.wheelbase * 0.44
 
