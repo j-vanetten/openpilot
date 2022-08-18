@@ -34,8 +34,8 @@ class CarControllerParams:
       self.STEER_DELTA_UP = 6
       self.STEER_DELTA_DOWN = 6
     else:
-      self.STEER_DELTA_UP = 3
-      self.STEER_DELTA_DOWN = 3
+      self.STEER_DELTA_UP = 6
+      self.STEER_DELTA_DOWN = 6
 
 STEER_THRESHOLD = 120
 
@@ -122,7 +122,101 @@ FINGERPRINTS = {
   ],
 }
 
-FW_VERSIONS: Dict[str, Dict[Tuple[capnp.lib.capnp._EnumModule, int, Optional[int]], List[str]]] = {
+# Don't add engine ECU FW for CARs other than Ram, even if FW is returned on newer vehicles, before resolving the
+# issue with KWP2000 ECUs described in commaai/openpilot#25363
+
+FW_VERSIONS = {
+  CAR.JEEP_CHEROKEE: {
+    (Ecu.combinationMeter, 0x742, None): [
+      b'68302223AC',
+      b'68302249AD',
+      b'68331512AC',
+    ],
+    (Ecu.srs, 0x744, None): [
+      b'68316742AB',
+      b'68355363AB',
+    ],
+    (Ecu.esp, 0x747, None): [
+      b'68306178AD',
+      b'68336276AB',
+    ],
+    (Ecu.fwdCamera, 0x764, None): [
+      b'04672631AC',
+      b'68321608AD',
+    ],
+    (Ecu.fwdRadar, 0x753, None): [
+      b'04672627AB',
+      b'68251506AD',
+      b'68332015AB',
+    ],
+    (Ecu.eps, 0x75A, None): [
+      b'68321644AC',
+      b'68321646AC',
+    ],
+    (Ecu.transmission, 0x7e1, None): [
+      b'68311218AC',
+      b'68311218AD',
+      b'68361916AD',
+    ],
+  },
+  CAR.PACIFICA_2018: {
+    (Ecu.combinationMeter, 0x742, None): [
+      b'68227902AF',
+      b'68227902AH',
+      b'68360252AC',
+    ],
+    (Ecu.srs, 0x744, None): [
+      b'68211617AF',
+      b'68211617AG',
+      b'68358974AC',
+    ],
+    (Ecu.esp, 0x747, None): [
+      b'68222747AG',
+      b'68330876AB',
+    ],
+    (Ecu.fwdCamera, 0x764, None): [
+      b'04672731AB',
+      b'68223694AD',
+      b'68223694AH',
+    ],
+    (Ecu.fwdRadar, 0x753, None): [
+      b'04672758AA',
+      b'68226356AF',
+      b'68226356AI',
+    ],
+    (Ecu.eps, 0x75A, None): [
+      b'68288891AE',
+      b'68378884AA',
+    ],
+    (Ecu.transmission, 0x7e1, None): [
+      b'68277370AJ',
+      b'68277372AE',
+      b'68367471AC',
+    ],
+  },
+  CAR.PACIFICA_2020: {
+    (Ecu.combinationMeter, 0x742, None): [
+      b'68436251AE',
+    ],
+    (Ecu.srs, 0x744, None): [
+      b'68480707AC',
+    ],
+    (Ecu.esp, 0x747, None): [
+      b'68453575AF',
+    ],
+    (Ecu.fwdCamera, 0x764, None): [
+      b'68493395AA',
+    ],
+    (Ecu.fwdRadar, 0x753, None): [
+      b'68540436AA',
+    ],
+    (Ecu.eps, 0x75A, None): [
+      b'68494461AB',
+    ],
+    (Ecu.transmission, 0x7e1, None): [
+      b'68501055AD',
+    ],
+  },
   CAR.RAM_1500: {
     (Ecu.combinationMeter, 0x742, None): [],
     (Ecu.srs, 0x744, None): [],

@@ -193,7 +193,7 @@ static void update_state(UIState *s) {
   if (sm.updated("jvePilotState")) {
     scene.autoFollowEnabled = sm["jvePilotState"].getJvePilotUIState().getAutoFollow() ? 1 : 0;
     scene.accEco = sm["jvePilotState"].getJvePilotUIState().getAccEco();
-    scene.use_lane_lines = !sm["jvePilotState"].getJvePilotUIState().getUseLaneLines();
+    scene.use_lane_lines = sm["jvePilotState"].getJvePilotUIState().getUseLaneLines();
   }
 }
 

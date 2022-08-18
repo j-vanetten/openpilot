@@ -1,7 +1,18 @@
-Version jvePilot-0.8.15(v3.11.0)
+Version jvePilot-0.8.15(v3.11.2)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Add some more v2 fingerprints
+* Fix steer to 0 LKAS error in reverse gear
+* Increase steer torque rate limits
+
+Version jvePilot-0.8.15(v3.11.1)
+========================
+* Add some v2 fingerprints
+
+Version jvePilot-0.8.15(v3.11.0)
+========================
 * Fix disengage on accelerator option
+* Lane less is now the default (Enable LKAS dash button to switch to lane lines)  
 * Update to 0.8.15
   * New driving model
     * Path planning uses end-to-end output instead of lane lines at all times
