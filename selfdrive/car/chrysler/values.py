@@ -34,8 +34,8 @@ class CarControllerParams:
       self.STEER_DELTA_UP = 6
       self.STEER_DELTA_DOWN = 6
     else:
-      self.STEER_DELTA_UP = 3
-      self.STEER_DELTA_DOWN = 3
+      self.STEER_DELTA_UP = 6
+      self.STEER_DELTA_DOWN = 6
 
 STEER_THRESHOLD = 120
 
