@@ -2,7 +2,7 @@ from opendbc.can.packer import CANPacker
 from common.realtime import DT_CTRL
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, create_lkas_heartbit, create_wheel_buttons_command
-from selfdrive.car.chrysler.values import CAR, RAM_CARS, CarControllerParams
+from selfdrive.car.chrysler.values import CAR, RAM_CARS, PRE_2019, CarControllerParams
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.conversions import Conversions as CV
@@ -11,7 +11,7 @@ from common.params import Params
 from cereal import car
 from selfdrive.car.chrysler.interface import GAS_RESUME_SPEED
 
-
+GearShifter = car.CarState.GearShifter
 ButtonType = car.CarState.ButtonEvent.Type
 
 V_CRUISE_MIN_IMPERIAL_MS = V_CRUISE_MIN_IMPERIAL * CV.KPH_TO_MS
@@ -27,7 +27,7 @@ class CarController:
     self.steer_rate_limited = False
 
     self.hud_count = 0
-    self.last_lkas_falling_edge = 0
+    self.next_lkas_control_change = 0
     self.lkas_control_bit_prev = False
     self.last_button_counter = 0
 
@@ -39,6 +39,7 @@ class CarController:
     self.auto_resume = self.settingsParams.get_bool('jvePilot.settings.autoResume')
     self.minAccSetting = V_CRUISE_MIN_MS if self.settingsParams.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
     self.round_to_unit = CV.MS_TO_KPH if self.settingsParams.get_bool("IsMetric") else CV.MS_TO_MPH
+    self.steerNoMinimum = self.settingsParams.get_bool("jvePilot.settings.steer.noMinimum")
 
     self.autoFollowDistanceLock = None
     self.button_frame = 0
@@ -47,18 +48,21 @@ class CarController:
     can_sends = []
 
     # TODO: can we make this more sane? why is it different for all the cars?
+    low_steer_models = self.CP.carFingerprint in PRE_2019
     lkas_control_bit = self.lkas_control_bit_prev
-    if CS.out.vEgo > self.CP.minSteerSpeed:
+    if self.steerNoMinimum:
+      lkas_control_bit = CC.enabled or low_steer_models
+    elif CS.out.vEgo > self.CP.minSteerSpeed:
       lkas_control_bit = True
-    elif self.CP.carFingerprint in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
-      if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
-        lkas_control_bit = False
     elif self.CP.carFingerprint in RAM_CARS:
       if CS.out.vEgo < (self.CP.minSteerSpeed - 0.5):
         lkas_control_bit = False
+    elif not low_steer_models:
+      if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
+        lkas_control_bit = False
 
     # EPS faults if LKAS re-enables too quickly
-    lkas_control_bit = lkas_control_bit and (self.frame - self.last_lkas_falling_edge > 200)
+    lkas_control_bit = lkas_control_bit and (self.frame >= self.next_lkas_control_change)
     lkas_active = CC.latActive and self.lkas_control_bit_prev
 
     # *** control msgs ***
@@ -95,7 +99,7 @@ class CarController:
 
     self.frame += 1
     if not lkas_control_bit and self.lkas_control_bit_prev:
-      self.last_lkas_falling_edge = self.frame
+      self.next_lkas_control_change = self.frame + 200
     self.lkas_control_bit_prev = lkas_control_bit
 
     new_actuators = CC.actuators.copy()

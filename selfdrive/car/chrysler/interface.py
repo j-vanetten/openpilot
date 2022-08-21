@@ -20,8 +20,9 @@ class CarInterface(CarInterfaceBase):
     param = Panda.FLAG_CHRYSLER_RAM_DT if candidate in RAM_CARS else None
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.chrysler, param)]
 
-    ret.steerActuatorDelay = 0.1
     ret.steerLimitTimer = 0.4
+    ret.steerActuatorDelay = 0.1
+    CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
     ret.minSteerSpeed = 3.8  # m/s
     if candidate in (CAR.PACIFICA_2019_HYBRID, CAR.PACIFICA_2020, CAR.JEEP_CHEROKEE_2019):
@@ -33,9 +34,6 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2242. + STD_CARGO_KG
       ret.wheelbase = 3.089
       ret.steerRatio = 16.2  # Pacifica Hybrid 2017
-      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kiBP = [[9., 20.], [9., 20.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15, 0.30], [0.03, 0.05]]
-      ret.lateralTuning.pid.kf = 0.00006
 
     # Jeep
     elif candidate in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019):
@@ -43,9 +41,6 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.71
       ret.steerRatio = 16.7
       ret.steerActuatorDelay = 0.2
-      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kiBP = [[9., 20.], [9., 20.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15, 0.30], [0.03, 0.05]]
-      ret.lateralTuning.pid.kf = 0.00006
 
       ret.enableBsm = True
 
@@ -58,14 +53,12 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2493. + STD_CARGO_KG
       ret.maxLateralAccel = 2.4
       ret.minSteerSpeed = 14.5
-      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
-
 
     else:
       raise ValueError(f"Unsupported car: {candidate}")
 
     if Params().get_bool("jvePilot.settings.steer.noMinimum"):
-      ret.minSteerSpeed = -999
+      ret.minSteerSpeed = -0.1
 
     ret.centerToFront = ret.wheelbase * 0.44
 
