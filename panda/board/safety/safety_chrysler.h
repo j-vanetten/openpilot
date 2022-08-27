@@ -1,9 +1,33 @@
-const int CHRYSLER_MAX_STEER = 261;
-const int CHRYSLER_MAX_RT_DELTA = 112;         // max delta torque allowed for real time checks
-const uint32_t CHRYSLER_RT_INTERVAL = 250000;  // 250ms between real time checks
-const int CHRYSLER_MAX_RATE_UP = 6;
-const int CHRYSLER_MAX_RATE_DOWN = 6;
-const int CHRYSLER_MAX_TORQUE_ERROR = 80;      // max torque cmd in excess of torque motor
+const SteeringLimits CHRYSLER_STEERING_LIMITS = {
+  .max_steer = 261,
+  .max_rt_delta = 112,
+  .max_rt_interval = 250000,
+  .max_rate_up = 3,
+  .max_rate_down = 3,
+  .max_torque_error = 80,
+  .type = TorqueMotorLimited,
+};
+
+const SteeringLimits CHRYSLER_RAM_DT_STEERING_LIMITS = {
+  .max_steer = 261,
+  .max_rt_delta = 112,
+  .max_rt_interval = 250000,
+  .max_rate_up = 6,
+  .max_rate_down = 6,
+  .max_torque_error = 80,
+  .type = TorqueMotorLimited,
+};
+
+const SteeringLimits CHRYSLER_RAM_HD_STEERING_LIMITS = {
+  .max_steer = 361,
+  .max_rt_delta = 182,
+  .max_rt_interval = 250000,
+  .max_rate_up = 14,
+  .max_rate_down = 14,
+  .max_torque_error = 80,
+  .type = TorqueMotorLimited,
+};
+
 const int CHRYSLER_STANDSTILL_THRSLD = 10;     // about 1m/s
 const int CHRYSLER_RAM_STANDSTILL_THRSLD = 3;  // about 1m/s changed from wheel rpm to km/h
 
@@ -19,15 +43,17 @@ typedef struct {
 } ChryslerAddrs;
 
 // CAN messages for Chrysler/Jeep platforms
-#define EPS_2                      544  // EPS driver input torque
-#define ESP_1                      320  // Brake pedal and vehicle speed
-#define ESP_8                      284  // Brake pedal and vehicle speed
-#define ECM_5                      559  // Throttle position sensor
-#define DAS_3                      500  // ACC engagement states from DASM
-#define DAS_6                      678  // LKAS HUD and auto headlight control from DASM
-#define LKAS_COMMAND               658  // LKAS controls from DASM
-#define LKAS_HEARTBIT              729  // LKAS HEARTBIT from DASM
-#define CRUISE_BUTTONS             571  // Cruise control buttons
+const ChryslerAddrs CHRYSLER_ADDRS = {
+  .EPS_2            = 544,  // EPS driver input torque
+  .ESP_1            = 320,  // Brake pedal and vehicle speed
+  .ESP_8            = 284,  // Brake pedal and vehicle speed
+  .ECM_5            = 559,  // Throttle position sensor
+  .DAS_3            = 500,  // ACC engagement states from DASM
+  .DAS_6            = 678,  // LKAS HUD and auto headlight control from DASM
+  .LKAS_COMMAND     = 658,  // LKAS controls from DASM
+  .LKAS_HEARTBIT    = 729,  // LKAS HEARTBIT from DASM
+  .CRUISE_BUTTONS   = 571,  // Cruise control buttons
+};
 
 // CAN messages for the 5th gen RAM DT platform
 const ChryslerAddrs CHRYSLER_RAM_DT_ADDRS = {
@@ -54,10 +80,10 @@ const ChryslerAddrs CHRYSLER_RAM_HD_ADDRS = {
 };
 
 const CanMsg CHRYSLER_TX_MSGS[] = {
-  {CRUISE_BUTTONS, 0, 3},
-  {LKAS_COMMAND, 0, 6},
-  {DAS_6, 0, 8},
-  {LKAS_HEARTBIT, 0, 5},
+  {CHRYSLER_ADDRS.CRUISE_BUTTONS, 0, 3},
+  {CHRYSLER_ADDRS.LKAS_COMMAND, 0, 6},
+  {CHRYSLER_ADDRS.DAS_6, 0, 8},
+  {CHRYSLER_ADDRS.LKAS_HEARTBIT, 0, 5},
 };
 
 const CanMsg CHRYSLER_RAM_DT_TX_MSGS[] = {
@@ -173,18 +199,10 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
     }
 
     // enter controls on rising edge of ACC, exit controls on ACC off
-    const int das_3 = chrysler_ram ? DAS_3_RAM : DAS_3;
-    const int das_3_bus = chrysler_ram ? 2 : 0;
-    if ((bus == das_3_bus) && (addr == das_3)) {
-      int cruise_engaged = GET_BIT(to_push, 21U) == 1U;
-      if (cruise_engaged && !cruise_engaged_prev) {
-        controls_allowed = 1;
-      }
-      // keep control if stopped when cruise disengaged
-      else if (!cruise_engaged && vehicle_moving) {
-        controls_allowed = 0;
-      }
-      cruise_engaged_prev = cruise_engaged;
+    const int das_3_bus = (chrysler_platform == CHRYSLER_PACIFICA) ? 0 : 2;
+    if ((bus == das_3_bus) && (addr == chrysler_addrs->DAS_3)) {
+      bool cruise_engaged = GET_BIT(to_push, 21U) == 1U;
+      pcm_cruise_check(cruise_engaged);
     }
 
     // TODO: use the same message for both
@@ -243,7 +261,7 @@ static int chrysler_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
   }
 
 //  // FORCE CANCEL: only the cancel button press is allowed
-//  if ((addr == CRUISE_BUTTONS) || (addr == CRUISE_BUTTONS_RAM)) {
+//  if (addr == chrysler_addrs->CRUISE_BUTTONS) {
 //    const bool is_cancel = GET_BYTE(to_send, 0) == 1U;
 //    const bool is_resume = GET_BYTE(to_send, 0) == 0x10U;
 //    const bool allowed = is_cancel || (is_resume && controls_allowed);
@@ -265,8 +283,7 @@ static int chrysler_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
   }
 
   // forward all messages from camera except LKAS messages
-  const bool is_lkas = (!chrysler_ram && ((addr == LKAS_COMMAND) || (addr == DAS_6) || (addr == LKAS_HEARTBIT))) ||
-                       (chrysler_ram && ((addr == LKAS_COMMAND_RAM) || (addr == DAS_6_RAM)));
+  const bool is_lkas = ((addr == chrysler_addrs->LKAS_COMMAND) || (addr == chrysler_addrs->DAS_6) || (addr == chrysler_addrs->LKAS_HEARTBIT));
   if ((bus_num == 2) && !is_lkas){
     bus_fwd = 0;
   }
