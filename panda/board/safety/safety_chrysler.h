@@ -39,6 +39,7 @@ typedef struct {
   const int DAS_3;
   const int DAS_6;
   const int LKAS_COMMAND;
+  const int LKAS_HEARTBIT;
   const int CRUISE_BUTTONS;
 } ChryslerAddrs;
 

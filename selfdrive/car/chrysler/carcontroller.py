@@ -49,8 +49,7 @@ class CarController:
     lkas_active = CC.latActive and self.lkas_control_bit_prev
 
     # cruise buttons
-    if (self.frame - self.last_button_frame)*DT_CTRL > 0.05:
-      das_bus = 2 if self.CP.carFingerprint in RAM_CARS else 0
+    das_bus = 2 if self.CP.carFingerprint in RAM_CARS else 0
 
     # HUD alerts
     if self.frame % 25 == 0:
