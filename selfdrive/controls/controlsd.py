@@ -103,11 +103,10 @@ class Controls:
         ignore += ['driverCameraState', 'managerState']
       if params.get_bool('WideCameraOnly'):
         ignore += ['roadCameraState']
-      self.sm = messaging.SubMaster(
-        ['jvePilotUIState', 'deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
-         'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
-         'managerState', 'liveParameters', 'radarState'] + self.camera_packets + joystick_packet,
-        ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan'])
+      self.sm = messaging.SubMaster(['jvePilotUIState', 'deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
+                                     'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
+                                     'managerState', 'liveParameters', 'radarState'] + self.camera_packets + joystick_packet,
+                                    ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan'])
 
     # set alternative experiences from parameters
     self.disengage_on_accelerator = params.get_bool("DisengageOnAccelerator")
@@ -583,8 +582,8 @@ class Controls:
             self.state = State.overriding
           else:
             self.state = State.enabled
-
           self.current_alert_types.append(ET.ENABLE)
+
           self.v_cruise_kph = initialize_v_cruise(CS.vEgo, CS.buttonEvents, self.v_cruise_kph_last, self.is_metric)
           self.v_cruise_cluster_kph = self.v_cruise_kph
 
@@ -728,9 +727,7 @@ class Controls:
     # target the future speed
     v_max_speed = float(self.v_cruise_kph * CV.KPH_TO_MS)
     CC.jvePilotState.carControl.vMaxCruise = v_max_speed
-    v_target_future = 0
-    if len(speeds) > 0:
-      v_target_future = min(speeds) if CC.actuators.accel < 0 else max(speeds)
+    v_target_future = speeds[-1] if len(speeds) else 0
     CC.jvePilotState.carControl.vTargetFuture = min(v_max_speed, v_target_future)
 
     hudControl = CC.hudControl
