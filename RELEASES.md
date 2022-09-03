@@ -18,6 +18,11 @@ Visit http://bit.ly/jvereadme for more information
   * Subaru Legacy 2020-22 support thanks to martinl!
   * Subaru Outback 2020-22 support
 
+Version jvePilot-0.8.15(v3.11.3)
+========================
+Visit http://bit.ly/jvereadme for more information
+* Fix auto resume on Pacifica
+
 Version jvePilot-0.8.15(v3.11.2)
 ========================
 * Add some more v2 fingerprints
