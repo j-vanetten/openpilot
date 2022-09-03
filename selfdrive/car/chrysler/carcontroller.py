@@ -297,7 +297,6 @@ class CarController:
       if go_req:
         under_accel_frame_count = self.under_accel_frame_count = START_ADJUST_ACCEL_FRAMES  # ready to add torq
         self.last_brake = None
-        aTarget = max(0, aTarget)
 
       currently_braking = self.last_brake is not None
       speed_to_far_off = abs(CS.out.vEgo - vTarget) > COAST_WINDOW
@@ -413,6 +412,8 @@ class CarController:
     brake_target = max(CarControllerParams.ACCEL_MIN, round(aTarget, 2))
     if self.last_brake is None:
       self.last_brake = min(0., brake_target / 2)
+    elif self.last_brake < 0 and CS.out.aEgo < brake_target:  # are we slowing too much?
+      self.last_brake += BRAKE_CHANGE
     else:
       tBrake = brake_target
       if not speed_to_far_off and 0 >= tBrake >= -1:  # let up on brake as we approach
