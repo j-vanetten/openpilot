@@ -78,7 +78,7 @@ class CarController:
       lkas_control_bit = lkas_control_bit and (self.frame > self.next_lkas_control_change)
 
       if not lkas_control_bit and self.lkas_control_bit_prev:
-        self.last_lkas_falling_edge = self.frame
+        self.next_lkas_control_change = self.frame + 200
       self.lkas_control_bit_prev = lkas_control_bit
 
       # steer torque
@@ -87,10 +87,6 @@ class CarController:
       if not lkas_active or not lkas_control_bit:
         apply_steer = 0
       self.apply_steer_last = apply_steer
-
-      if not lkas_control_bit and self.lkas_control_bit_prev:
-        self.next_lkas_control_change = self.frame + 200
-      self.lkas_control_bit_prev = lkas_control_bit
 
       can_sends.append(create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit))
 
