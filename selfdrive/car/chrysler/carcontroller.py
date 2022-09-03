@@ -137,11 +137,8 @@ class CarController:
       if enabled and not CS.out.brakePressed:
         button_counter_offset = [1, 1, 0, None][self.button_frame % 4]
         if button_counter_offset is not None:
-          if not CS.out.cruiseState.enabled:
-            if resume and self.auto_resume:  # I really want this to work!
-              buttons_to_press = ["ACC_Resume"]
-            elif CS.out.standstill:  # Stopped and waiting to resume
-              buttons_to_press = [self.auto_resume_button(CS)]
+          if self.auto_resume and (resume or (CS.out.standstill and not CS.out.cruiseState.enabled)):
+            buttons_to_press = ["ACC_Resume"]
           elif CS.out.cruiseState.enabled:  # Control ACC
             buttons_to_press = [self.auto_follow_button(CC, CS), self.hybrid_acc_button(CC, CS)]
 
@@ -149,10 +146,6 @@ class CarController:
     if buttons_to_press is not None and len(buttons_to_press) > 0:
       new_msg = create_wheel_buttons_command(self.packer, button_counter + button_counter_offset, buttons_to_press)
       can_sends.append(new_msg)
-
-  def auto_resume_button(self, CS):
-    if self.auto_resume and CS.out.vEgo <= GAS_RESUME_SPEED:  # Keep trying while under gas_resume_speed
-      return 'ACC_Resume'
 
   def hybrid_acc_button(self, CC, CS):
     target = CC.jvePilotState.carControl.vTargetFuture + 2 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
