@@ -34,9 +34,9 @@ signals:
 protected:
   void paintEvent(QPaintEvent *event) override;
   void resizeEvent(QResizeEvent* event) override;
-  void mouseReleaseEvent(QMouseEvent *event) override { 
+  void mouseReleaseEvent(QMouseEvent *event) override {
     if (rect().contains(event->pos())) {
-      emit clicked(); 
+      emit clicked();
     }
   }
   QString lastText_, elidedText_;

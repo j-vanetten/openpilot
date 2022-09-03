@@ -13,6 +13,8 @@ V_CRUISE_MIN = 30  # Chrysler min ACC when metric
 V_CRUISE_DELTA = 5  # ACC increments (unit agnostic)
 V_CRUISE_MIN_IMPERIAL = int(20 * CV.MPH_TO_KPH)
 V_CRUISE_DELTA_IMPERIAL = int(V_CRUISE_DELTA * CV.MPH_TO_KPH)
+V_CRUISE_ENABLE_MIN = 40  # kph
+V_CRUISE_INITIAL = 255  # kph
 
 LAT_MPC_N = 16
 LON_MPC_N = 32

@@ -4,7 +4,7 @@ from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_lkas_heartbit, create_wheel_buttons_command, \
   acc_command, acc_log
-from selfdrive.car.chrysler.values import CAR, RAM_CARS, PRE_2019, CarControllerParams
+from selfdrive.car.chrysler.values import RAM_CARS, PRE_2019, CarControllerParams
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.conversions import Conversions as CV
@@ -48,12 +48,11 @@ class CarController:
     self.CP = CP
     self.apply_steer_last = 0
     self.frame = 0
-    self.steer_rate_limited = False
 
     self.hud_count = 0
     self.next_lkas_control_change = 0
     self.lkas_control_bit_prev = False
-    self.last_button_counter = 0
+    self.last_button_frame = 0
 
     self.packer = CANPacker(dbc_name)
     self.params = CarControllerParams(CP)
@@ -82,28 +81,49 @@ class CarController:
   def update(self, CC, CS):
     can_sends = []
 
-    # TODO: can we make this more sane? why is it different for all the cars?
-    low_steer_models = self.CP.carFingerprint in PRE_2019
-    lkas_control_bit = self.lkas_control_bit_prev
-    if self.steerNoMinimum:
-      lkas_control_bit = CC.enabled or low_steer_models
-    elif CS.out.vEgo > self.CP.minSteerSpeed:
-      lkas_control_bit = True
-    elif self.CP.carFingerprint in RAM_CARS:
-      if CS.out.vEgo < (self.CP.minSteerSpeed - 0.5):
-        lkas_control_bit = False
-    elif not low_steer_models:
-      if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
-        lkas_control_bit = False
-
-    # EPS faults if LKAS re-enables too quickly
-    lkas_control_bit = lkas_control_bit and (self.frame >= self.next_lkas_control_change)
     lkas_active = CC.latActive and self.lkas_control_bit_prev
 
-    # *** control msgs ***
+    # cruise buttons
+    das_bus = 2 if self.CP.carFingerprint in RAM_CARS else 0
 
-    accel = self.acc(CC, CS, can_sends, CC.enabled)
-    self.wheel_button_control(CC, CS, can_sends, CC.enabled, CC.cruiseControl.cancel, CC.cruiseControl.resume)
+    # HUD alerts
+    if self.frame % 25 == 0:
+      if CS.lkas_car_model != -1:
+        can_sends.append(create_lkas_hud(self.packer, self.CP, lkas_active, CC.hudControl.visualAlert, self.hud_count, CS.lkas_car_model, CS.auto_high_beam))
+        self.hud_count += 1
+
+    # steering
+    if self.frame % 2 == 0:
+
+      # TODO: can we make this more sane? why is it different for all the cars?
+      low_steer_models = self.CP.carFingerprint in PRE_2019
+      lkas_control_bit = self.lkas_control_bit_prev
+      if self.steerNoMinimum:
+        lkas_control_bit = CC.enabled or low_steer_models
+      elif CS.out.vEgo > self.CP.minSteerSpeed:
+        lkas_control_bit = True
+      elif self.CP.carFingerprint in RAM_CARS:
+        if CS.out.vEgo < (self.CP.minSteerSpeed - 0.5):
+          lkas_control_bit = False
+      elif not low_steer_models:
+        if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
+          lkas_control_bit = False
+
+      # EPS faults if LKAS re-enables too quickly
+      lkas_control_bit = lkas_control_bit and (self.frame > self.next_lkas_control_change)
+
+      if not lkas_control_bit and self.lkas_control_bit_prev:
+        self.next_lkas_control_change = self.frame + 200
+      self.lkas_control_bit_prev = lkas_control_bit
+
+      # steer torque
+      new_steer = int(round(CC.actuators.steer * self.params.STEER_MAX))
+      apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
+      if not lkas_active or not lkas_control_bit:
+        apply_steer = 0
+      self.apply_steer_last = apply_steer
+
+      can_sends.append(create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit))
 
     # Lane-less button
     if CS.button_pressed(ButtonType.lkasToggle, False):
@@ -114,29 +134,9 @@ class CarController:
       new_msg = create_lkas_heartbit(self.packer, 1 if CC.jvePilotState.carControl.useLaneLines else 0, CS.lkasHeartbit)
       can_sends.append(new_msg)
 
-    # HUD alerts
-    if self.frame % 25 == 0:
-      if CS.lkas_car_model != -1:
-        can_sends.append(create_lkas_hud(self.packer, self.CP, lkas_active, CC.hudControl.visualAlert, self.hud_count, CS.lkas_car_model, CS.auto_high_beam))
-        self.hud_count += 1
-
-    # steering
-    if self.frame % 2 == 0:
-      # steer torque
-      new_steer = int(round(CC.actuators.steer * self.params.STEER_MAX))
-      apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
-      if not lkas_active:
-        apply_steer = 0
-      self.steer_rate_limited = new_steer != apply_steer
-      self.apply_steer_last = apply_steer
-
-      idx = self.frame // 2
-      can_sends.append(create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit, idx))
-
+    accel = self.acc(CC, CS, can_sends, CC.enabled)
+    self.wheel_button_control(CC, CS, can_sends, CC.enabled, das_bus, CC.cruiseControl.cancel, CC.cruiseControl.resume)
     self.frame += 1
-    if not lkas_control_bit and self.lkas_control_bit_prev:
-      self.next_lkas_control_change = self.frame + 200
-    self.lkas_control_bit_prev = lkas_control_bit
 
     new_actuators = CC.actuators.copy()
     new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
@@ -145,9 +145,9 @@ class CarController:
 
     return new_actuators, can_sends
 
-  def wheel_button_control(self, CC, CS, can_sends, enabled, cancel, resume):
+  def wheel_button_control(self, CC, CS, can_sends, enabled, das_bus, cancel, resume):
     button_counter = CS.button_counter
-    if button_counter == self.last_button_counter:
+    if button_counter == self.last_button_frame:
       return
     self.last_button_counter = button_counter
 
@@ -197,22 +197,17 @@ class CarController:
         if enabled and not CS.out.brakePressed:
           button_counter_offset = [1, 1, 0, None][self.button_frame % 4]
           if button_counter_offset is not None:
-            if not CS.out.cruiseState.enabled:
-              if resume and self.auto_resume:  # I really want this to work!
+            if self.auto_resume and (resume or (CS.out.standstill and not CS.out.cruiseState.enabled)):
+
                 buttons_to_press = ["ACC_Resume"]
-              elif CS.out.standstill:  # Stopped and waiting to resume
-                buttons_to_press = [self.auto_resume_button(CS)]
+
             elif CS.out.cruiseState.enabled:  # Control ACC
               buttons_to_press = [self.auto_follow_button(CC, CS), self.hybrid_acc_button(CC, CS)]
 
       buttons_to_press = list(filter(None, buttons_to_press))
       if buttons_to_press is not None and len(buttons_to_press) > 0:
-        new_msg = create_wheel_buttons_command(self.packer, button_counter + button_counter_offset, buttons_to_press)
+        new_msg = create_wheel_buttons_command(self.packer, das_bus, button_counter + button_counter_offset, buttons_to_press)
         can_sends.append(new_msg)
-
-  def auto_resume_button(self, CS):
-    if self.auto_resume and CS.out.vEgo <= GAS_RESUME_SPEED:  # Keep trying while under gas_resume_speed
-      return 'ACC_Resume'
 
   def hybrid_acc_button(self, CC, CS):
     target = CC.jvePilotState.carControl.vTargetFuture + 2 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting

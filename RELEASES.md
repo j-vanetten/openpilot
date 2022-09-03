@@ -3,16 +3,40 @@ Version jvePilot-0.8.15(v4.0.0)
 Visit http://bit.ly/jvereadme for more information
 * Add experimental longitudinal control option for Jeeps
 
+Version jvePilot-0.8.16(v3.12.0)
+========================
+* Update to 0.8.16
+  * New driving model
+    * Reduced turn cutting
+  * Auto-detect right hand drive setting with driver monitoring model
+  * Improved fan controller for comma three
+  * New translations
+    * Japanese thanks to cydia2020!
+    * Brazilian Portuguese thanks to AlexandreSato!
+  * Chevrolet Bolt EUV 2022-23 support thanks to JasonJShuler!
+  * Chevrolet Silverado 1500 2020-21 support thanks to JasonJShuler!
+  * GMC Sierra 1500 2020-21 support thanks to JasonJShuler!
+  * Hyundai Ioniq 5 2022 support thanks to sunnyhaibin!
+  * Hyundai Kona Electric 2022 support thanks to sunnyhaibin!
+  * Hyundai Tucson Hybrid 2022 support thanks to sunnyhaibin!
+  * Subaru Legacy 2020-22 support thanks to martinl!
+  * Subaru Outback 2020-22 support
+
+Version jvePilot-0.8.15(v3.11.3)
+========================
+* Fix auto resume on Pacifica
+
 Version jvePilot-0.8.15(v3.11.2)
 ========================
 * Add some more v2 fingerprints
-* Only allow steer torque while in drive
+* Fix steer to 0 LKAS error in reverse gear
+* Increase steer torque rate limits
 
 Version jvePilot-0.8.15(v3.11.1)
 ========================
 * Add some v2 fingerprints
 
-* Version jvePilot-0.8.15(v3.11.0)
+Version jvePilot-0.8.15(v3.11.0)
 ========================
 * Fix disengage on accelerator option
 * Lane less is now the default (Enable LKAS dash button to switch to lane lines)  
