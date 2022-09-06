@@ -69,6 +69,7 @@ class CarController:
         can_sends.append(create_lkas_hud(self.packer, self.CP, lkas_active, CC.hudControl.visualAlert, self.hud_count, CS.lkas_car_model, CS.auto_high_beam))
         self.hud_count += 1
 
+    # steering
     if self.frame % 2 == 0:
 
       # TODO: can we make this more sane? why is it different for all the cars?
