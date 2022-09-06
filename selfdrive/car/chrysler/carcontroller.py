@@ -51,52 +51,56 @@ class CarController:
     # cruise buttons
     das_bus = 2 if self.CP.carFingerprint in RAM_CARS else 0
 
-    # HUD alerts
-    if self.frame % 25 == 0:
-      if CS.lkas_car_model != -1:
-        can_sends.append(create_lkas_hud(self.packer, self.CP, lkas_active, CC.hudControl.visualAlert, self.hud_count, CS.lkas_car_model, CS.auto_high_beam))
-        self.hud_count += 1
-
-    # TODO: can we make this more sane? why is it different for all the cars?
-    low_steer_models = self.CP.carFingerprint in PRE_2019
-    lkas_control_bit = self.lkas_control_bit_prev
-    if self.steerNoMinimum:
-      lkas_control_bit = CC.enabled or low_steer_models
-    elif CS.out.vEgo > self.CP.minSteerSpeed:
-      lkas_control_bit = True
-    elif self.CP.carFingerprint in RAM_CARS:
-      if CS.out.vEgo < (self.CP.minSteerSpeed - 0.5):
-        lkas_control_bit = False
-    elif not low_steer_models:
-      if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
-        lkas_control_bit = False
-
-    # EPS faults if LKAS re-enables too quickly
-    lkas_control_bit = lkas_control_bit and (self.frame > self.next_lkas_control_change)
-
-    if not lkas_control_bit and self.lkas_control_bit_prev:
-      self.next_lkas_control_change = self.frame + 200
-    self.lkas_control_bit_prev = lkas_control_bit
-
-    # steer torque
-    new_steer = int(round(CC.actuators.steer * self.params.STEER_MAX))
-    apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
-    if not lkas_active or not lkas_control_bit:
-      apply_steer = 0
-    self.apply_steer_last = apply_steer
-
-    can_sends.append(create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit))
-
     # Lane-less button
     if CS.button_pressed(ButtonType.lkasToggle, False):
       CC.jvePilotState.carControl.useLaneLines = not CC.jvePilotState.carControl.useLaneLines
-      self.settingsParams.put("jvePilot.settings.useLaneLines", "1" if CC.jvePilotState.carControl.useLaneLines else "0")
+      self.settingsParams.put("jvePilot.settings.useLaneLines",
+                              "1" if CC.jvePilotState.carControl.useLaneLines else "0")
       CC.jvePilotState.notifyUi = True
     if self.frame % 10 == 0:
       new_msg = create_lkas_heartbit(self.packer, 1 if CC.jvePilotState.carControl.useLaneLines else 0, CS.lkasHeartbit)
       can_sends.append(new_msg)
 
     self.wheel_button_control(CC, CS, can_sends, CC.enabled, das_bus, CC.cruiseControl.cancel, CC.cruiseControl.resume)
+
+    # HUD alerts
+    if self.frame % 25 == 0:
+      if CS.lkas_car_model != -1:
+        can_sends.append(create_lkas_hud(self.packer, self.CP, lkas_active, CC.hudControl.visualAlert, self.hud_count, CS.lkas_car_model, CS.auto_high_beam))
+        self.hud_count += 1
+
+    if self.frame % 2 == 0:
+
+      # TODO: can we make this more sane? why is it different for all the cars?
+      low_steer_models = self.CP.carFingerprint in PRE_2019
+      lkas_control_bit = self.lkas_control_bit_prev
+      if self.steerNoMinimum:
+        lkas_control_bit = CC.enabled or low_steer_models
+      elif CS.out.vEgo > self.CP.minSteerSpeed:
+        lkas_control_bit = True
+      elif self.CP.carFingerprint in RAM_CARS:
+        if CS.out.vEgo < (self.CP.minSteerSpeed - 0.5):
+          lkas_control_bit = False
+      elif not low_steer_models:
+        if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
+          lkas_control_bit = False
+
+      # EPS faults if LKAS re-enables too quickly
+      lkas_control_bit = lkas_control_bit and (self.frame > self.next_lkas_control_change)
+
+      if not lkas_control_bit and self.lkas_control_bit_prev:
+        self.next_lkas_control_change = self.frame + 200
+      self.lkas_control_bit_prev = lkas_control_bit
+
+      # steer torque
+      new_steer = int(round(CC.actuators.steer * self.params.STEER_MAX))
+      apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
+      if not lkas_active or not lkas_control_bit:
+        apply_steer = 0
+      self.apply_steer_last = apply_steer
+
+      can_sends.append(create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit))
+
     self.frame += 1
 
     new_actuators = CC.actuators.copy()
