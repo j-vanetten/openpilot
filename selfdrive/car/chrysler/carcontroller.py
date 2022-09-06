@@ -113,7 +113,7 @@ class CarController:
     button_counter = CS.button_counter
     if button_counter == self.last_button_frame:
       return
-    self.last_button_counter = button_counter
+    self.last_button_frame = button_counter
 
     self.button_frame += 1
     button_counter_offset = 1
