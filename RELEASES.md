@@ -1,6 +1,7 @@
 Version jvePilot-0.8.16(v3.12.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Adjust steer at 100hz 
 * Revert steer torque rate limits
 * Update to 0.8.16
   * New driving model
