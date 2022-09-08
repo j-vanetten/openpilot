@@ -86,12 +86,25 @@ class CarController:
     # cruise buttons
     das_bus = 2 if self.CP.carFingerprint in RAM_CARS else 0
 
+    # Lane-less button
+    if CS.button_pressed(ButtonType.lkasToggle, False):
+      CC.jvePilotState.carControl.useLaneLines = not CC.jvePilotState.carControl.useLaneLines
+      self.settingsParams.put("jvePilot.settings.useLaneLines",
+                              "1" if CC.jvePilotState.carControl.useLaneLines else "0")
+      CC.jvePilotState.notifyUi = True
+    if self.frame % 10 == 0:
+      new_msg = create_lkas_heartbit(self.packer, 1 if CC.jvePilotState.carControl.useLaneLines else 0, CS.lkasHeartbit)
+      can_sends.append(new_msg)
+
+    self.wheel_button_control(CC, CS, can_sends, CC.enabled, das_bus, CC.cruiseControl.cancel, CC.cruiseControl.resume)
+
     # HUD alerts
     if self.frame % 25 == 0:
       if CS.lkas_car_model != -1:
         can_sends.append(create_lkas_hud(self.packer, self.CP, lkas_active, CC.hudControl.visualAlert, self.hud_count, CS.lkas_car_model, CS.auto_high_beam))
         self.hud_count += 1
 
+    # steering
     # TODO: can we make this more sane? why is it different for all the cars?
     low_steer_models = self.CP.carFingerprint in PRE_2019
     lkas_control_bit = self.lkas_control_bit_prev
@@ -122,21 +135,12 @@ class CarController:
 
     can_sends.append(create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit))
 
-    # Lane-less button
-    if CS.button_pressed(ButtonType.lkasToggle, False):
-      CC.jvePilotState.carControl.useLaneLines = not CC.jvePilotState.carControl.useLaneLines
-      self.settingsParams.put("jvePilot.settings.useLaneLines", "1" if CC.jvePilotState.carControl.useLaneLines else "0")
-      CC.jvePilotState.notifyUi = True
-    if self.frame % 10 == 0:
-      new_msg = create_lkas_heartbit(self.packer, 1 if CC.jvePilotState.carControl.useLaneLines else 0, CS.lkasHeartbit)
-      can_sends.append(new_msg)
-
-    accel = self.acc(CC, CS, can_sends, CC.enabled)
-    self.wheel_button_control(CC, CS, can_sends, CC.enabled, das_bus, CC.cruiseControl.cancel, CC.cruiseControl.resume)
     self.frame += 1
 
     new_actuators = CC.actuators.copy()
     new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
+
+    accel = self.acc(CC, CS, can_sends, CC.enabled)
     if accel is not None:
       new_actuators.accel = accel
 
@@ -146,7 +150,7 @@ class CarController:
     button_counter = CS.button_counter
     if button_counter == self.last_button_frame:
       return
-    self.last_button_counter = button_counter
+    self.last_button_frame = button_counter
 
     self.button_frame += 1
 
