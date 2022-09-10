@@ -10,7 +10,7 @@ import time
 import traceback
 from pathlib import Path
 
-# begin mahlzeit
+# begin mahlzeit .
 from ftplib import FTP
 # end mahlzeit
 
