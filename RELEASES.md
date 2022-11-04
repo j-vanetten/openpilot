@@ -1,6 +1,10 @@
-Version jvePilot-0.8.16(v3.12.0)
+Version jvePilot-0.8.16(v3.12.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Add Fingerprint V1 for AUS Jeep Grand Cherokee Trailhawk
+
+Version jvePilot-0.8.16(v3.12.0)
+========================
 * Adjust steer at 100hz 
 * Revert steer torque rate limits
 * Update to 0.8.16
