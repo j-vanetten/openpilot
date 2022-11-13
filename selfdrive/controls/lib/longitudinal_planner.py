@@ -52,6 +52,7 @@ class LongitudinalPlanner:
     self.param_read_counter = 0
 
     self.mpc = LongitudinalMpc()
+    self.experimental_mode = False
     self.read_param()
 
     self.fcw = False
@@ -68,7 +69,9 @@ class LongitudinalPlanner:
     self.solverExecutionTime = 0.0
 
   def read_param(self):
-    e2e = self.params.get_bool('ExperimentalMode') and self.CP.openpilotLongitudinalControl
+    self.experimental_mode = self.params.get_bool('jvePilot.settings.lkasButtonLight') \
+                             and self.params.get_bool('ExperimentalMode')
+    e2e = self.experimental_mode and self.CP.openpilotLongitudinalControl
     self.mpc.mode = 'blended' if e2e else 'acc'
 
   @staticmethod
@@ -152,7 +155,8 @@ class LongitudinalPlanner:
     self.a_desired = float(interp(DT_MDL, T_IDXS[:CONTROL_N], self.a_desired_trajectory))
     self.v_desired_filter.x = self.v_desired_filter.x + DT_MDL * (self.a_desired + a_prev) / 2.0
 
-    if lateral_planner.lateralPlan and self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
+    if lateral_planner.lateralPlan and self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1" \
+        and not self.experimental_mode:
       curvs = list(lateral_planner.lateralPlan.curvatures)
       if len(curvs):
         # find the largest curvature in the solution and use that.

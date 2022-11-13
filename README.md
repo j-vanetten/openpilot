@@ -48,7 +48,7 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 * Auto follow feature to adjust the follow distance based on speed (Speeds are configurable)
 * ACC Eco to limit the throttle when accelerating  
 * Syncs jvePilot display speed with the vehicle speedometer 
-* Use LKAS button in the dash to disable lane line driving and instead use the new KL driving model. [Read about KL model here](https://blog.comma.ai/end-to-end-lateral-planning).
+* Use LKAS button in the dash to toggle Experimental Mode if Experimental Mode is enabled in the settings
 * Gas/brake indication using green/red colors on speed indicator
 
 ### Longitudinal control

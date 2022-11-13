@@ -192,7 +192,7 @@ class Controls:
     self.reverse_acc_button_change = self.cachedParams.get('jvePilot.settings.reverseAccSpeedChange', 0) == "1"
     self.jvePilotState = car.JvePilotState.new_message()
     self.jvePilotState.carControl.autoFollow = self.params.get_bool('jvePilot.settings.autoFollow')
-    self.jvePilotState.carControl.useLaneLines = self.params.get_bool('jvePilot.settings.useLaneLines')
+    self.jvePilotState.carControl.lkasButtonLight = self.params.get_bool('jvePilot.settings.lkasButtonLight')
     self.jvePilotState.carControl.accEco = int(self.params.get('jvePilot.carState.accEco', encoding='utf8') or "1")
     self.ui_notify()
 
@@ -494,7 +494,7 @@ class Controls:
     msg.jvePilotUIState = self.sm['jvePilotUIState']
     msg.jvePilotUIState.autoFollow = self.jvePilotState.carControl.autoFollow
     msg.jvePilotUIState.accEco = self.jvePilotState.carControl.accEco
-    msg.jvePilotUIState.useLaneLines = self.jvePilotState.carControl.useLaneLines
+    msg.jvePilotUIState.lkasButtonLight = self.jvePilotState.carControl.lkasButtonLight
     self.pm.send('jvePilotState', msg)
 
   def state_transition(self, CS):

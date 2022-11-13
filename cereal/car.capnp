@@ -19,7 +19,7 @@ struct JvePilotState {
     vTargetFuture @0 :Float32;
     autoFollow @1 :Bool;
     accEco @2 :UInt8;
-    useLaneLines @3 :Bool;
+    lkasButtonLight @3 :Bool;
     vMaxCruise @4 :Float32;
   }
 }
