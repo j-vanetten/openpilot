@@ -191,9 +191,9 @@ class Controls:
     self.cachedParams = CachedParams()
     self.reverse_acc_button_change = self.cachedParams.get('jvePilot.settings.reverseAccSpeedChange', 0) == "1"
     self.jvePilotState = car.JvePilotState.new_message()
-    self.jvePilotState.carControl.autoFollow = params.get_bool('jvePilot.settings.autoFollow')
-    self.jvePilotState.carControl.useLaneLines = params.get_bool('jvePilot.settings.useLaneLines')
-    self.jvePilotState.carControl.accEco = int(params.get('jvePilot.carState.accEco', encoding='utf8') or "1")
+    self.jvePilotState.carControl.autoFollow = self.params.get_bool('jvePilot.settings.autoFollow')
+    self.jvePilotState.carControl.useLaneLines = self.params.get_bool('jvePilot.settings.useLaneLines')
+    self.jvePilotState.carControl.accEco = int(self.params.get('jvePilot.carState.accEco', encoding='utf8') or "1")
     self.ui_notify()
 
     # TODO: no longer necessary, aside from process replay
