@@ -108,8 +108,8 @@ def acc_command(packer, counter, enabled, go, gas, max_gear, stop, brake, das_3)
     values['ACC_DECEL'] = brake
 
   if gas is not None:
-    values['ACC_TORQ_REQ'] = enabled
-    values['ACC_TORQ'] = gas
+    values['ENGINE_TORQUE_REQUEST_MAX'] = enabled
+    values['ENGINE_TORQUE_REQUEST'] = gas
 
   if max_gear is not None:
     values['GR_MAX_REQ'] = max_gear

@@ -163,12 +163,6 @@ BO_ 736 TRIP: 8 XXX
  SG_ COUNTER : 7|16@0+ (1,0) [0|65535] "Meters" XXX
  SG_ COUNTER_2 : 23|16@0+ (1,0) [0|65535] "Meters" XXX
 
-BO_ 264 ACCEL_PEDAL_MSG: 8 XXX
- SG_ COUNTER : 55|4@0+ (1,0) [0|15] "" XXX
- SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
- SG_ ACCEL_PEDAL : 35|1@0+ (1,0) [0|1] "" XXX
- SG_ ENGINE_RPM : 7|16@0+ (1,0) [0|65535] "" XXX
-
 BO_ 658 LKAS_COMMAND: 6 XXX
  SG_ COUNTER : 39|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 47|8@0+ (1,0) [0|255] "" XXX
@@ -312,10 +306,6 @@ BO_ 680 TCM_A7: 8 ECM
  SG_ CurrentGear : 16|4@1+ (1,0) [0|0] ""  ECM,DASM,CBC
  SG_ CurrentGearForDisplay : 20|4@1+ (1,0) [0|0] ""  ECM,IC
  SG_ TargetGear : 24|4@1+ (1,0) [0|0] ""  ECM,DASM,CBC
-
-BO_ 280 AXLE_TORQ_ICE: 8 XXX
- SG_ AXLE_TORQ_MAX : 4|13@0+ (.25,-500) [-500|1547.5] "NM" XXX
- SG_ AXLE_TORQ_MIN : 20|13@0+ (.25,-500) [-500|1547.5] "NM" XXX
 
 CM_ SG_ 653 BRAKE_PRESSURE "max seems to be 148";
 CM_ SG_ 746 PRNDL "5=L, 4=D, 3=N, 2=R, 1=P";

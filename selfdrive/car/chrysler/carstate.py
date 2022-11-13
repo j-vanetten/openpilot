@@ -108,10 +108,10 @@ class CarState(CarStateBase):
       ret.cruiseState.nonAdaptive = False
       ret.cruiseState.standstill = False
       ret.accFaulted = False
-      self.torqMin = cp.vl["DAS_3"]["ACC_TORQ_REQ"]
-      self.torqMax = cp.vl["AXLE_TORQ_ICE"]["AXLE_TORQ_MAX"]
+      self.torqMin = cp.vl["DAS_3"]["ENGINE_TORQUE_REQUEST"]
+      self.torqMax = cp.vl["ECM_TRQ"]["ENGINE_TORQ_MAX"]
       self.currentGear = cp.vl['TCM_A7']["CurrentGear"]
-      self.gasRpm = cp.vl["ACCEL_PEDAL_MSG"]["ENGINE_RPM"]
+      self.gasRpm = cp.vl["ECM_1"]["ENGINE_RPM"]
       self.das_3 = cp.vl['DAS_3']
     else:
       ret.jvePilotCarState.longControl = False
@@ -197,8 +197,8 @@ class CarState(CarStateBase):
       ("ACC_DISTANCE_CONFIG_2", "DAS_4"),
 
       ("ACC_GO", "DAS_3", 0),
-      ("ACC_TORQ", "DAS_3", 0),
-      ("ACC_TORQ_REQ", "DAS_3", 0),
+      ("ENGINE_TORQUE_REQUEST", "DAS_3", 0),
+      ("ENGINE_TORQUE_REQUEST_MAX", "DAS_3", 0),
       ("ACC_DECEL", "DAS_3", 0),
       ("ACC_DECEL_REQ", "DAS_3", 0),
       ("ACC_AVAILABLE", "DAS_3", 0),
@@ -253,10 +253,9 @@ class CarState(CarStateBase):
       ("ACCEL", "ACCEL_RELATED_120"),
       ("BRK_PRESSURE", "ESP_8"),
 
-
-      ("ENGINE_RPM", "ACCEL_PEDAL_MSG", 0),
-      ("AXLE_TORQ_MIN", "AXLE_TORQ_ICE", 0),
-      ("AXLE_TORQ_MAX", "AXLE_TORQ_ICE", 0),
+      ("ENGINE_RPM", "ECM_1", 0),
+      ("ENGINE_TORQ_MIN", "ECM_TRQ", 0),
+      ("ENGINE_TORQ_MAX", "ECM_TRQ", 0),
       ("CurrentGear", "TCM_A7", 0),
     ]
 
@@ -275,8 +274,8 @@ class CarState(CarStateBase):
       ("ACCEL_RELATED_120", 50),
       ("TRACTION_BUTTON", 1),
 
-      ("ACCEL_PEDAL_MSG", 50),
-      ("AXLE_TORQ_ICE", 50),
+      ("ECM_1", 50),
+      ("ECM_TRQ", 50),
       ("TCM_A7", 50),
     ]
 
