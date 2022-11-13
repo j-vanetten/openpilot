@@ -84,6 +84,7 @@ const CanMsg CHRYSLER_TX_MSGS[] = {
   {CHRYSLER_ADDRS.CRUISE_BUTTONS, 0, 3},
   {CHRYSLER_ADDRS.LKAS_COMMAND, 0, 6},
   {CHRYSLER_ADDRS.DAS_6, 0, 8},
+  {CHRYSLER_ADDRS.DAS_3, 0, 8},
   {CHRYSLER_ADDRS.LKAS_HEARTBIT, 0, 5},
 };
 
@@ -204,9 +205,8 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
     if ((bus == das_3_bus) && (addr == chrysler_addrs->DAS_3)) {
       bool cruise_engaged = GET_BIT(to_push, 21U) == 1U;
       cruise_engaged = true;
-      if (cruise_engaged || vehicle_moving) {
-        pcm_cruise_check(cruise_engaged);
-      }
+      pcm_cruise_check(cruise_engaged);
+      controls_allowed = true;
     }
 
     // TODO: use the same message for both

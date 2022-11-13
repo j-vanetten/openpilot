@@ -414,7 +414,7 @@ class CarController:
     if self.last_brake is None:
       self.last_brake = min(0., brake_target / 2)
     elif self.last_brake < 0 and CS.out.aEgo < brake_target:  # are we slowing too much?
-      self.last_brake += BRAKE_CHANGE
+      self.last_brake += (BRAKE_CHANGE / 10)
     else:
       tBrake = brake_target
       if not speed_to_far_off and 0 >= tBrake >= -1:  # let up on brake as we approach
