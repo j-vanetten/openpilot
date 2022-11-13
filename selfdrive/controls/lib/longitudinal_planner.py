@@ -124,20 +124,16 @@ class LongitudinalPlanner:
     if len(sm['modelV2'].temporalPose.trans):
       self.v_model_error = sm['modelV2'].temporalPose.trans[0] - v_ego
 
-    accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
-    if not self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
-      accel_limits = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
-
     if force_slow_decel:
       # if required so, force a smooth deceleration
-      accel_limits[1] = min(accel_limits[1], AWARENESS_DECEL)
-      accel_limits[0] = min(accel_limits[0], accel_limits[1])
+      accel_limits_turns[1] = min(accel_limits_turns[1], AWARENESS_DECEL)
+      accel_limits_turns[0] = min(accel_limits_turns[0], accel_limits_turns[1])
     # clip limits, cannot init MPC outside of bounds
-    accel_limits[0] = min(accel_limits[0], self.a_desired + 0.05)
-    accel_limits[1] = max(accel_limits[1], self.a_desired - 0.05)
+    accel_limits_turns[0] = min(accel_limits_turns[0], self.a_desired + 0.05)
+    accel_limits_turns[1] = max(accel_limits_turns[1], self.a_desired - 0.05)
 
     self.mpc.set_weights(prev_accel_constraint)
-    self.mpc.set_accel_limits(accel_limits[0], accel_limits[1])
+    self.mpc.set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j = self.parse_model(sm['modelV2'], self.v_model_error)
     self.mpc.update(sm['carState'], sm['radarState'], v_cruise, x, v, a, j)

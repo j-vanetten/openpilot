@@ -452,7 +452,7 @@ void AnnotatedCameraWidget::drawText(QPainter &p, int x, int y, const QString &t
 }
 
 
-void NvgWindow::drawText(QPainter &p, int x, int y, const QString &text, int alpha) {
+void drawText(QPainter &p, int x, int y, const QString &text, int alpha) {
   drawText(p, x, y, text, QColor(0xff, 0xff, 0xff, alpha));
 }
 
