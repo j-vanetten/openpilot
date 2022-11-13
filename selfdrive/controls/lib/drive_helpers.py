@@ -108,12 +108,14 @@ class VCruiseHelper:
 
   def initialize_v_cruise(self, CS, is_metric):
     # 250kph or above probably means we never had a set speed
+    speed = None
     if self.v_cruise_kph_last < 250:
       for b in CS.buttonEvents:
         if b.type == "resumeCruise":
-          return self.v_cruise_kph_last
+          speed = self.v_cruise_kph_last
 
-    return int(round(clip(CS.vEgo * CV.MS_TO_KPH, cruise_min(is_metric), V_CRUISE_MAX)))
+    self.v_cruise_kph = int(round(clip(CS.vEgo * CV.MS_TO_KPH, cruise_min(is_metric), V_CRUISE_MAX))) if speed is None else speed
+    self.v_cruise_cluster_kph = self.v_cruise_kph
 
 
 def cruise_min(is_metric):
