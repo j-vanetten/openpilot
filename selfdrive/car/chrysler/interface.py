@@ -92,6 +92,7 @@ class CarInterface(CarInterfaceBase):
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront)
 
     ret.openpilotLongitudinalControl = True  # kind of...
+    ret.experimentalLongitudinalAvailable = True
     ret.pcmCruiseSpeed = False  # Let jvePilot control the pcm cruise speed
 
     ret.enableBsm |= 720 in fingerprint[0]
