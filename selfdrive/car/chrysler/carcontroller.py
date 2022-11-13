@@ -371,12 +371,12 @@ class CarController:
     if brake is not None:
       return brake
     elif torque is not None:
-      accel = (torque * .105 * CS.gasRpm) / (self.vehicleMass * CS.out.vEgo)  # torque back to accel
+      accel = 0 if CS.out.vEgo == 0 else (torque * .105 * CS.gasRpm) / (self.vehicleMass * CS.out.vEgo)  # torque back to accel
       return accel
     return 0
 
   def torque(self, CS, aTarget, vTarget):
-    return (self.vehicleMass * aTarget * vTarget) / (.105 *  CS.gasRpm)
+    return (self.vehicleMass * aTarget * vTarget) / (.105 * CS.gasRpm)
 
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
     if CS.out.vEgo < SLOW_WINDOW:
