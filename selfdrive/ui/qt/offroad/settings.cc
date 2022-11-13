@@ -169,7 +169,7 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
     {
       "ExperimentalMode",
       tr("Experimental Mode"),
-      "",
+      tr("Experimental Mode"),
       "../assets/offroad/icon_road.png",
       false,
     },
