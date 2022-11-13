@@ -413,7 +413,7 @@ class CarController:
     brake_target = max(CarControllerParams.ACCEL_MIN, round(aTarget, 2))
     if self.last_brake is None:
       self.last_brake = min(0., brake_target / 2)
-    elif self.last_brake < 0 and CS.out.aEgo < brake_target:  # are we slowing too much?
+    elif self.last_brake < -.2 and CS.out.aEgo < brake_target:  # are we slowing too much?
       self.last_brake += (BRAKE_CHANGE / 10)
     else:
       tBrake = brake_target
