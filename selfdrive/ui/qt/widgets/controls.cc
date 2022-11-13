@@ -20,8 +20,6 @@ QFrame *horizontal_line(QWidget *parent) {
 }
 
 AbstractControl::AbstractControl(const QString &title, const QString &desc, const QString &icon, QWidget *parent, QList<struct ConfigButton> *btns) : QFrame(parent) {
-  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
-
   QVBoxLayout *main_layout = new QVBoxLayout(this);
   main_layout->setMargin(0);
 
@@ -43,6 +41,12 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
   title_label->setFixedHeight(120);
   title_label->setStyleSheet("font-size: 50px; font-weight: 400; text-align: left");
   hlayout->addWidget(title_label);
+
+  // value next to control button
+  value = new ElidedLabel();
+  value->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  value->setStyleSheet("color: #aaaaaa");
+  hlayout->addWidget(value);
 
   main_layout->addLayout(hlayout);
 
@@ -88,7 +92,7 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
     config_widget->setLayout(config_layout);
     connect(title_label, &QPushButton::clicked, [=]() {
       if (!description->isVisible()) {
-        emit showDescription();
+        emit showDescriptionEvent();
       }
       config_widget->setVisible(!config_widget->isVisible());
     });
@@ -98,7 +102,7 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
 }
 
 void AbstractControl::hideEvent(QHideEvent *e) {
-  if(config_widget != nullptr) {
+  if (config_widget != nullptr) {
     config_widget->hide();
   }
 }

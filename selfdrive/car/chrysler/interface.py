@@ -32,7 +32,7 @@ class CarInterface(CarInterfaceBase):
     return maxAccel
 
   @staticmethod
-  def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None, disable_radar=False):
+  def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None, experimental_long=False):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "chrysler"
 
@@ -86,7 +86,7 @@ class CarInterface(CarInterfaceBase):
       ret.minSteerSpeed = 14.5
       if car_fw is not None:
         for fw in car_fw:
-          if fw.ecu == 'eps' and fw.fwVersion in (b"68312176AE", b"68312176AG", b"68273275AG"):
+          if fw.ecu == 'eps' and fw.fwVersion[:8] in (b"68312176", b"68273275"):
             ret.minSteerSpeed = 0.
 
     elif candidate == CAR.RAM_HD:

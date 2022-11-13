@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 import math
 import numpy as np
-from common.numpy_fast import interp
+from common.numpy_fast import clip, interp
 from common.cached_params import CachedParams
 
 import cereal.messaging as messaging
 from common.conversions import Conversions as CV
 from common.filter_simple import FirstOrderFilter
+from common.params import Params
 from common.realtime import DT_MDL
 from selfdrive.modeld.constants import T_IDXS
 from selfdrive.controls.lib.longcontrol import LongCtrlState
-from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc
+from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc, MIN_ACCEL, MAX_ACCEL
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDXS as T_IDXS_MPC
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, CONTROL_N
 from system.swaglog import cloudlog
@@ -47,10 +48,14 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
   return [a_target[0], min(a_target[1], a_x_allowed)]
 
 
-class Planner:
+class LongitudinalPlanner:
   def __init__(self, CP, init_v=0.0, init_a=0.0):
     self.CP = CP
+    self.params = Params()
+    self.param_read_counter = 0
+
     self.mpc = LongitudinalMpc()
+    self.read_param()
 
     self.fcw = False
 
@@ -60,13 +65,38 @@ class Planner:
 
     self.a_desired = init_a
     self.v_desired_filter = FirstOrderFilter(init_v, 2.0, DT_MDL)
+    self.v_model_error = 0.0
 
     self.v_desired_trajectory = np.zeros(CONTROL_N)
     self.a_desired_trajectory = np.zeros(CONTROL_N)
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
 
-  def update(self, sm, lateral_planner):
+  def read_param(self):
+    e2e = self.params.get_bool('ExperimentalMode') and self.CP.openpilotLongitudinalControl
+    self.mpc.mode = 'blended' if e2e else 'acc'
+
+  @staticmethod
+  def parse_model(model_msg, model_error):
+    if (len(model_msg.position.x) == 33 and
+       len(model_msg.velocity.x) == 33 and
+       len(model_msg.acceleration.x) == 33):
+      x = np.interp(T_IDXS_MPC, T_IDXS, model_msg.position.x) - model_error * T_IDXS_MPC
+      v = np.interp(T_IDXS_MPC, T_IDXS, model_msg.velocity.x) - model_error
+      a = np.interp(T_IDXS_MPC, T_IDXS, model_msg.acceleration.x)
+      j = np.zeros(len(T_IDXS_MPC))
+    else:
+      x = np.zeros(len(T_IDXS_MPC))
+      v = np.zeros(len(T_IDXS_MPC))
+      a = np.zeros(len(T_IDXS_MPC))
+      j = np.zeros(len(T_IDXS_MPC))
+    return x, v, a, j
+
+  def update(self, sm, lateral_planner, read=True):
+    if self.param_read_counter % 50 == 0 and read:
+      self.read_param()
+    self.param_read_counter += 1
+
     v_ego = sm['carState'].vEgo
     long_control = sm['carState'].jvePilotCarState.longControl
 
@@ -74,25 +104,32 @@ class Planner:
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
 
-    long_control_state = sm['controlsState'].longControlState
+    long_control_off = sm['controlsState'].longControlState == LongCtrlState.off
     force_slow_decel = sm['controlsState'].forceDecel
 
     # Reset current state when not engaged, or user is controlling the speed
-    reset_state = long_control_state == LongCtrlState.off
+    reset_state = long_control_off if self.CP.openpilotLongitudinalControl else not sm['controlsState'].enabled
 
     # No change cost when user is controlling the speed, or when standstill
     prev_accel_constraint = not (reset_state or sm['carState'].standstill)
 
+    if self.mpc.mode == 'acc':
+      accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
+      accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
+    else:
+      accel_limits = [MIN_ACCEL, MAX_ACCEL]
+      accel_limits_turns = [MIN_ACCEL, MAX_ACCEL]
+
     if reset_state:
       self.v_desired_filter.x = v_ego
-      self.a_desired = 0.0
+      # Clip aEgo to cruise limits to prevent large accelerations when becoming active
+      self.a_desired = clip(sm['carState'].aEgo, accel_limits[0], accel_limits[1])
 
     # Prevent divergence, smooth in current v_ego
     self.v_desired_filter.x = max(0.0, self.v_desired_filter.update(v_ego))
-
-    accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
-    if not self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
-      accel_limits = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
+    # Compute model v_ego error
+    if len(sm['modelV2'].temporalPose.trans):
+      self.v_model_error = sm['modelV2'].temporalPose.trans[0] - v_ego
 
     if force_slow_decel:
       # if required so, force a smooth deceleration
@@ -103,16 +140,17 @@ class Planner:
     accel_limits[1] = max(accel_limits[1], self.a_desired - 0.05)
 
     self.mpc.set_weights(prev_accel_constraint)
-    self.mpc.set_accel_limits(accel_limits[0], accel_limits[1])
+    self.mpc.set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
-    self.mpc.update(sm['carState'], sm['radarState'], v_cruise)
+    x, v, a, j = self.parse_model(sm['modelV2'], self.v_model_error)
+    self.mpc.update(sm['carState'], sm['radarState'], v_cruise, x, v, a, j)
 
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)
     self.j_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC[:-1], self.mpc.j_solution)
 
     # TODO counter is only needed because radar is glitchy, remove once radar is gone
-    self.fcw = self.mpc.crash_cnt > 5
+    self.fcw = self.mpc.crash_cnt > 2 and not sm['carState'].standstill
     if self.fcw:
       cloudlog.info("FCW triggered")
 
@@ -144,8 +182,10 @@ class Planner:
 
   def target_speed(self, lateral_planner, sm):
     target = sm['controlsState'].vCruise * CV.KPH_TO_MS + (CV.KPH_TO_MS / 2)
+    experimental_mode = self.cachedParams.get('ExperimentalMode', 5000) == "1"
+    slow_in_curves = self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1"
     slowing = False
-    if lateral_planner.lateralPlan and self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1":
+    if lateral_planner.lateralPlan and slow_in_curves and not experimental_mode:
       curvs = list(lateral_planner.lateralPlan.curvatures)
       if len(curvs):
         # find the largest curvature in the solution and use that.
