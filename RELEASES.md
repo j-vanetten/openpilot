@@ -4,6 +4,10 @@ Version jvePilot-0.8.15(v4.0.0)
 Version jvePilot-0.8.17(v3.13.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Removed lane lines toggle using LKAS dash button. Lane lines has going away.
+* LKAS button can now toggle experimental mode that slows for stop lights and stop signs.
+  * Enable Experimental Mode in the dash will make the mode available to toggle using the button
+  * When button is lit, experimental mode will be enabled.
 * Add Fingerprint V1 for AUS Jeep Grand Cherokee Trailhawk
 * Update to 0.8.17
   * New driving model

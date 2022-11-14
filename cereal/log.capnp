@@ -1893,7 +1893,7 @@ struct ManagerState {
 struct JvePilotUIState {
   autoFollow @0 :Int8;
   accEco @1 :UInt8;
-  useLaneLines @2 :Bool;
+  lkasButtonLight @2 :Bool;
 }
 
 struct UploaderState {

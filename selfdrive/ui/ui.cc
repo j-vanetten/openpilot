@@ -172,7 +172,7 @@ static void update_state(UIState *s) {
   if (sm.updated("jvePilotState")) {
     scene.autoFollowEnabled = sm["jvePilotState"].getJvePilotUIState().getAutoFollow();
     scene.accEco = sm["jvePilotState"].getJvePilotUIState().getAccEco();
-    scene.use_lane_lines = sm["jvePilotState"].getJvePilotUIState().getUseLaneLines();
+    scene.use_lane_lines = sm["jvePilotState"].getJvePilotUIState().getLkasButtonLight();
   }
 }
 

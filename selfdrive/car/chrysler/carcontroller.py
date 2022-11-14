@@ -88,12 +88,12 @@ class CarController:
 
     # Lane-less button
     if CS.button_pressed(ButtonType.lkasToggle, False):
-      CC.jvePilotState.carControl.useLaneLines = not CC.jvePilotState.carControl.useLaneLines
-      self.settingsParams.put("jvePilot.settings.useLaneLines",
-                              "1" if CC.jvePilotState.carControl.useLaneLines else "0")
+      CC.jvePilotState.carControl.lkasButtonLight = not CC.jvePilotState.carControl.lkasButtonLight
+      self.settingsParams.put("jvePilot.settings.lkasButtonLight",
+                              "1" if CC.jvePilotState.carControl.lkasButtonLight else "0")
       CC.jvePilotState.notifyUi = True
     if self.frame % 10 == 0:
-      new_msg = create_lkas_heartbit(self.packer, 1 if CC.jvePilotState.carControl.useLaneLines else 0, CS.lkasHeartbit)
+      new_msg = create_lkas_heartbit(self.packer, 1 if CC.jvePilotState.carControl.lkasButtonLight else 0, CS.lkasHeartbit)
       can_sends.append(new_msg)
 
     self.wheel_button_control(CC, CS, can_sends, CC.enabled, das_bus, CC.cruiseControl.cancel, CC.cruiseControl.resume)

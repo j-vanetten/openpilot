@@ -57,7 +57,7 @@ def manager_init() -> None:
     ("jvePilot.settings.slowInCurves.speedRatio", "1.0"),
     ("jvePilot.settings.slowInCurves.speedDropOff", "1.96"),
     ("jvePilot.settings.slowInCurves.speedDropOffAngle", "0.0"),
-    ("jvePilot.settings.useLaneLines", "0"),
+    ("jvePilot.settings.lkasButtonLight", "0"),
 
     ("CompletedTrainingVersion", "0"),
     ("DisengageOnAccelerator", "0"),
