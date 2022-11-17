@@ -193,10 +193,6 @@ public:
     refresh();
   };
 
-  void showEvent(QShowEvent *event) override {
-    refresh();
-  };
-
 private:
   void setIcon(bool state) {
     if (state && !active_icon_pixmap.isNull()) {
