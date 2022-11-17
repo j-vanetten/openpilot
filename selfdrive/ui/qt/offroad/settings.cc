@@ -147,7 +147,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                            "ADVANCED: Speed Spoofing Mod",
                            "If you have a mod that allows OP to steering down to a stop, enable this",
                            "../assets/jvepilot/settings/icon_wp_mod.png",
-                           false,
                            this));
 }
 
