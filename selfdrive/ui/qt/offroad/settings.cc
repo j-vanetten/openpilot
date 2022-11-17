@@ -50,7 +50,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                                   "Slow in Curves",
                                   "jvePilot will slow in curves so that you don't have to.",
                                   "../assets/jvepilot/settings/icon_slow_in_curves.png",
-                                  false,
                                   this,
                                   &slowInCurvesConfigs));
   // autoFollow
@@ -78,7 +77,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                                   "Start with Auto Follow Enabled",
                                   "When enabled, jvePilot will enable Auto Follow on the start of every drive.",
                                   "../assets/jvepilot/settings/icon_auto_follow.png",
-                                  false,
                                   this,
                                   &autoFollowConfigs));
 
@@ -89,7 +87,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                                   " Hold a little longer to change by 1."
                                   " Disable to keep stock setting.",
                                   "../assets/jvepilot/settings/icon_acc_speed_change.png",
-                                  false,
                                   this));
 
   // autoResume
@@ -97,7 +94,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                                   "Auto Resume",
                                   "When enabled, jvePilot will resume after ACC comes to a stop behind another vehicle.",
                                   "../assets/jvepilot/settings/icon_auto_resume.png",
-                                  false,
                                   this));
 
   // audioAlertOnSteeringLoss
@@ -105,7 +101,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                                   "Audio Alert on Steering Loss",
                                   "When enabled, jvePilot will play an alert when speed it too low to steer.",
                                   "../assets/jvepilot/settings/alert_steer_loss.png",
-                                  false,
                                   this));
 
   // accEco
