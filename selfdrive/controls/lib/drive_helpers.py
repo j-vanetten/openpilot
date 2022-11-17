@@ -117,24 +117,11 @@ class VCruiseHelper:
     self.v_cruise_kph = int(round(clip(CS.vEgo * CV.MS_TO_KPH, cruise_min(is_metric), V_CRUISE_MAX))) if speed is None else speed
     self.v_cruise_cluster_kph = self.v_cruise_kph
 
-
 def cruise_min(is_metric):
   return V_CRUISE_MIN if is_metric else V_CRUISE_MIN_IMPERIAL
 
-
-def apply_deadzone(error, deadzone):
-  if error > deadzone:
-    error -= deadzone
-  elif error < - deadzone:
-    error += deadzone
-  else:
-    error = 0.
-  return error
-
-
 def rate_limit(new_value, last_value, dw_step, up_step):
   return clip(new_value, last_value + dw_step, last_value + up_step)
-
 
 def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates):
   if len(psis) != CONTROL_N:
