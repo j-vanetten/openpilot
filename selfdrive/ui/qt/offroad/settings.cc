@@ -176,7 +176,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                            "\nWhen enabled, jvePilot will perform longitudinal control."
                            "\nDo not enable ACC or Cruise to use this feature.",
                            "../assets/jvepilot/settings/long_control.png",
-                           false,
                            this,
                            &longControlConfigs));
 }
