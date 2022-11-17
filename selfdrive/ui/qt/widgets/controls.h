@@ -154,7 +154,7 @@ class ParamControl : public ToggleControl {
   Q_OBJECT
 
 public:
-  ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, const bool confirm, QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {}) : ToggleControl(title, desc, icon, false, parent, btns) {
+  ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {}) : ToggleControl(title, desc, icon, false, parent, btns) {
     key = param.toStdString();
     QObject::connect(this, &ParamControl::toggleFlipped, [=](bool state) {
       QString content("<body><h2 style=\"text-align: center;\">" + title + "</h2><br>"
