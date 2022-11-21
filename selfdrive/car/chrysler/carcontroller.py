@@ -72,7 +72,6 @@ class CarController:
     self.accel_steady = 0
     self.last_brake = None
     self.last_torque = 0.
-    self.last_enabled = False
     self.torq_adjust = 0.
     self.under_accel_frame_count = 0
     self.vehicleMass = CP.mass
@@ -268,10 +267,6 @@ class CarController:
   # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CC, CS, can_sends, enabled):
     das_3_counter = CS.das_3['COUNTER']
-    if self.last_enabled != enabled:
-      self.last_enabled = enabled
-      can_sends.append(acc_command(self.packer, das_3_counter, enabled, None, None, None, None, None, CS.das_3))
-
     counter_change = das_3_counter != self.last_das_3_counter
     self.last_das_3_counter = das_3_counter
     if not counter_change:

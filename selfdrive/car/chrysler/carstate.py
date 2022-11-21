@@ -46,7 +46,7 @@ class CarState(CarStateBase):
     self.longEnabled = False
     self.longControl = False
     self.gasRpm = None
-    self.allowLong = CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019)
+    self.allowLong = True # CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019)
     self.torqMin = None
     self.torqMax = None
     self.currentGear = None
