@@ -153,7 +153,7 @@ class CarController:
 
     self.button_frame += 1
 
-    if CS.longControl:
+    if self.CP.openpilotLongitudinalControl:
       if cancel or CS.button_pressed(ButtonType.cancel) or CS.out.brakePressed:
         CS.longEnabled = False
       elif CS.button_pressed(ButtonType.accelCruise) or \

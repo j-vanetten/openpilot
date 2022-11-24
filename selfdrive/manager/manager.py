@@ -47,7 +47,6 @@ def manager_init() -> None:
     ("jvePilot.settings.autoResume", "1"),
     ("jvePilot.settings.audioAlertOnSteeringLoss", "1"),
     ("jvePilot.settings.steer.noMinimum", "0"),
-    ("jvePilot.settings.longControl", "0"),
     ("jvePilot.settings.longControl.eco0", "2"),
     ("jvePilot.settings.longControl.eco1", "1.33"),
     ("jvePilot.settings.longControl.eco2", "1"),

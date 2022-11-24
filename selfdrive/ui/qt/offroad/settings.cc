@@ -170,14 +170,13 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
         "The higher the number the more acceleration that occurs."
     }
   };
-  addItem(new ParamControl("jvePilot.settings.longControl",
-                           "EXPERIMENTAL: Jeep Long Control",
-                           "Jeep only!"
-                           "\nWhen enabled, jvePilot will perform longitudinal control."
-                           "\nDo not enable ACC or Cruise to use this feature.",
-                           "../assets/jvepilot/settings/long_control.png",
-                           this,
-                           &longControlConfigs));
+  addItem(new LabelControl("EXPERIMENTAL Long Control",
+                                  "",
+                                  "Use these settings to tune how much acceleration occurs when using experimental long control.",
+                                  this,
+                                  "../assets/jvepilot/settings/long_control.png",
+                                  &longControlConfigs));
+
 }
 
 TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {

@@ -64,8 +64,12 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15, 0.30], [0.03, 0.05]]
       ret.lateralTuning.pid.kf = 0.00006
 
+      if candidate in (CAR.PACIFICA_2018, CAR.PACIFICA_2020):
+        ret.experimentalLongitudinalAvailable = True
+
     # Jeep
     elif candidate in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019):
+      ret.experimentalLongitudinalAvailable = True
       ret.mass = 2242 + STD_CARGO_KG
       ret.wheelbase = 2.91
       ret.steerRatio = 16.7
