@@ -275,7 +275,8 @@ void TogglesPanel::updateToggles() {
   auto e2e_toggle = toggles["ExperimentalMode"];
   auto op_long_toggle = toggles["ExperimentalLongitudinalEnabled"];
   const QString e2e_description = tr("\
-    openpilot defaults to driving in <b>chill mode</b>.\
+    openpilot defaults to driving in <b>chill mode</b>. \
+    Use the LKAS button on the dash to enable/disable while driving. \
     Experimental mode enables <b>alpha-level features</b> that aren't ready for chill mode. \
     Experimental features are listed below: \
     <br> \
