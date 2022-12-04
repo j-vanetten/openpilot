@@ -148,7 +148,9 @@ class CarController:
       can_sends.append(new_msg)
 
   def hybrid_acc_button(self, CC, CS):
-    target = CC.jvePilotState.carControl.vTargetFuture + 2 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
+    experimental_mode = self.cachedParams.get_bool("ExperimentalMode") and self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight')
+    acc_boost = 0 if experimental_mode else 2 * CV.MPH_TO_MS # add extra speed so ACC does the limiting
+    target = CC.jvePilotState.carControl.vTargetFuture + acc_boost
 
     # Move the adaptive curse control to the target speed
     eco_limit = None
