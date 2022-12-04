@@ -40,7 +40,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.radarOffCan = DBC[candidate]['radar'] is None
 
-    ret.steerActuatorDelay = 0.1
+    ret.steerActuatorDelay = 0.07
     ret.steerLimitTimer = 0.4
 
     # safety config
@@ -73,7 +73,6 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2242 + STD_CARGO_KG
       ret.wheelbase = 2.91
       ret.steerRatio = 16.7
-      ret.steerActuatorDelay = 0.2
       ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kiBP = [[9., 20.], [9., 20.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15, 0.30], [0.03, 0.05]]
       ret.lateralTuning.pid.kf = 0.00006
