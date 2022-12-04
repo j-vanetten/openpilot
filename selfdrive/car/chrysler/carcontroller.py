@@ -148,7 +148,7 @@ class CarController:
       can_sends.append(new_msg)
 
   def hybrid_acc_button(self, CC, CS):
-    experimental_mode = self.cachedParams.get_bool("ExperimentalMode") and self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight')
+    experimental_mode = self.cachedParams.get_bool("ExperimentalMode", 1000) and self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 1000)
     acc_boost = 0 if experimental_mode else 2 * CV.MPH_TO_MS # add extra speed so ACC does the limiting
     target = CC.jvePilotState.carControl.vTargetFuture + acc_boost
 
