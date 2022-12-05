@@ -112,7 +112,6 @@ class CarState(CarStateBase):
       self.torqMax = cp.vl["ECM_TRQ"]["ENGINE_TORQ_MAX"]
       self.currentGear = cp.vl['TCM_A7']["CurrentGear"]
       self.gasRpm = cp.vl["ECM_1"]["ENGINE_RPM"]
-      self.das_3 = cp.vl['DAS_3']
     else:
       ret.jvePilotCarState.longControl = False
       self.longEnabled = False
@@ -122,6 +121,7 @@ class CarState(CarStateBase):
       ret.cruiseState.standstill = cp_cruise.vl["DAS_3"]["ACC_STANDSTILL"] == 1
       ret.accFaulted = cp_cruise.vl["DAS_3"]["ACC_FAULTED"] != 0
 
+    self.das_3 = cp.vl['DAS_3']
     ret.cruiseState.speed = cp_cruise.vl["DAS_4"]["ACC_SET_SPEED_KPH"] * CV.KPH_TO_MS
     self.lkasHeartbit = cp_cam.vl["LKAS_HEARTBIT"]
 
