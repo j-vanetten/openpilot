@@ -259,7 +259,7 @@ void generic_rx_checks(bool stock_ecu_detected) {
   brake_pressed_prev = brake_pressed;
 
   // exit controls on rising edge of regen paddle
-  if (regen_braking && (!regen_braking_prev || vehicle_moving)) {
+  if (regen_braking && (!regen_braking_prev && vehicle_moving)) {
     controls_allowed = 0;
   }
   regen_braking_prev = regen_braking;
@@ -577,7 +577,7 @@ bool steer_torque_cmd_checks(int desired_torque, int steer_req, const SteeringLi
 void pcm_cruise_check(bool cruise_engaged) {
   // Enter controls on rising edge of stock ACC, exit controls if stock ACC disengages
   if (!cruise_engaged) {
-    controls_allowed = false;
+    controls_allowed = !vehicle_moving;
   }
   if (cruise_engaged && !cruise_engaged_prev) {
     controls_allowed = true;

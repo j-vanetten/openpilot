@@ -1,3 +1,4 @@
+import math
 from opendbc.can.packer import CANPacker
 from common.realtime import DT_CTRL
 from selfdrive.car import apply_toyota_steer_torque_limits
@@ -66,6 +67,7 @@ class CarController:
 
     self.autoFollowDistanceLock = None
     self.button_frame = 0
+    self.last_target = 0
 
     # long
     self.last_das_3_counter = -1
@@ -211,8 +213,8 @@ class CarController:
 
   def hybrid_acc_button(self, CC, CS):
     experimental_mode = self.cachedParams.get_bool("ExperimentalMode", 1000) and self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 1000)
-    acc_boost = 0 if experimental_mode else 2 * CV.MPH_TO_MS # add extra speed so ACC does the limiting
-    target = CC.jvePilotState.carControl.vTargetFuture + acc_boost
+    acc_boost = 0 if experimental_mode else 2 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
+    target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
 
     # Move the adaptive curse control to the target speed
     eco_limit = None
@@ -229,8 +231,7 @@ class CarController:
     if diff > ACC_BRAKE_THRESHOLD and abs(target - CC.jvePilotState.carControl.vMaxCruise) > ACC_BRAKE_THRESHOLD:  # ignore change in max cruise speed
       target -= diff
 
-    # round to nearest unit
-    target = round(min(CC.jvePilotState.carControl.vMaxCruise, target) * self.round_to_unit)
+    target = math.ceil(min(CC.jvePilotState.carControl.vMaxCruise, target) * self.round_to_unit)
     current = round(CS.out.cruiseState.speed * self.round_to_unit)
     minSetting = round(self.minAccSetting * self.round_to_unit)
 
@@ -424,3 +425,11 @@ class CarController:
       elif tBrake - lBrake > 0.01:  # don't let up unless it's a big enough jump
         diff = min(BRAKE_CHANGE, (tBrake - lBrake) / 2)
         self.last_brake = min(lBrake + diff, tBrake)
+  def acc_hysteresis(self, new_target):
+    if new_target > self.last_target:
+      self.last_target = new_target
+    elif new_target < self.last_target - 0.75 * CV.MPH_TO_MS:
+      self.last_target = new_target
+
+    return self.last_target
+
