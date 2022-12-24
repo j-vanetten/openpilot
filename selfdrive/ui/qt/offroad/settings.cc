@@ -145,7 +145,14 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
   // Minimum Steer Check
   addItem(new ParamControl("jvePilot.settings.steer.noMinimum",
                            "ADVANCED: Speed Spoofing Mod",
-                           "If you have a mod that allows OP to steering down to a stop, enable this",
+                           "If you have a mod that allows OP to steering down to a stop, enable this.",
+                           "../assets/jvepilot/settings/icon_wp_mod.png",
+                           this));
+
+  // Minimum Steer Check
+  addItem(new ParamControl("jvePilot.settings.visionOnly",
+                           "ADVANCED: Vision only",
+                           "Enable this setting if you are seeing the lead car yellow triangle acting erratically.",
                            "../assets/jvepilot/settings/icon_wp_mod.png",
                            this));
 
