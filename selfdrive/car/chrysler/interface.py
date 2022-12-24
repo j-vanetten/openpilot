@@ -11,7 +11,7 @@ GAS_RESUME_SPEED = 1.
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
-  def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None, disable_radar=False):
+  def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None, experimental_long=False):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "chrysler"
 
@@ -19,7 +19,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.radarOffCan = DBC[candidate]['radar'] is None
 
-    ret.steerActuatorDelay = 0.1
+    ret.steerActuatorDelay = 0.07
     ret.steerLimitTimer = 0.4
 
     # safety config
@@ -48,7 +48,6 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2242 + STD_CARGO_KG
       ret.wheelbase = 2.91
       ret.steerRatio = 16.7
-      ret.steerActuatorDelay = 0.2
       ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kiBP = [[9., 20.], [9., 20.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15, 0.30], [0.03, 0.05]]
       ret.lateralTuning.pid.kf = 0.00006
@@ -65,7 +64,7 @@ class CarInterface(CarInterfaceBase):
       ret.minSteerSpeed = 14.5
       if car_fw is not None:
         for fw in car_fw:
-          if fw.ecu == 'eps' and fw.fwVersion in (b"68312176AE", b"68312176AG", b"68273275AG"):
+          if fw.ecu == 'eps' and fw.fwVersion[:8] in (b"68312176", b"68273275"):
             ret.minSteerSpeed = 0.
 
     elif candidate == CAR.RAM_HD:

@@ -53,11 +53,13 @@ def manager_init() -> None:
     ("jvePilot.settings.slowInCurves.speedRatio", "1.0"),
     ("jvePilot.settings.slowInCurves.speedDropOff", "2.0"),
     ("jvePilot.settings.slowInCurves.speedDropOffAngle", "0.0"),
-    ("jvePilot.settings.useLaneLines", "0"),
+    ("jvePilot.settings.lkasButtonLight", "0"),
 
     ("CompletedTrainingVersion", "0"),
     ("DisengageOnAccelerator", "0"),
+    ("GsmMetered", "1"),
     ("HasAcceptedTerms", "0"),
+    ("LanguageSetting", "main_en"),
     ("OpenpilotEnabledToggle", "1"),
   ]
   if not PC:
@@ -65,9 +67,6 @@ def manager_init() -> None:
 
   if params.get_bool("RecordFrontLock"):
     params.put_bool("RecordFront", True)
-
-  if not params.get_bool("DisableRadar_Allow"):
-    params.delete("DisableRadar")
 
   # set unset params
   for k, v in default_params:
