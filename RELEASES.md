@@ -5,6 +5,7 @@ Visit http://bit.ly/jvereadme for more information
 * LKAS button can now toggle experimental mode that slows for stop lights and stop signs.
   * Enable Experimental Mode in the dash will make the mode available to toggle using the button
   * When button is lit, experimental mode will be enabled.
+* Add option to ignore the radar and use vision only 
 * Add Fingerprint V1 for AUS Jeep Grand Cherokee Trailhawk
 * Update to 0.9.0
   * New driving model
