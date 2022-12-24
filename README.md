@@ -219,10 +219,15 @@ Use SSH and opEdit to change these settings.
 ### Minimum Steer Check  
 When disabled, jvePilot will no longer put a minimum on steer speed.
 Requires a mod like a [hardware interceptor](https://github.com/xps-genesis/panda/tree/xps_wp_chrysler_basic).
-* Setting: `steer.checkMinimum`
 * Default: True 
 * Vehicle Restart Required: Yes
-* Allowed values: False, True
+
+### Vision Only
+When enabled, the model will no longer use any radar signals and rely on vision only.
+Enable this setting if you are seeing the lead car yellow triangle acting erratically.  
+* Default: False 
+* Vehicle Restart Required: Yes
+
 ---
 
 ![](https://user-images.githubusercontent.com/37757984/127420744-89ca219c-8f8e-46d3-bccf-c1cb53b81bb1.png)

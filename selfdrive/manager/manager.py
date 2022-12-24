@@ -48,6 +48,7 @@ def manager_init() -> None:
     ("jvePilot.settings.audioAlertOnSteeringLoss", "1"),
     ("jvePilot.settings.steer.noMinimum", "0"),
     ("jvePilot.settings.deviceOffset", "0.00"),
+    ("jvePilot.settings.visionOnly", "0"),
     ("jvePilot.settings.reverseAccSpeedChange", "1"),
     ("jvePilot.settings.slowInCurves", "1"),
     ("jvePilot.settings.slowInCurves.speedRatio", "1.0"),
