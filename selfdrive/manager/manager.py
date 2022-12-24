@@ -51,6 +51,7 @@ def manager_init() -> None:
     ("jvePilot.settings.longControl.eco1", "1.33"),
     ("jvePilot.settings.longControl.eco2", "1"),
     ("jvePilot.settings.deviceOffset", "0.00"),
+    ("jvePilot.settings.visionOnly", "0"),
     ("jvePilot.settings.reverseAccSpeedChange", "1"),
     ("jvePilot.settings.slowInCurves", "1"),
     ("jvePilot.settings.slowInCurves.speedRatio", "1.0"),
