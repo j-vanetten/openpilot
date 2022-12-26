@@ -4,7 +4,7 @@ from common.realtime import DT_CTRL
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_lkas_heartbit, create_wheel_buttons_command, \
-  acc_command, acc_log
+  acc_log, create_acc_1_message, create_das_3_message, create_das_4_message, create_chime_message, create_radar_message, create_acc_counter_message
 from selfdrive.car.chrysler.values import RAM_CARS, PRE_2019, CarControllerParams
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
@@ -70,7 +70,6 @@ class CarController:
     self.last_target = 0
 
     # long
-    self.last_das_3_counter = -1
     self.accel_steady = 0
     self.last_brake = None
     self.last_torque = 0.
@@ -136,14 +135,14 @@ class CarController:
 
     can_sends.append(create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit))
 
-    self.frame += 1
-
     new_actuators = CC.actuators.copy()
     new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
 
     accel = self.acc(CC, CS, can_sends, CC.enabled)
     if accel is not None:
       new_actuators.accel = accel
+
+    self.frame += 1
 
     return new_actuators, can_sends
 
@@ -156,6 +155,8 @@ class CarController:
     self.button_frame += 1
 
     if self.CP.openpilotLongitudinalControl:
+      if CS.button_pressed(ButtonType.accOnOff, False):
+        CS.longAvailable = not CS.longAvailable
       if cancel or CS.button_pressed(ButtonType.cancel) or CS.out.brakePressed:
         CS.longEnabled = False
       elif CS.button_pressed(ButtonType.accelCruise) or \
@@ -269,17 +270,43 @@ class CarController:
 
   # T = (mass x accel x velocity x 1000)/(.105 x Engine rpm)
   def acc(self, CC, CS, can_sends, enabled):
-    das_3_counter = CS.das_3['COUNTER']
-    counter_change = das_3_counter != self.last_das_3_counter
-    self.last_das_3_counter = das_3_counter
-    if not counter_change:
+    if not CS.longControl or self.frame % 2 != 0:
       return None
 
-    if not enabled or not CS.longControl:
+    can_sends.append(create_acc_1_message(self.packer, 0, self.frame))
+    can_sends.append(create_acc_1_message(self.packer, 2, self.frame))
+
+    if self.frame % 4 == 0:
+      self.send_radar_messages(can_sends)
+
+    if self.frame % 6 == 0:
+      state = 0
+      if CS.longAvailable:
+        state = 2 if enabled else 1
+      cruise = math.floor(CC.jvePilotState.carControl.vMaxCruise * CV.MS_TO_KPH)
+      can_sends.append(create_das_4_message(self.packer, 0, state, cruise))
+      can_sends.append(create_das_4_message(self.packer, 2, state, cruise))
+
+    if self.frame % 10 == 0:
+      can_sends.append(create_acc_counter_message(self.packer, 1, self.frame * 410))
+
+    if self.frame % 50 == 0:
+      # tester present - w/ no response (keeps radar disabled)
+      can_sends.append((0x753, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", 0))
+
+    if self.frame % 100 == 0:
+      can_sends.append(create_chime_message(self.packer, 0))
+      can_sends.append(create_chime_message(self.packer, 2))
+
+    if not enabled or not CS.longEnabled:
       self.torq_adjust = 0
       self.last_brake = None
       self.last_torque = None
       self.max_gear = None
+
+      can_sends.append(create_das_3_message(self.packer, self.frame, 0, CS.longAvailable, CS.longEnabled, False, False, 8, False, 0))
+      can_sends.append(create_das_3_message(self.packer, self.frame, 2, CS.longAvailable, CS.longEnabled, False, False, 8, False, 2))
+
       return None
 
     under_accel_frame_count = 0
@@ -288,7 +315,7 @@ class CarController:
     long_stopping = CC.actuators.longControlState == LongCtrlState.stopping
 
     override_request = CS.out.gasPressed or CS.out.brakePressed
-    fidget_stopped_brake_frame = CS.out.standstill and das_3_counter % 2 == 0  # change brake to keep Jeep stopped
+    fidget_stopped_brake_frame = CS.out.standstill and self.frame % 2 == 0  # change brake to keep Jeep stopped
     if not override_request:
       stop_req = long_stopping or (CS.out.standstill and aTarget <= 0)
       go_req = not stop_req and CS.out.standstill
@@ -348,8 +375,8 @@ class CarController:
         self.torq_adjust = max(0, self.torq_adjust - max(aTarget * 10, ADJUST_ACCEL_COOLDOWN_MAX))
     elif under_accel_frame_count > CAN_DOWNSHIFT_ACCEL_FRAMES:
       if CS.out.vEgo < vTarget - COAST_WINDOW / CarInterface.accel_max(CS) \
-          and CS.out.aEgo < CarInterface.accel_max(CS) / 5 \
-          and torque > CS.torqMax * 0.98:  # Time to downshift?
+         and CS.out.aEgo < CarInterface.accel_max(CS) / 5 \
+         and torque > CS.torqMax * 0.98:  # Time to downshift?
         if CS.currentGear > 3 and CS.gasRpm < 4500:
           self.max_gear = CS.currentGear - 1
           under_accel_frame_count = 0
@@ -358,13 +385,24 @@ class CarController:
 
     can_sends.append(acc_log(self.packer, int(self.torq_adjust), aTarget, vTarget, long_stopping, CS.out.standstill))
 
-    can_sends.append(acc_command(self.packer, das_3_counter + 1, True,
-                                 go_req,
-                                 torque,
-                                 self.max_gear,
-                                 stop_req and not fidget_stopped_brake_frame,
-                                 brake,
-                                 CS.das_3))
+    can_sends.append(
+      create_das_3_message(self.packer, self.frame, 0,
+                           CS.longAvailable,
+                           CS.longEnabled,
+                           go_req,
+                           torque,
+                           self.max_gear,
+                           stop_req and not fidget_stopped_brake_frame,
+                           brake))
+    can_sends.append(
+      create_das_3_message(self.packer, self.frame, 2,
+                           CS.longAvailable,
+                           CS.longEnabled,
+                           go_req,
+                           torque,
+                           self.max_gear,
+                           stop_req and not fidget_stopped_brake_frame,
+                           brake))
 
     if brake is not None:
       return brake
@@ -425,6 +463,14 @@ class CarController:
       elif tBrake - lBrake > 0.01:  # don't let up unless it's a big enough jump
         diff = min(BRAKE_CHANGE, (tBrake - lBrake) / 2)
         self.last_brake = min(lBrake + diff, tBrake)
+
+  def send_radar_messages(self, can_sends):
+    for i in range(1, 10):
+      can_sends.append(create_radar_message(self.packer, 0, f"c_{i}", self.frame))
+      can_sends.append(create_radar_message(self.packer, 2, f"c_{i}", self.frame))
+      can_sends.append(create_radar_message(self.packer, 0, f"d_{i}", self.frame))
+      can_sends.append(create_radar_message(self.packer, 2, f"d_{i}", self.frame))
+
   def acc_hysteresis(self, new_target):
     if new_target > self.last_target:
       self.last_target = new_target

@@ -91,11 +91,12 @@ def acc_log(packer, adjustment, aTarget, vTarget, stopping, standstill):
   return packer.make_can_msg("ACC_LOG", 0, values)
 
 
-def acc_command(packer, counter, enabled, go, gas, max_gear, stop, brake, das_3):
-  values = das_3.copy()  # forward what we parsed
-  values['ACC_AVAILABLE'] = 1
-  values['ACC_ACTIVE'] = enabled
-  values['COUNTER'] = counter % 0x10
+def create_das_3_message(packer, counter, bus, available, enabled, go, gas, max_gear, stop, brake):
+  values = {
+    'ACC_AVAILABLE': available,
+    'ACC_ACTIVE': enabled,
+    'COUNTER': counter % 0x10,
+  }
 
   if go is not None:
     values['ACC_GO'] = go
@@ -114,4 +115,45 @@ def acc_command(packer, counter, enabled, go, gas, max_gear, stop, brake, das_3)
   if max_gear is not None:
     values['GR_MAX_REQ'] = max_gear
 
-  return packer.make_can_msg("DAS_3", 0, values)
+  return packer.make_can_msg("DAS_3", bus, values)
+
+def create_acc_1_message(packer, bus, frame):
+  values = {
+    "ACCEL_PERHAPS": 32767,
+    "COUNTER": frame % 0x10,
+  }
+
+  return packer.make_can_msg("ACC_1", bus, values)
+
+def create_das_4_message(packer, bus, state, kph):
+  values = {
+    "ACC_DISTANCE_CONFIG_1": 0x1,
+    "ACC_DISTANCE_CONFIG_2": 0x1,
+    "SPEED_DIGITAL": 0xFE,
+    "ALWAYS_ON": 0x1,
+    "ACC_STATE": state,
+    "ACC_SET_SPEED_KPH": kph,
+  }
+
+  return packer.make_can_msg("DAS_4", bus, values)
+
+def create_chime_message(packer, bus):
+  values = { # 1000ms
+    # "CHIME": chime if (chime_timer > 0 and (gap_timer == 0 or gap_timer == chimegap_time)) else 14,
+    # "CHIME_REQ_L": 1 if (chime_timer > 0 and (gap_timer == 0 or gap_timer == chimegap_time)) else 0,
+    # "CHIME_REQ_R": 1 if (chime_timer > 0 and (gap_timer == 0 or gap_timer == chimegap_time)) else 0
+  }
+  return packer.make_can_msg("CHIME", bus, values)
+
+def create_radar_message(packer, bus, msg, counter):
+  values = {
+    'COUNTER': counter % 0x10
+  }
+  return packer.make_can_msg(msg, bus, values)
+
+def create_acc_counter_message(packer, bus, frame):
+  values = {
+    "COUNTER": frame,
+  }
+
+  return packer.make_can_msg("ACC_COUNTER", bus, values)

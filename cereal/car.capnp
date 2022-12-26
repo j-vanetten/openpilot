@@ -288,6 +288,7 @@ struct CarState {
       followInc @12;
       followDec @13;
       lkasToggle @14;
+      accOnOff @15;
     }
   }
 

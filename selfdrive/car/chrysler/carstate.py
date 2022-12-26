@@ -5,12 +5,14 @@ from opendbc.can.can_define import CANDefine
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD, RAM_CARS, CAR
 from common.cached_params import CachedParams
+from common.params import Params
 
 import numpy as np
 
 ButtonType = car.CarState.ButtonEvent.Type
 
-CHECK_BUTTONS = {ButtonType.cancel: ["CRUISE_BUTTONS", 'ACC_Cancel'],
+CHECK_BUTTONS = {ButtonType.accOnOff: ["CRUISE_BUTTONS", 'ACC_OnOff'],
+                 ButtonType.cancel: ["CRUISE_BUTTONS", 'ACC_Cancel'],
                  ButtonType.resumeCruise: ["CRUISE_BUTTONS", 'ACC_Resume'],
                  ButtonType.accelCruise: ["CRUISE_BUTTONS", 'ACC_Accel'],
                  ButtonType.decelCruise: ["CRUISE_BUTTONS", 'ACC_Decel'],
@@ -40,11 +42,10 @@ class CarState(CarStateBase):
     self.lkasHeartbit = None
 
     # long control
+    self.experimental_long = Params().get_bool("ExperimentalLongitudinalEnabled")
     self.longControl = False
-    self.cachedParams = CachedParams()
-    self.das_3 = None
+    self.longAvailable = False
     self.longEnabled = False
-    self.longControl = False
     self.gasRpm = None
     self.allowLong = True # CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019)
     self.torqMin = None
@@ -100,34 +101,34 @@ class CarState(CarStateBase):
     # cruise state
     cp_cruise = cp_cam if self.CP.carFingerprint in RAM_CARS else cp
 
-    self.longControl = self.CP.experimentalLongitudinalAvailable and cp.vl["DAS_4"]["ACC_STATE"] == 0 and self.cachedParams.get_bool('ExperimentalLongitudinalEnabled', 1000)
+    self.longControl = self.CP.experimentalLongitudinalAvailable and self.experimental_long
     if self.longControl:
       ret.jvePilotCarState.longControl = True
-      ret.cruiseState.enabled = self.longEnabled
-      ret.cruiseState.available = True
       ret.cruiseState.nonAdaptive = False
-      ret.cruiseState.standstill = False
+      ret.cruiseState.enabled = self.longEnabled
+      ret.cruiseState.available = self.longAvailable
+      ret.cruiseState.standstill = ret.standstill
       ret.accFaulted = False
-      self.torqMin = cp.vl["DAS_3"]["ENGINE_TORQUE_REQUEST"]
+      self.torqMin = cp.vl["ECM_TRQ"]["ENGINE_TORQ_MIN"]
       self.torqMax = cp.vl["ECM_TRQ"]["ENGINE_TORQ_MAX"]
       self.currentGear = cp.vl['TCM_A7']["CurrentGear"]
       self.gasRpm = cp.vl["ECM_1"]["ENGINE_RPM"]
+      ret.jvePilotCarState.accFollowDistance = 0
     else:
       ret.jvePilotCarState.longControl = False
-      self.longEnabled = False
+      ret.cruiseState.nonAdaptive = cp_cruise.vl["DAS_4"]["ACC_STATE"] in (1, 2)  # 1 NormalCCOn and 2 NormalCCSet
       ret.cruiseState.available = cp_cruise.vl["DAS_3"]["ACC_AVAILABLE"] == 1
       ret.cruiseState.enabled = cp_cruise.vl["DAS_3"]["ACC_ACTIVE"] == 1
-      ret.cruiseState.nonAdaptive = cp_cruise.vl["DAS_4"]["ACC_STATE"] in (1, 2)  # 1 NormalCCOn and 2 NormalCCSet
       ret.cruiseState.standstill = cp_cruise.vl["DAS_3"]["ACC_STANDSTILL"] == 1
       ret.accFaulted = cp_cruise.vl["DAS_3"]["ACC_FAULTED"] != 0
+      ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DAS_4"]['ACC_DISTANCE_CONFIG_2'])))
+      ret.cruiseState.speed = cp_cruise.vl["DAS_4"]["ACC_SET_SPEED_KPH"] * CV.KPH_TO_MS
 
-    self.das_3 = cp.vl['DAS_3']
-    ret.cruiseState.speed = cp_cruise.vl["DAS_4"]["ACC_SET_SPEED_KPH"] * CV.KPH_TO_MS
     self.lkasHeartbit = cp_cam.vl["LKAS_HEARTBIT"]
 
     if self.CP.carFingerprint in RAM_CARS:
       self.auto_high_beam = cp_cam.vl["DAS_6"]['AUTO_HIGH_BEAM_ON']  # Auto High Beam isn't Located in this message on chrysler or jeep currently located in 729 message
-      ret.steerFaultTemporary  = cp.vl["EPS_3"]["DASM_FAULT"] == 1
+      ret.steerFaultTemporary = cp.vl["EPS_3"]["DASM_FAULT"] == 1
     else:
       ret.steerFaultPermanent = cp.vl["EPS_2"]["LKAS_STATE"] == 4
 
@@ -147,8 +148,6 @@ class CarState(CarStateBase):
       ret.jvePilotCarState.pedalPressedAmount = float(np.interp(brake / 16, PEDAL_BRAKE_PRESSED_XP, PEDAL_PRESSED_YP)) / -256
     else:
       ret.jvePilotCarState.pedalPressedAmount = 0
-
-    ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DAS_4"]['ACC_DISTANCE_CONFIG_2'])))
 
     button_events = []
     for buttonType in CHECK_BUTTONS:
@@ -186,35 +185,41 @@ class CarState(CarStateBase):
 
   @staticmethod
   def get_cruise_signals():
-    signals = [
-      ("ACC_AVAILABLE", "DAS_3"),
-      ("ACC_ACTIVE", "DAS_3"),
-      ("ACC_FAULTED", "DAS_3"),
-      ("ACC_STANDSTILL", "DAS_3"),
-      ("COUNTER", "DAS_3"),
-      ("ACC_SET_SPEED_KPH", "DAS_4"),
-      ("ACC_STATE", "DAS_4"),
-      ("ACC_DISTANCE_CONFIG_2", "DAS_4"),
+    signals = []
+    checks = []
 
-      ("ACC_GO", "DAS_3", 0),
-      ("ENGINE_TORQUE_REQUEST", "DAS_3", 0),
-      ("ENGINE_TORQUE_REQUEST_MAX", "DAS_3", 0),
-      ("ACC_DECEL", "DAS_3", 0),
-      ("ACC_DECEL_REQ", "DAS_3", 0),
-      ("ACC_AVAILABLE", "DAS_3", 0),
-      ("DISABLE_FUEL_SHUTOFF", "DAS_3", 0),
-      ("GR_MAX_REQ", "DAS_3", 0),
-      ("STS", "DAS_3", 0),
-      ("COLLISION_BRK_PREP", "DAS_3", 0),
-      ("ACC_BRK_PREP", "DAS_3", 0),
-      ("DISPLAY_REQ", "DAS_3", 0),
-      ("COUNTER", "DAS_3", 0),
-      ("CHECKSUM", "DAS_3", 0),
-    ]
-    checks = [
-      ("DAS_3", 50),
-      ("DAS_4", 50),
-    ]
+    if not Params().get_bool("ExperimentalLongitudinalEnabled"):
+      signals += [
+        ("ACC_AVAILABLE", "DAS_3"),
+        ("ACC_ACTIVE", "DAS_3"),
+        ("ACC_FAULTED", "DAS_3"),
+        ("ACC_STANDSTILL", "DAS_3"),
+        ("ACC_GO", "DAS_3", 0),
+        ("ENGINE_TORQUE_REQUEST", "DAS_3", 0),
+        ("ENGINE_TORQUE_REQUEST_MAX", "DAS_3", 0),
+        ("ACC_DECEL", "DAS_3", 0),
+        ("ACC_DECEL_REQ", "DAS_3", 0),
+        ("ACC_AVAILABLE", "DAS_3", 0),
+        ("GR_MAX_REQ", "DAS_3", 0),
+        ("COUNTER", "DAS_3", 0),
+
+        # unused
+        ("DISABLE_FUEL_SHUTOFF", "DAS_3", 0),
+        ("STS", "DAS_3", 0),
+        ("COLLISION_BRK_PREP", "DAS_3", 0),
+        ("ACC_BRK_PREP", "DAS_3", 0),
+        ("DISPLAY_REQ", "DAS_3", 0),
+        ("CHECKSUM", "DAS_3", 0),
+
+        ("ACC_SET_SPEED_KPH", "DAS_4"),
+        ("ACC_STATE", "DAS_4"),
+        ("ACC_DISTANCE_CONFIG_2", "DAS_4"),
+      ]
+      checks += [
+        ("DAS_3", 50),
+        ("DAS_4", 50),
+      ]
+
     return signals, checks
 
   @staticmethod
@@ -242,6 +247,7 @@ class CarState(CarStateBase):
       ("EPS_TORQUE_MOTOR", "EPS_2"),
       ("LKAS_STATE", "EPS_2"),
       ("COUNTER", "CRUISE_BUTTONS"),
+      ("ACC_OnOff", "CRUISE_BUTTONS"),
       ("ACC_Resume", "CRUISE_BUTTONS"),
       ("ACC_Cancel", "CRUISE_BUTTONS"),
       ("ACC_Accel", "CRUISE_BUTTONS"),

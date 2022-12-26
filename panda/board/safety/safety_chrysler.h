@@ -33,11 +33,15 @@ typedef struct {
   const int ESP_1;
   const int ESP_8;
   const int ECM_5;
-  const int DAS_3;
   const int DAS_6;
   const int LKAS_COMMAND;
   const int LKAS_HEARTBIT;
   const int CRUISE_BUTTONS;
+  const int TESTER;
+  const int DAS_3;
+  const int DAS_4;
+  const int ACC_1;
+  const int CHIME;
 } ChryslerAddrs;
 
 // CAN messages for Chrysler/Jeep platforms
@@ -46,11 +50,15 @@ const ChryslerAddrs CHRYSLER_ADDRS = {
   .ESP_1            = 320,  // Brake pedal and vehicle speed
   .ESP_8            = 284,  // Brake pedal and vehicle speed
   .ECM_5            = 559,  // Throttle position sensor
-  .DAS_3            = 500,  // ACC engagement states from DASM
   .DAS_6            = 678,  // LKAS HUD and auto headlight control from DASM
   .LKAS_COMMAND     = 658,  // LKAS controls from DASM
   .LKAS_HEARTBIT    = 729,  // LKAS HEARTBIT from DASM
   .CRUISE_BUTTONS   = 571,  // Cruise control buttons
+  .TESTER           = 0x753,  // Tester codes
+  .DAS_3            = 500,  // ACC commands
+  .DAS_4            = 501,  // ACC engagement states from DASM
+  .ACC_1            = 625,  // ACC set speed
+  .CHIME            = 838, // Chime control
 };
 
 // CAN messages for the 5th gen RAM DT platform
@@ -81,8 +89,62 @@ const CanMsg CHRYSLER_TX_MSGS[] = {
   {CHRYSLER_ADDRS.CRUISE_BUTTONS, 0, 3},
   {CHRYSLER_ADDRS.LKAS_COMMAND, 0, 6},
   {CHRYSLER_ADDRS.DAS_6, 0, 8},
-  {CHRYSLER_ADDRS.DAS_3, 0, 8},
   {CHRYSLER_ADDRS.LKAS_HEARTBIT, 0, 5},
+  {CHRYSLER_ADDRS.TESTER, 0, 8},
+  {CHRYSLER_ADDRS.DAS_3, 0, 8},
+  {CHRYSLER_ADDRS.DAS_3, 2, 8},
+  {CHRYSLER_ADDRS.DAS_4, 0, 8},
+  {CHRYSLER_ADDRS.DAS_4, 2, 8},
+  {CHRYSLER_ADDRS.ACC_1, 0, 8},
+  {CHRYSLER_ADDRS.ACC_1, 2, 8},
+  {CHRYSLER_ADDRS.CHIME, 0, 2},
+  {CHRYSLER_ADDRS.CHIME, 2, 2},
+
+  // Counter
+  {1961, 1, 8},
+
+    // RADAR
+  {706, 0, 8},
+  {706, 2, 8},
+  {708, 0, 8},
+  {708, 2, 8},
+  {710, 0, 8},
+  {710, 2, 8},
+  {712, 0, 8},
+  {712, 2, 8},
+  {714, 0, 8},
+  {714, 2, 8},
+  {716, 0, 8},
+  {716, 2, 8},
+  {718, 0, 8},
+  {718, 2, 8},
+  {720, 0, 8},
+  {720, 2, 8},
+  {722, 0, 8},
+  {722, 2, 8},
+  {724, 0, 8},
+  {724, 2, 8},
+
+  {676, 0, 8},
+  {676, 2, 8},
+  {678, 0, 8},
+  {678, 2, 8},
+  {680, 0, 8},
+  {680, 2, 8},
+  {682, 0, 8},
+  {682, 2, 8},
+  {684, 0, 8},
+  {684, 2, 8},
+  {686, 0, 8},
+  {686, 2, 8},
+  {688, 0, 8},
+  {688, 2, 8},
+  {690, 0, 8},
+  {690, 2, 8},
+  {692, 0, 8},
+  {692, 2, 8},
+  {694, 0, 8},
+  {694, 2, 8},
 };
 
 const CanMsg CHRYSLER_RAM_DT_TX_MSGS[] = {
@@ -103,7 +165,7 @@ AddrCheckStruct chrysler_addr_checks[] = {
   //{.msg = {{ESP_8, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 20000U}}},
   {.msg = {{514, 0, 8, .check_checksum = false, .max_counter = 0U, .expected_timestep = 10000U}, { 0 }, { 0 }}},
   {.msg = {{CHRYSLER_ADDRS.ECM_5, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 20000U}, { 0 }, { 0 }}},
-  {.msg = {{CHRYSLER_ADDRS.DAS_3, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 20000U}, { 0 }, { 0 }}},
+  //{.msg = {{CHRYSLER_ADDRS.DAS_3, 0, 8, .check_checksum = true, .max_counter = 15U, .expected_timestep = 20000U}, { 0 }, { 0 }}},
 };
 #define CHRYSLER_ADDR_CHECK_LEN (sizeof(chrysler_addr_checks) / sizeof(chrysler_addr_checks[0]))
 
@@ -202,7 +264,6 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
     if ((bus == das_3_bus) && (addr == chrysler_addrs->DAS_3)) {
       bool cruise_engaged = GET_BIT(to_push, 21U) == 1U;
       pcm_cruise_check(cruise_engaged);
-      controls_allowed = true;
     }
 
     // TODO: use the same message for both
@@ -258,6 +319,13 @@ static int chrysler_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     }
   }
 
+  // ACC
+  if (tx && (addr == chrysler_addrs->DAS_3)) {
+    bool cruise_engaged = GET_BIT(to_send, 21U) == 1U;
+    pcm_cruise_check(cruise_engaged);
+  }
+
+
 //  // FORCE CANCEL: only the cancel button press is allowed
 //  if (addr == chrysler_addrs->CRUISE_BUTTONS) {
 //    const bool is_cancel = GET_BYTE(to_send, 0) == 1U;
@@ -267,6 +335,13 @@ static int chrysler_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
 //      tx = 0;
 //    }
 //  }
+
+ // UDS: Only tester present ("\x02\x3E\x80\x00\x00\x00\x00\x00") allowed on diagnostics address
+  if (tx && (addr == chrysler_addrs->TESTER)) {
+    if ((GET_BYTES_04(to_send) != 0x00803E02U) || (GET_BYTES_48(to_send) != 0x0U)) {
+      tx = 0;
+    }
+  }
 
   return tx;
 }

@@ -5,6 +5,7 @@ from selfdrive.car.chrysler.values import CAR, CarControllerParams
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.chrysler.values import CAR, DBC, RAM_HD, RAM_DT
 from selfdrive.car.interfaces import CarInterfaceBase
+from selfdrive.car.disable_ecu import disable_ecu
 from common.cached_params import CachedParams
 from common.params import Params
 
@@ -121,6 +122,11 @@ class CarInterface(CarInterfaceBase):
     ret.enableBsm |= 720 in fingerprint[0]
 
     return ret
+
+  @staticmethod
+  def init(CP, logcan, sendcan):
+    if CP.openpilotLongitudinalControl:
+      disable_ecu(logcan, sendcan, bus=0, addr=0x753, com_cont_req=b'\x28\x81\x01', response_offset = -0x280)
 
   def _update(self, c):
     ret = self.CS.update(self.cp, self.cp_cam)

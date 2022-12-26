@@ -70,7 +70,6 @@ BO_ 500 DAS_3: 8 XXX
  SG_ ACC_FAULTED : 47|1@0+ (1,0) [0|1] "" XXX
  SG_ COLLISION_BRK_PREP : 48|1@1+ (1,0) [0|0] "" XXX
  SG_ ACC_BRK_PREP : 49|1@1+ (1,0) [0|0] "" XXX
- SG_ BRAKE_BOOL_1 : 36|1@0+ (1,0) [0|3] "" XXX
  SG_ COUNTER : 55|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
  SG_ DISPLAY_REQ : 50|2@1+ (1,0) [0|0] "" XXX
@@ -82,6 +81,7 @@ BO_ 501 DAS_4: 8 XXX
  SG_ ACC_DISTANCE_CONFIG_2 : 41|2@0+ (1,0) [0|3] "" XXX
  SG_ SPEED_DIGITAL : 63|8@0+ (1,0) [0|255] "mph" XXX
  SG_ ACC_STATE : 38|3@0+ (1,0) [0|7] "" XXX
+ SG_ ALWAYS_ON : 29|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 544 EPS_2: 8 XXX
  SG_ LKAS_STATE : 23|4@0+ (1,0) [0|15] "" XXX
@@ -306,6 +306,14 @@ BO_ 680 TCM_A7: 8 ECM
  SG_ CurrentGear : 16|4@1+ (1,0) [0|0] ""  ECM,DASM,CBC
  SG_ CurrentGearForDisplay : 20|4@1+ (1,0) [0|0] ""  ECM,IC
  SG_ TargetGear : 24|4@1+ (1,0) [0|0] ""  ECM,DASM,CBC
+
+BO_ 838 CHIME: 2 XXX
+ SG_ CHIME : 7|4@0+ (1,0) [0|15] "" XXX
+ SG_ CHIME_REQ_L : 1|1@0+ (1,0) [0|1] "" XXX
+ SG_ CHIME_REQ_R : 0|1@0+ (1,0) [0|1] "" XXX
+
+BO_ 1961 ACC_COUNTER: 8 XXX
+ SG_ COUNTER : 7|16@0+ (1,0) [0|65535] "" XXX
 
 CM_ SG_ 653 BRAKE_PRESSURE "max seems to be 148";
 CM_ SG_ 746 PRNDL "5=L, 4=D, 3=N, 2=R, 1=P";
