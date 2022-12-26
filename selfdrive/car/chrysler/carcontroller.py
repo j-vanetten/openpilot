@@ -309,12 +309,13 @@ class CarController:
     under_accel_frame_count = 0
     aTarget = CC.actuators.accel
     vTarget = CC.jvePilotState.carControl.vTargetFuture
-    long_stopping = CC.actuators.longControlState == LongCtrlState.stopping
+    long_starting = CC.actuators.longControlState == LongCtrlState.starting
+    long_stopping = CC.actuators.longControlState == LongCtrlState.stopping and not long_starting
 
     override_request = CS.out.gasPressed or CS.out.brakePressed
     fidget_stopped_brake_frame = CS.out.standstill and self.frame % 2 == 0  # change brake to keep Jeep stopped
     if not override_request:
-      stop_req = long_stopping or (CS.out.standstill and aTarget <= 0)
+      stop_req = long_stopping and aTarget <= .05  # (CS.out.standstill and aTarget <= 0)
       go_req = not stop_req and CS.out.standstill
 
       if go_req:
@@ -380,7 +381,7 @@ class CarController:
 
     self.under_accel_frame_count = under_accel_frame_count
 
-    can_sends.append(acc_log(self.packer, int(self.torq_adjust), aTarget, vTarget, long_stopping, CS.out.standstill))
+    can_sends.append(acc_log(self.packer, int(self.torq_adjust), aTarget, vTarget, long_starting, long_stopping, CS.out.standstill))
 
     can_sends.append(
       create_das_3_message(self.packer, self.frame / 2, 0,

@@ -82,11 +82,12 @@ def create_wheel_buttons_command(packer, bus, frame, buttons):
   return packer.make_can_msg("CRUISE_BUTTONS", bus, values)
 
 
-def acc_log(packer, adjustment, aTarget, vTarget, stopping, standstill):
+def acc_log(packer, adjustment, aTarget, vTarget, starting, stopping, standstill):
   values = {
     'OP_A_TARGET': aTarget,
     'OP_V_TARGET': vTarget,
     'ADJUSTMENT': adjustment,
+    'STARTING': starting,
     'STOPPING': stopping,
     'STANDSTILL': standstill,
   }
@@ -125,8 +126,8 @@ def create_das_4_message(packer, bus, state, speed):
     "SPEED_DIGITAL": 0xFE,
     "ALWAYS_ON": 0x1,
     "ACC_STATE": state,
-    "ACC_SET_SPEED_KPH": math.floor(speed * CV.MS_TO_KPH),
-    "ACC_SET_SPEED_MPH": math.floor(speed * CV.MS_TO_MPH),
+    "ACC_SET_SPEED_KPH": round(speed * CV.MS_TO_KPH),
+    "ACC_SET_SPEED_MPH": round(speed * CV.MS_TO_MPH),
   }
 
   return packer.make_can_msg("DAS_4", bus, values)
