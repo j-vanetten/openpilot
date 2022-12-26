@@ -91,29 +91,20 @@ def acc_log(packer, adjustment, aTarget, vTarget, stopping, standstill):
   return packer.make_can_msg("ACC_LOG", 0, values)
 
 
-def create_das_3_message(packer, counter, bus, available, enabled, go, gas, max_gear, stop, brake):
+def create_das_3_message(packer, counter, bus, available, enabled, go, torque, max_gear, stop, brake):
   values = {
     'ACC_AVAILABLE': available,
     'ACC_ACTIVE': enabled,
     'COUNTER': counter % 0x10,
+    'ACC_GO': 0 if go is None else go,
+    'ACC_STANDSTILL': 0 if stop is None else stop,
+    'ACC_DECEL_REQ': 0 if brake is None else enabled,
+    'ACC_DECEL': 2 if brake is None else brake,
+    'ENGINE_TORQUE_REQUEST_MAX': 0 if torque is None else enabled,
+    'ENGINE_TORQUE_REQUEST': 0 if torque is None else torque,
+    'GR_MAX_REQ': 8 if max_gear is None else max_gear,
   }
 
-  if go is not None:
-    values['ACC_GO'] = go
-
-  if stop is not None:
-    values['ACC_STANDSTILL'] = stop
-
-  if brake is not None:
-    values['ACC_DECEL_REQ'] = enabled
-    values['ACC_DECEL'] = brake
-
-  if gas is not None:
-    values['ENGINE_TORQUE_REQUEST_MAX'] = enabled
-    values['ENGINE_TORQUE_REQUEST'] = gas
-
-  if max_gear is not None:
-    values['GR_MAX_REQ'] = max_gear
 
   return packer.make_can_msg("DAS_3", bus, values)
 

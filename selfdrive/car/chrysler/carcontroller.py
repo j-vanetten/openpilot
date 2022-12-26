@@ -386,7 +386,7 @@ class CarController:
     can_sends.append(acc_log(self.packer, int(self.torq_adjust), aTarget, vTarget, long_stopping, CS.out.standstill))
 
     can_sends.append(
-      create_das_3_message(self.packer, self.frame, 0,
+      create_das_3_message(self.packer, self.frame / 2, 0,
                            CS.longAvailable,
                            CS.longEnabled,
                            go_req,
@@ -395,7 +395,7 @@ class CarController:
                            stop_req and not fidget_stopped_brake_frame,
                            brake))
     can_sends.append(
-      create_das_3_message(self.packer, self.frame, 2,
+      create_das_3_message(self.packer, self.frame / 2, 2,
                            CS.longAvailable,
                            CS.longEnabled,
                            go_req,
