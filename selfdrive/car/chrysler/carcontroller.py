@@ -273,11 +273,11 @@ class CarController:
     if not CS.longControl or self.frame % 2 != 0:
       return None
 
-    can_sends.append(create_acc_1_message(self.packer, 0, self.frame))
-    can_sends.append(create_acc_1_message(self.packer, 2, self.frame))
+    can_sends.append(create_acc_1_message(self.packer, 0, self.frame / 2))
+    can_sends.append(create_acc_1_message(self.packer, 2, self.frame / 2))
 
-    if self.frame % 4 == 0:
-      self.send_radar_messages(can_sends)
+    # if self.frame % 4 == 0:
+    #   self.send_radar_messages(can_sends)
 
     if self.frame % 6 == 0:
       state = 0
@@ -304,8 +304,8 @@ class CarController:
       self.last_torque = None
       self.max_gear = None
 
-      can_sends.append(create_das_3_message(self.packer, self.frame, 0, CS.longAvailable, CS.longEnabled, False, False, 8, False, 0))
-      can_sends.append(create_das_3_message(self.packer, self.frame, 2, CS.longAvailable, CS.longEnabled, False, False, 8, False, 2))
+      can_sends.append(create_das_3_message(self.packer, self.frame / 2, 0, CS.longAvailable, CS.longEnabled, False, False, 8, False, 0))
+      can_sends.append(create_das_3_message(self.packer, self.frame / 2, 2, CS.longAvailable, CS.longEnabled, False, False, 8, False, 2))
 
       return None
 
@@ -466,10 +466,10 @@ class CarController:
 
   def send_radar_messages(self, can_sends):
     for i in range(1, 10):
-      can_sends.append(create_radar_message(self.packer, 0, f"c_{i}", self.frame))
-      can_sends.append(create_radar_message(self.packer, 2, f"c_{i}", self.frame))
-      can_sends.append(create_radar_message(self.packer, 0, f"d_{i}", self.frame))
-      can_sends.append(create_radar_message(self.packer, 2, f"d_{i}", self.frame))
+      can_sends.append(create_radar_message(self.packer, 0, f"c_{i}", self.frame / 4))
+      can_sends.append(create_radar_message(self.packer, 2, f"c_{i}", self.frame / 4))
+      can_sends.append(create_radar_message(self.packer, 0, f"d_{i}", self.frame / 4))
+      can_sends.append(create_radar_message(self.packer, 2, f"d_{i}", self.frame / 4))
 
   def acc_hysteresis(self, new_target):
     if new_target > self.last_target:

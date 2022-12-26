@@ -13,7 +13,8 @@ LAST_MSG = max(RADAR_MSGS_C + RADAR_MSGS_D)
 
 
 def _create_radar_can_parser(car_fingerprint):
-  if Params().get_bool("jvePilot.settings.visionOnly"):
+  params = Params()
+  if params.get_bool("jvePilot.settings.visionOnly") or params.get_bool("ExperimentalLongitudinalEnabled"):
     return None
   
   dbc = DBC[car_fingerprint]['radar']
