@@ -1,5 +1,7 @@
+import math
 from cereal import car
 from selfdrive.car.chrysler.values import RAM_CARS
+from common.conversions import Conversions as CV
 
 GearShifter = car.CarState.GearShifter
 VisualAlert = car.CarControl.HUDControl.VisualAlert
@@ -116,14 +118,15 @@ def create_acc_1_message(packer, bus, frame):
 
   return packer.make_can_msg("ACC_1", bus, values)
 
-def create_das_4_message(packer, bus, state, kph):
+def create_das_4_message(packer, bus, state, speed):
   values = {
     "ACC_DISTANCE_CONFIG_1": 0x1,
     "ACC_DISTANCE_CONFIG_2": 0x1,
     "SPEED_DIGITAL": 0xFE,
     "ALWAYS_ON": 0x1,
     "ACC_STATE": state,
-    "ACC_SET_SPEED_KPH": kph,
+    "ACC_SET_SPEED_KPH": math.floor(speed * CV.MS_TO_KPH),
+    "ACC_SET_SPEED_MPH": math.floor(speed * CV.MS_TO_MPH),
   }
 
   return packer.make_can_msg("DAS_4", bus, values)

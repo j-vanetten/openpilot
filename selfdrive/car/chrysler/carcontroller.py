@@ -1,6 +1,4 @@
-import math
 from opendbc.can.packer import CANPacker
-from common.realtime import DT_CTRL
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_lkas_heartbit, create_wheel_buttons_command, \
@@ -283,9 +281,8 @@ class CarController:
       state = 0
       if CS.longAvailable:
         state = 2 if enabled else 1
-      cruise = math.floor(CC.jvePilotState.carControl.vMaxCruise * CV.MS_TO_KPH)
-      can_sends.append(create_das_4_message(self.packer, 0, state, cruise))
-      can_sends.append(create_das_4_message(self.packer, 2, state, cruise))
+      can_sends.append(create_das_4_message(self.packer, 0, state, CC.jvePilotState.carControl.vMaxCruise))
+      can_sends.append(create_das_4_message(self.packer, 2, state, CC.jvePilotState.carControl.vMaxCruise))
 
     if self.frame % 10 == 0:
       can_sends.append(create_acc_counter_message(self.packer, 1, self.frame * 410))
