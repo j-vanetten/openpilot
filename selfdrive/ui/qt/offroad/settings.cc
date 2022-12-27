@@ -206,7 +206,7 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       tr("Experimental openpilot Longitudinal Control"),
       QString("<b>%1</b><br>%2")
       .arg(tr("WARNING: openpilot longitudinal control is experimental for this car and will disable Automatic Emergency Braking (AEB)."))
-      .arg(tr("On this car, openpilot defaults to the car's built-in ACC instead of openpilot's longitudinal control. Enable this to switch to openpilot longitudinal control. Enabling Experimental mode is recommended when using experimental openpilot longitudinal control.")),
+      .arg(tr("On this car, openpilot defaults to the car's built-in ACC instead of openpilot's longitudinal control. Enable this to switch to openpilot longitudinal control.")),
       "../assets/offroad/icon_speed_limit.png",
     },
     {
@@ -300,7 +300,7 @@ void TogglesPanel::updateToggles() {
     capnp::FlatArrayMessageReader cmsg(aligned_buf.align(cp_bytes.data(), cp_bytes.size()));
     cereal::CarParams::Reader CP = cmsg.getRoot<cereal::CarParams>();
 
-    const bool expLongAvailable = false; // CP.getExperimentalLongitudinalAvailable()
+    const bool expLongAvailable = CP.getExperimentalLongitudinalAvailable();
     if (!expLongAvailable) {
       params.remove("ExperimentalLongitudinalEnabled");
     }
@@ -308,7 +308,7 @@ void TogglesPanel::updateToggles() {
 
     const bool op_long = CP.getOpenpilotLongitudinalControl() && !expLongAvailable;
     const bool exp_long_enabled = expLongAvailable && params.getBool("ExperimentalLongitudinalEnabled");
-    if (op_long || exp_long_enabled) {
+    if (true || op_long || exp_long_enabled) {
       // normal description and toggle
       e2e_toggle->setEnabled(true);
       e2e_toggle->setDescription(e2e_description);
