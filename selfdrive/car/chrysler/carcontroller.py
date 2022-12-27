@@ -308,7 +308,7 @@ class CarController:
     override_request = CS.out.gasPressed or CS.out.brakePressed
     fidget_stopped_brake_frame = CS.out.standstill and self.frame % 2 == 0  # change brake to keep Jeep stopped
     if not override_request:
-      stop_req = (long_stopping and aTarget <= 0.5) or (CS.out.standstill and aTarget <= 0)
+      stop_req = (long_stopping and vTarget <= 0.5) or (CS.out.standstill and aTarget <= 0)
       go_req = not stop_req and CS.out.standstill
 
       if go_req:
