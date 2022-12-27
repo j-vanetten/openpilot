@@ -2,7 +2,7 @@ from opendbc.can.packer import CANPacker
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_lkas_heartbit, create_wheel_buttons_command, \
-  acc_log, create_acc_1_message, create_das_3_message, create_das_4_message, create_chime_message, create_radar_message, create_acc_counter_message
+  acc_log, create_acc_1_message, create_das_3_message, create_das_4_message, create_chime_message
 from selfdrive.car.chrysler.values import RAM_CARS, PRE_2019, CarControllerParams
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
