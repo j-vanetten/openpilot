@@ -138,16 +138,3 @@ def create_chime_message(packer, bus):
     # "CHIME_REQ_R": 1 if (chime_timer > 0 and (gap_timer == 0 or gap_timer == chimegap_time)) else 0
   }
   return packer.make_can_msg("CHIME", bus, values)
-
-def create_radar_message(packer, bus, msg, counter):
-  values = {
-    'COUNTER': counter % 0x10
-  }
-  return packer.make_can_msg(msg, bus, values)
-
-def create_acc_counter_message(packer, bus, frame):
-  values = {
-    "COUNTER": frame,
-  }
-
-  return packer.make_can_msg("ACC_COUNTER", bus, values)

@@ -274,18 +274,12 @@ class CarController:
     can_sends.append(create_acc_1_message(self.packer, 0, self.frame / 2))
     can_sends.append(create_acc_1_message(self.packer, 2, self.frame / 2))
 
-    # if self.frame % 4 == 0:
-    #   self.send_radar_messages(can_sends)
-
     if self.frame % 6 == 0:
       state = 0
       if CS.longAvailable:
         state = 2 if enabled else 1
       can_sends.append(create_das_4_message(self.packer, 0, state, CC.jvePilotState.carControl.vMaxCruise))
       can_sends.append(create_das_4_message(self.packer, 2, state, CC.jvePilotState.carControl.vMaxCruise))
-
-    if self.frame % 10 == 0:
-      can_sends.append(create_acc_counter_message(self.packer, 1, self.frame * 410))
 
     if self.frame % 50 == 0:
       # tester present - w/ no response (keeps radar disabled)
@@ -460,13 +454,6 @@ class CarController:
       elif tBrake - lBrake > 0.01:  # don't let up unless it's a big enough jump
         diff = min(BRAKE_CHANGE, (tBrake - lBrake) / 2)
         self.last_brake = min(lBrake + diff, tBrake)
-
-  def send_radar_messages(self, can_sends):
-    for i in range(1, 10):
-      can_sends.append(create_radar_message(self.packer, 0, f"c_{i}", self.frame / 4))
-      can_sends.append(create_radar_message(self.packer, 2, f"c_{i}", self.frame / 4))
-      can_sends.append(create_radar_message(self.packer, 0, f"d_{i}", self.frame / 4))
-      can_sends.append(create_radar_message(self.packer, 2, f"d_{i}", self.frame / 4))
 
   def acc_hysteresis(self, new_target):
     if new_target > self.last_target:

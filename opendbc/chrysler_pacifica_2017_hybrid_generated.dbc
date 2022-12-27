@@ -312,9 +312,6 @@ BO_ 838 CHIME: 2 XXX
  SG_ CHIME_REQ_L : 1|1@0+ (1,0) [0|1] "" XXX
  SG_ CHIME_REQ_R : 0|1@0+ (1,0) [0|1] "" XXX
 
-BO_ 1961 ACC_COUNTER: 8 XXX
- SG_ COUNTER : 7|16@0+ (1,0) [0|65535] "" XXX
-
 CM_ SG_ 653 BRAKE_PRESSURE "max seems to be 148";
 CM_ SG_ 746 PRNDL "5=L, 4=D, 3=N, 2=R, 1=P";
 CM_ SG_ 320 BRAKE_PRESSED_2 "Value is 5 when brake is pressed by human, 1 when ACC brake";
