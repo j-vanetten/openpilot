@@ -260,6 +260,12 @@ static int chrysler_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     tx = msg_allowed(to_send, CHRYSLER_TX_MSGS, sizeof(CHRYSLER_TX_MSGS) / sizeof(CHRYSLER_TX_MSGS[0]));
   }
 
+  // ACC
+  if (addr == chrysler_addrs->DAS_3) {
+    bool cruise_engaged = GET_BIT(to_send, 21U) == 1U;
+    pcm_cruise_check(cruise_engaged);
+  }
+
   // STEERING
   if (tx && (addr == chrysler_addrs->LKAS_COMMAND)) {
     int start_byte = (chrysler_platform == CHRYSLER_PACIFICA) ? 0 : 1;
@@ -272,13 +278,6 @@ static int chrysler_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
       tx = 0;
     }
   }
-
-  // ACC
-  if (tx && (addr == chrysler_addrs->DAS_3)) {
-    bool cruise_engaged = GET_BIT(to_send, 21U) == 1U;
-    pcm_cruise_check(cruise_engaged);
-  }
-
 
 //  // FORCE CANCEL: only the cancel button press is allowed
 //  if (addr == chrysler_addrs->CRUISE_BUTTONS) {

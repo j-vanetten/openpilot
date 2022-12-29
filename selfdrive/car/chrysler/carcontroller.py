@@ -131,14 +131,14 @@ class CarController:
       apply_steer = 0
     self.apply_steer_last = apply_steer
 
-    can_sends.append(create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit))
-
     new_actuators = CC.actuators.copy()
     new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
 
     accel = self.acc(CC, CS, can_sends, CC.enabled)
     if accel is not None:
       new_actuators.accel = accel
+
+    can_sends.append(create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit))
 
     self.frame += 1
 
