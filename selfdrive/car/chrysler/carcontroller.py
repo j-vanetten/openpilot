@@ -79,7 +79,7 @@ class CarController:
   def update(self, CC, CS):
     can_sends = []
 
-    lkas_active = CC.latActive and self.lkas_control_bit_prev
+    lkas_active = CC.latActive and self.lkas_control_bit_prev and CC.enabled
 
     # cruise buttons
     das_bus = 2 if self.CP.carFingerprint in RAM_CARS else 0
@@ -158,7 +158,7 @@ class CarController:
         CS.longEnabled = False
 
       if CS.longAvailable:
-        if not enabled or cancel or CS.button_pressed(ButtonType.cancel) or CS.out.brakePressed:
+        if cancel or CS.button_pressed(ButtonType.cancel) or CS.out.brakePressed or (CS.longEnabled and not enabled):
           CS.longEnabled = False
         elif CS.button_pressed(ButtonType.accelCruise) or \
             CS.button_pressed(ButtonType.decelCruise) or \
