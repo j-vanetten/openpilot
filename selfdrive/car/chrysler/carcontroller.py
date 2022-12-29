@@ -155,12 +155,15 @@ class CarController:
     if self.CP.openpilotLongitudinalControl:
       if CS.button_pressed(ButtonType.accOnOff, False):
         CS.longAvailable = not CS.longAvailable
-      if cancel or CS.button_pressed(ButtonType.cancel) or CS.out.brakePressed:
         CS.longEnabled = False
-      elif CS.button_pressed(ButtonType.accelCruise) or \
-          CS.button_pressed(ButtonType.decelCruise) or \
-          CS.button_pressed(ButtonType.resumeCruise):
-        CS.longEnabled = True
+
+      if CS.longAvailable:
+        if not enabled or cancel or CS.button_pressed(ButtonType.cancel) or CS.out.brakePressed:
+          CS.longEnabled = False
+        elif CS.button_pressed(ButtonType.accelCruise) or \
+            CS.button_pressed(ButtonType.decelCruise) or \
+            CS.button_pressed(ButtonType.resumeCruise):
+          CS.longEnabled = True
 
       accDiff = None
       if CS.button_pressed(ButtonType.followInc, False):
@@ -276,8 +279,8 @@ class CarController:
 
     if self.frame % 6 == 0:
       state = 0
-      if CS.longAvailable:
-        state = 2 if enabled else 1
+      if CS.out.cruiseState.available:
+        state = 2 if CS.out.cruiseState.enabled else 1
       can_sends.append(create_das_4_message(self.packer, 0, state, CC.jvePilotState.carControl.vMaxCruise))
       can_sends.append(create_das_4_message(self.packer, 2, state, CC.jvePilotState.carControl.vMaxCruise))
 
@@ -289,14 +292,14 @@ class CarController:
       can_sends.append(create_chime_message(self.packer, 0))
       can_sends.append(create_chime_message(self.packer, 2))
 
-    if not enabled or not CS.longEnabled:
+    if not enabled or not CS.out.cruiseState.enabled:
       self.torq_adjust = 0
       self.last_brake = None
       self.last_torque = None
       self.max_gear = None
 
-      can_sends.append(create_das_3_message(self.packer, self.frame / 2, 0, CS.longAvailable, CS.longEnabled, False, False, 8, False, 0))
-      can_sends.append(create_das_3_message(self.packer, self.frame / 2, 2, CS.longAvailable, CS.longEnabled, False, False, 8, False, 2))
+      can_sends.append(create_das_3_message(self.packer, self.frame / 2, 0, CS.out.cruiseState.available, CS.out.cruiseState.enabled, False, False, 8, False, 0))
+      can_sends.append(create_das_3_message(self.packer, self.frame / 2, 2, CS.out.cruiseState.available, CS.out.cruiseState.enabled, False, False, 8, False, 2))
 
       return None
 
@@ -378,8 +381,8 @@ class CarController:
 
     can_sends.append(
       create_das_3_message(self.packer, self.frame / 2, 0,
-                           CS.longAvailable,
-                           CS.longEnabled,
+                           CS.out.cruiseState.available,
+                           CS.out.cruiseState.enabled,
                            go_req,
                            torque,
                            self.max_gear,
@@ -387,8 +390,8 @@ class CarController:
                            brake))
     can_sends.append(
       create_das_3_message(self.packer, self.frame / 2, 2,
-                           CS.longAvailable,
-                           CS.longEnabled,
+                           CS.out.cruiseState.available,
+                           CS.out.cruiseState.enabled,
                            go_req,
                            torque,
                            self.max_gear,
