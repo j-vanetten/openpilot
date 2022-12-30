@@ -368,7 +368,7 @@ class CarController:
       if CS.out.vEgo < vTarget - COAST_WINDOW / CarInterface.accel_max(CS) \
          and CS.out.aEgo < CarInterface.accel_max(CS) / 5 \
          and torque > CS.torqMax * 0.98:  # Time to downshift?
-        if CS.currentGear > 3 and CS.gasRpm < 4500:
+        if CS.currentGear > 3 and CS.engineRpm < 4500:
           self.max_gear = CS.currentGear - 1
           under_accel_frame_count = 0
 
@@ -398,12 +398,12 @@ class CarController:
     if brake is not None:
       return brake
     elif torque is not None:
-      accel = 0 if CS.out.vEgo == 0 else (torque * .105 * CS.gasRpm) / (self.vehicleMass * CS.out.vEgo)  # torque back to accel
+      accel = 0 if CS.out.vEgo == 0 else (torque * .105 * CS.engineRpm) / (self.vehicleMass * CS.out.vEgo)  # torque back to accel
       return accel
     return 0
 
   def torque(self, CS, aTarget, vTarget):
-    return (self.vehicleMass * aTarget * vTarget) / (.105 * CS.gasRpm)
+    return (self.vehicleMass * aTarget * vTarget) / (.105 * CS.engineRpm)
 
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
     if aTarget > 0:

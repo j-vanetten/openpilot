@@ -46,12 +46,12 @@ class CarState(CarStateBase):
     self.longControl = False
     self.longAvailable = False
     self.longEnabled = False
-    self.gasRpm = None
+    self.enginRpm = None
+    self.engineTorque = None
     self.allowLong = True # CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019)
     self.torqMin = None
     self.torqMax = None
     self.currentGear = None
-    self.engineTorque = None
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
@@ -113,7 +113,7 @@ class CarState(CarStateBase):
       self.torqMin = cp.vl["ECM_TRQ"]["ENGINE_TORQ_MIN"]
       self.torqMax = cp.vl["ECM_TRQ"]["ENGINE_TORQ_MAX"]
       self.currentGear = cp.vl['TCM_A7']["CurrentGear"]
-      self.gasRpm = cp.vl["ECM_1"]["ENGINE_RPM"]
+      self.enginRpm = cp.vl["ECM_1"]["ENGINE_RPM"]
       self.engineTorque = cp.vl["ECM_1"]["ENGINE_TORQUE"]
       ret.jvePilotCarState.accFollowDistance = 0
     else:
