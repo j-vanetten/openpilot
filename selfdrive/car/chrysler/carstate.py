@@ -51,6 +51,7 @@ class CarState(CarStateBase):
     self.torqMin = None
     self.torqMax = None
     self.currentGear = None
+    self.engineTorque = None
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
@@ -113,6 +114,7 @@ class CarState(CarStateBase):
       self.torqMax = cp.vl["ECM_TRQ"]["ENGINE_TORQ_MAX"]
       self.currentGear = cp.vl['TCM_A7']["CurrentGear"]
       self.gasRpm = cp.vl["ECM_1"]["ENGINE_RPM"]
+      self.engineTorque = cp.vl["ECM_1"]["ENGINE_TORQUE"]
       ret.jvePilotCarState.accFollowDistance = 0
     else:
       ret.jvePilotCarState.longControl = False
@@ -260,6 +262,7 @@ class CarState(CarStateBase):
       ("BRK_PRESSURE", "ESP_8"),
 
       ("ENGINE_RPM", "ECM_1", 0),
+      ("ENGINE_TORQUE", "ECM_1", 0),
       ("ENGINE_TORQ_MIN", "ECM_TRQ", 0),
       ("ENGINE_TORQ_MAX", "ECM_TRQ", 0),
       ("CurrentGear", "TCM_A7", 0),

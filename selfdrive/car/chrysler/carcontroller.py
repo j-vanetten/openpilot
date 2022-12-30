@@ -12,6 +12,7 @@ from common.params import Params, put_nonblocking
 from cereal import car
 from selfdrive.car.chrysler.interface import CarInterface, GAS_RESUME_SPEED
 import math
+from common.numpy_fast import clip
 
 ButtonType = car.CarState.ButtonEvent.Type
 LongCtrlState = car.CarControl.Actuators.LongControlState
@@ -31,7 +32,7 @@ ACCEL_TORQ_SLOW = 40  # add this when going SLOW
 # ACCEL_TORQ_MAX = 360
 UNDER_ACCEL_MULTIPLIER = 1.
 TORQ_RELEASE_CHANGE = 0.35
-TORQ_ADJUST_THRESHOLD = 0.3
+UNDER_ACCEL_THRESHOLD = 0.3
 START_ADJUST_ACCEL_FRAMES = 100
 CAN_DOWNSHIFT_ACCEL_FRAMES = 200
 ADJUST_ACCEL_COOLDOWN_MAX = 1
@@ -71,7 +72,6 @@ class CarController:
     self.accel_steady = 0
     self.last_brake = None
     self.last_torque = 0.
-    self.torq_adjust = 0.
     self.under_accel_frame_count = 0
     self.vehicleMass = CP.mass
     self.max_gear = None
@@ -293,7 +293,6 @@ class CarController:
       can_sends.append(create_chime_message(self.packer, 2))
 
     if not enabled or not CS.out.cruiseState.enabled:
-      self.torq_adjust = 0
       self.last_brake = None
       self.last_torque = None
       self.max_gear = None
@@ -321,7 +320,7 @@ class CarController:
       currently_braking = self.last_brake is not None
       speed_to_far_off = abs(CS.out.vEgo - vTarget) > COAST_WINDOW
       engine_brake = TORQ_BRAKE_MAX < aTarget < 0 and not speed_to_far_off and vTarget > LOW_WINDOW \
-                     and self.torque(CS, aTarget, vTarget) + self.torq_adjust > CS.torqMin
+                     and self.torque(CS, aTarget, vTarget) > CS.torqMin
 
       if go_req or ((aTarget >= 0 or engine_brake) and not currently_braking):  # gas
         under_accel_frame_count = self.acc_gas(CS, aTarget, vTarget, under_accel_frame_count)
@@ -365,8 +364,6 @@ class CarController:
 
     if under_accel_frame_count == 0:
       self.max_gear = None
-      if aTarget < 0 and self.torq_adjust > 0:  # we are cooling down
-        self.torq_adjust = max(0, self.torq_adjust - max(aTarget * 10, ADJUST_ACCEL_COOLDOWN_MAX))
     elif under_accel_frame_count > CAN_DOWNSHIFT_ACCEL_FRAMES:
       if CS.out.vEgo < vTarget - COAST_WINDOW / CarInterface.accel_max(CS) \
          and CS.out.aEgo < CarInterface.accel_max(CS) / 5 \
@@ -377,7 +374,7 @@ class CarController:
 
     self.under_accel_frame_count = under_accel_frame_count
 
-    can_sends.append(acc_log(self.packer, int(self.torq_adjust), aTarget, vTarget, long_stopping, CS.out.standstill))
+    can_sends.append(acc_log(self.packer, 0, aTarget, vTarget, long_stopping, CS.out.standstill))
 
     can_sends.append(
       create_das_3_message(self.packer, self.frame / 2, 0,
@@ -409,32 +406,33 @@ class CarController:
     return (self.vehicleMass * aTarget * vTarget) / (.105 * CS.gasRpm)
 
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
-    if CS.out.vEgo < SLOW_WINDOW:
-      cruise = (self.vehicleMass * aTarget * vTarget) / (.105 * CS.gasRpm)
-      cruise += ACCEL_TORQ_SLOW * (1 - (CS.out.vEgo / SLOW_WINDOW))
-    else:
-      accelerating = aTarget > 0 and vTarget > CS.out.vEgo + SLOW_WINDOW
-      if accelerating:
-        vSmoothTarget = vTarget
-        aSmoothTarget = (aTarget + CS.out.aEgo) / 2
-      else:
-        vSmoothTarget = (vTarget + CS.out.vEgo) / 2
-        aSmoothTarget = aTarget
-
-      cruise = (self.vehicleMass * aSmoothTarget * vSmoothTarget) / (.105 * CS.gasRpm)
-
     if aTarget > 0:
       # adjust for hills and towing
       offset = aTarget - CS.out.aEgo
-      if offset > TORQ_ADJUST_THRESHOLD:
+      if offset > UNDER_ACCEL_THRESHOLD:
         under_accel_frame_count = self.under_accel_frame_count + 1  # inc under accelerating frame count
-        if self.frame - self.under_accel_frame_count > START_ADJUST_ACCEL_FRAMES:
-          self.torq_adjust += offset * (CarControllerParams.ACCEL_MAX / CarInterface.accel_max(CS))
 
-    if cruise + self.torq_adjust > CS.torqMax:  # keep the adjustment in check
-      self.torq_adjust = max(0, CS.torqMax - cruise)
+    time_for_sample = 9.55414 # self.op_params.get('long_time_constant')
+    self.last_brake = None
 
-    torque = cruise + self.torq_adjust
+    # desired Velocity(m/s) = (acceleration(m/s^2) * time(s)) + velocity(m/s)
+    desired_velocity = ((aTarget - CS.out.aEgo) * time_for_sample) + CS.out.vEgo
+    # kinetic energy (J) = 1/2 * mass (kg) * velocity (m/s)^2
+    # use the kinetic energy from the desired velocity - the kinetic energy from the current velocity to get the change in velocity
+    kinetic_energy = (.5 * self.CP.mass * desired_velocity * abs(desired_velocity)) - (
+          .5 * self.CP.mass * (CS.out.vEgo ** 2))
+    # convert kinetic energy to torque
+    # torque(NM) = (kinetic energy (J) * 9.55414 (Nm/J) * time(s))/RPM
+    torque = (kinetic_energy * 9.55414 * time_for_sample) / (CS.engineRpm + 0.001)
+    torque = clip(torque, -6, 6)  # clip torque to -6 to 6 Nm for sanity
+
+    if CS.engineTorque < 0 and torque > 0:
+      torque += 0
+
+    # If torque is positive, add the engine torque to the torque we calculated. This is because the engine torque is the torque the engine is producing.
+    else:
+      torque += CS.engineTorque
+
     self.last_torque = max(CS.torqMin + 1, min(CS.torqMax, torque))
 
     return under_accel_frame_count
