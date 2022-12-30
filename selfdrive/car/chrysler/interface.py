@@ -69,7 +69,6 @@ class CarInterface(CarInterfaceBase):
 
     # Jeep
     elif candidate in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019):
-      ret.experimentalLongitudinalAvailable = True
       ret.mass = 2242 + STD_CARGO_KG
       ret.wheelbase = 2.91
       ret.steerRatio = 16.7
@@ -78,6 +77,12 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kf = 0.00006
 
       ret.enableBsm = True
+      ret.experimentalLongitudinalAvailable = True
+      tune = ret.longitudinalTuning
+      tune.deadzoneBP = [0., 9.]
+      tune.deadzoneV = [.0, .15]
+      tune.kpV = [0.25]
+      tune.kiV = [0.05]
 
     # Ram
     elif candidate == CAR.RAM_1500:

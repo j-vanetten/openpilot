@@ -45,7 +45,8 @@ class CarState(CarStateBase):
     self.das_3 = None
     self.longEnabled = False
     self.longControl = False
-    self.gasRpm = None
+    self.engineRpm = None
+    self.engineTorque = None
     self.allowLong = True # CP.carFingerprint in (CAR.JEEP_CHEROKEE, CAR.JEEP_CHEROKEE_2019)
     self.torqMin = None
     self.torqMax = None
@@ -111,7 +112,8 @@ class CarState(CarStateBase):
       self.torqMin = cp.vl["DAS_3"]["ENGINE_TORQUE_REQUEST"]
       self.torqMax = cp.vl["ECM_TRQ"]["ENGINE_TORQ_MAX"]
       self.currentGear = cp.vl['TCM_A7']["CurrentGear"]
-      self.gasRpm = cp.vl["ECM_1"]["ENGINE_RPM"]
+      self.engineRpm = cp.vl["ECM_1"]["ENGINE_RPM"]
+      self.engineTorque = cp.vl["ECM_1"]["ENGINE_TORQUE"]
     else:
       ret.jvePilotCarState.longControl = False
       self.longEnabled = False
@@ -254,6 +256,7 @@ class CarState(CarStateBase):
       ("BRK_PRESSURE", "ESP_8"),
 
       ("ENGINE_RPM", "ECM_1", 0),
+      ("ENGINE_TORQUE", "ECM_1", 0),
       ("ENGINE_TORQ_MIN", "ECM_TRQ", 0),
       ("ENGINE_TORQ_MAX", "ECM_TRQ", 0),
       ("CurrentGear", "TCM_A7", 0),
