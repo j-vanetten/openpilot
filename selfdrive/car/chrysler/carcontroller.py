@@ -412,7 +412,7 @@ class CarController:
       if offset > UNDER_ACCEL_THRESHOLD:
         under_accel_frame_count = self.under_accel_frame_count + 1  # inc under accelerating frame count
 
-    time_for_sample = 9.55414 # self.op_params.get('long_time_constant')
+    time_for_sample = 1  # self.op_params.get('long_time_constant')
     self.last_brake = None
 
     # desired Velocity(m/s) = (acceleration(m/s^2) * time(s)) + velocity(m/s)
