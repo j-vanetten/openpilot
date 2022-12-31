@@ -293,8 +293,7 @@ class CarController:
       go_req = not stop_req and CS.out.standstill
 
       if go_req:
-        under_accel_frame_count = self.under_accel_frame_count = START_ADJUST_ACCEL_FRAMES  # ready to add torq
-        self.last_brake = None
+        self.last_brake = None  # don't break
 
       currently_braking = self.last_brake is not None
       speed_to_far_off = abs(CS.out.vEgo - vTarget) > COAST_WINDOW
@@ -374,11 +373,8 @@ class CarController:
     return (self.vehicleMass * aTarget * vTarget) / (.105 * CS.engineRpm)
 
   def acc_gas(self, CS, aTarget, vTarget, under_accel_frame_count):
-    if aTarget > 0:
-      # adjust for hills and towing
-      offset = aTarget - CS.out.aEgo
-      if offset > UNDER_ACCEL_THRESHOLD:
-        under_accel_frame_count = self.under_accel_frame_count + 1  # inc under accelerating frame count
+    if aTarget > 0 and aTarget - CS.out.aEgo > UNDER_ACCEL_THRESHOLD:
+      under_accel_frame_count = self.under_accel_frame_count + 1  # inc under accelerating frame count
 
     time_for_sample = 1  # self.op_params.get('long_time_constant')
 
@@ -393,7 +389,7 @@ class CarController:
     torque = (kinetic_energy * 9.55414 * time_for_sample) / (CS.engineRpm + 0.001)
     #torque = clip(torque, -6, 6)  # clip torque to -6 to 6 Nm for sanity
 
-    torque += CS.engineTorque
+    torque = CS.engineTorque + torque / 2
 
     self.last_torque = clip(torque, CS.torqMin + 1, CS.torqMax)
 
