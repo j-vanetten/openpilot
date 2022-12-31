@@ -393,12 +393,7 @@ class CarController:
     torque = (kinetic_energy * 9.55414 * time_for_sample) / (CS.engineRpm + 0.001)
     #torque = clip(torque, -6, 6)  # clip torque to -6 to 6 Nm for sanity
 
-    if CS.engineTorque < 0 and torque > 0:
-      torque += 0
-
-    # If torque is positive, add the engine torque to the torque we calculated. This is because the engine torque is the torque the engine is producing.
-    else:
-      torque += CS.engineTorque
+    torque += CS.engineTorque
 
     self.last_torque = clip(torque, CS.torqMin + 1, CS.torqMax)
 
