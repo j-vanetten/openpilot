@@ -83,6 +83,8 @@ class CarInterface(CarInterfaceBase):
       tune.deadzoneV = [.0, .15]
       tune.kpV = [0.25]
       tune.kiV = [0.05]
+      ret.longitudinalActuatorDelayUpperBound = 0.5 # s
+      ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
 
     # Ram
     elif candidate == CAR.RAM_1500:
