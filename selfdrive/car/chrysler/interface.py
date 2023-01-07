@@ -40,7 +40,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.radarOffCan = DBC[candidate]['radar'] is None
 
-    ret.steerActuatorDelay = 0.6
+    ret.steerActuatorDelay = 0.2
     ret.steerLimitTimer = 0.4
 
     # safety config
