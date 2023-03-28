@@ -291,7 +291,7 @@ void TogglesPanel::updateToggles() {
 
       QString long_desc = unavailable + " " + \
                           tr("openpilot longitudinal control may come in a future update.");
-      if expLongAvailable) {
+      if (expLongAvailable) {
         if (is_release) {
           long_desc = unavailable + " " + tr("An experimental version of openpilot longitudinal control can be tested, along with Experimental mode, on non-release branches.");
         } else {

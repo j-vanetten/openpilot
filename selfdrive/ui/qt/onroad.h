@@ -79,6 +79,8 @@ private:
   int pedalPressedAmount;
   int accEco;
   bool autoFollowEnabled;
+  const int radius = 192;
+  const int img_size = (radius / 2) * 1.5;
 
   ExperimentalButton *experimental_btn;  QPixmap dm_img;
   float speed;
