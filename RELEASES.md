@@ -1,7 +1,7 @@
 Version jvePilot-0.9.1(v3.13.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
-* Update to 0.9.0
+* Update to 0.9.1
   * New driving model
     * 30% improved height estimation resulting in better driving performance for tall cars
   * Driver monitoring: removed timer resetting on user interaction if distracted
