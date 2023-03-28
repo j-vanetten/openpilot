@@ -70,7 +70,7 @@ void ExperimentalModeButton::paintEvent(QPaintEvent *event) {
 }
 
 void ExperimentalModeButton::showEvent(QShowEvent *event) {
-  experimental_mode = params.getBool("ExperimentalMode") && params.getBool("jvePilot.settings.lkasButtonLight");
+  experimental_mode = params.getBool("ExperimentalMode");
   mode_icon->setPixmap(experimental_mode ? experimental_pixmap : chill_pixmap);
-  mode_label->setText(experimental_mode ? tr("EXPERIMENTAL MODE ON") : tr("CHILL MODE ON"));
+  mode_label->setText(experimental_mode ? tr("CHILL/EXPERIMENTAL TOGGLE") : tr("CHILL MODE ON"));
 }
