@@ -49,12 +49,7 @@ class LongitudinalPlanner:
   def __init__(self, CP, init_v=0.0, init_a=0.0):
     self.CP = CP
     self.mpc = LongitudinalMpc()
-    self.experimental_mode = False
-    self.read_param()
-
     self.fcw = False
-
-    self.cachedParams = CachedParams()
 
     self.a_desired = init_a
     self.v_desired_filter = FirstOrderFilter(init_v, 2.0, DT_MDL)
@@ -64,6 +59,10 @@ class LongitudinalPlanner:
     self.a_desired_trajectory = np.zeros(CONTROL_N)
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
+
+    self.cachedParams = CachedParams()
+    self.experimental_mode = False
+    self.read_param()
 
   def read_param(self):
     self.experimental_mode = self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 500) \
