@@ -51,7 +51,7 @@ class VCruiseHelper:
   def v_cruise_initialized(self):
     return self.v_cruise_kph != V_CRUISE_INITIAL
 
-  def update_v_cruise(self, CS, enabled, is_metric,reverse_acc_button_change):
+  def update_v_cruise(self, CS, enabled, is_metric, reverse_acc_button_change):
     self.v_cruise_kph_last = self.v_cruise_kph
 
     if CS.cruiseState.available:
@@ -106,7 +106,7 @@ class VCruiseHelper:
       if b.type.raw in self.button_timers:
         self.button_timers[b.type.raw] = 1 if b.pressed else 0
 
-  def initialize_v_cruise(self, CS, is_metric):
+  def initialize_v_cruise(self, CS, experimental_mode: bool, is_metric):
     # 250kph or above probably means we never had a set speed
     speed = None
     if self.v_cruise_kph_last < 250:
@@ -128,6 +128,12 @@ def apply_deadzone(error, deadzone):
   elif error < - deadzone:
     error += deadzone
   else:
+    error = 0.
+  return error
+
+
+def apply_center_deadzone(error, deadzone):
+  if (error > - deadzone) and (error < deadzone):
     error = 0.
   return error
 
