@@ -7,7 +7,7 @@ from functools import lru_cache
 from common.basedir import BASEDIR
 from system.swaglog import cloudlog
 
-RELEASE_BRANCHES = ['jvePilot-release', 'origin/jvePilot-release']
+RELEASE_BRANCHES = ['jvePilot-release', 'origin/jvePilot-release', 'nightly']
 TESTED_BRANCHES = RELEASE_BRANCHES + []
 
 training_version: bytes = b"0.2.0"

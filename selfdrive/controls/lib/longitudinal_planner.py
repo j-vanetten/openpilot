@@ -7,7 +7,6 @@ from common.cached_params import CachedParams
 import cereal.messaging as messaging
 from common.conversions import Conversions as CV
 from common.filter_simple import FirstOrderFilter
-from common.params import Params
 from common.realtime import DT_MDL
 from selfdrive.modeld.constants import T_IDXS
 from selfdrive.controls.lib.longcontrol import LongCtrlState
@@ -51,18 +50,8 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
 class LongitudinalPlanner:
   def __init__(self, CP, init_v=0.0, init_a=0.0):
     self.CP = CP
-    self.params = Params()
-    self.param_read_counter = 0
-
     self.mpc = LongitudinalMpc()
-    self.experimental_mode = False
-    self.read_param()
-
     self.fcw = False
-
-    self.cachedParams = CachedParams()
-    self.speed_steady = -1
-    self.longControl = False
 
     self.a_desired = init_a
     self.v_desired_filter = FirstOrderFilter(init_v, 2.0, DT_MDL)
@@ -73,9 +62,15 @@ class LongitudinalPlanner:
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
 
+    self.cachedParams = CachedParams()
+    self.experimental_mode = False
+    self.read_param()
+    self.speed_steady = -1
+    self.longControl = False
+
   def read_param(self):
-    self.experimental_mode = self.params.get_bool('jvePilot.settings.lkasButtonLight') \
-                             and self.params.get_bool('ExperimentalMode')
+    self.experimental_mode = self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 500) \
+                             and self.cachedParams.get_bool('ExperimentalMode', 500)
     e2e = self.experimental_mode and self.CP.openpilotLongitudinalControl
     self.mpc.mode = 'blended' if e2e else 'acc'
 
@@ -95,10 +90,8 @@ class LongitudinalPlanner:
       j = np.zeros(len(T_IDXS_MPC))
     return x, v, a, j
 
-  def update(self, sm, lateral_planner, read=True):
-    if self.param_read_counter % 50 == 0 and read:
-      self.read_param()
-    self.param_read_counter += 1
+  def update(self, sm, lateral_planner):
+    self.read_param()
 
     v_ego = sm['carState'].vEgo
     v_cruise_kph, slowing = self.target_speed(lateral_planner, sm)
@@ -133,9 +126,7 @@ class LongitudinalPlanner:
       self.v_model_error = sm['modelV2'].temporalPose.trans[0] - v_ego
 
     if force_slow_decel:
-      # if required so, force a smooth deceleration
-      accel_limits[1] = min(accel_limits[1], AWARENESS_DECEL)
-      accel_limits[0] = min(accel_limits[0], accel_limits[1])
+      v_cruise = 0.0
     # clip limits, cannot init MPC outside of bounds
     accel_limits[0] = min(accel_limits[0], self.a_desired + 0.05)
     accel_limits[1] = max(accel_limits[1], self.a_desired - 0.05)
@@ -144,7 +135,7 @@ class LongitudinalPlanner:
     self.mpc.set_accel_limits(accel_limits_turns[0], accel_limits_turns[1])
     self.mpc.set_cur_state(self.v_desired_filter.x, self.a_desired)
     x, v, a, j = self.parse_model(sm['modelV2'], self.v_model_error)
-    self.mpc.update(sm['carState'], sm['radarState'], v_cruise, x, v, a, j)
+    self.mpc.update(sm['radarState'], v_cruise, x, v, a, j)
 
     self.v_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.v_solution)
     self.a_desired_trajectory = np.interp(T_IDXS[:CONTROL_N], T_IDXS_MPC, self.mpc.a_solution)

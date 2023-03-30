@@ -1,11 +1,12 @@
 import math
+from common.numpy_fast import clip
 from opendbc.can.packer import CANPacker
-from common.realtime import DT_CTRL
+from common.realtime  import DT_CTRL
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_lkas_heartbit, create_wheel_buttons_command, \
   acc_command, acc_log
-from selfdrive.car.chrysler.values import RAM_CARS, PRE_2019, CarControllerParams
+from selfdrive.car.chrysler.values import RAM_CARS, PRE_2019, CarControllerParams, ChryslerFlags
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.conversions import Conversions as CV
@@ -79,7 +80,7 @@ class CarController:
     self.vehicleMass = CP.mass
     self.max_gear = None
 
-  def update(self, CC, CS):
+  def update(self, CC, CS, now_nanos):
     can_sends = []
 
     lkas_active = CC.latActive and self.lkas_control_bit_prev
@@ -107,17 +108,17 @@ class CarController:
 
     # steering
     # TODO: can we make this more sane? why is it different for all the cars?
-    low_steer_models = self.CP.carFingerprint in PRE_2019
+    high_steer = self.CP.flags & ChryslerFlags.HIGHER_MIN_STEERING_SPEED
     lkas_control_bit = self.lkas_control_bit_prev
     if self.steerNoMinimum:
-      lkas_control_bit = CC.enabled or low_steer_models
+      lkas_control_bit = CC.enabled or not high_steer
     elif CS.out.vEgo > self.CP.minSteerSpeed:
       lkas_control_bit = True
+    elif high_steer:
+      if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
+        lkas_control_bit = False
     elif self.CP.carFingerprint in RAM_CARS:
       if CS.out.vEgo < (self.CP.minSteerSpeed - 0.5):
-        lkas_control_bit = False
-    elif not low_steer_models:
-      if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
         lkas_control_bit = False
 
     # EPS faults if LKAS re-enables too quickly
@@ -140,6 +141,7 @@ class CarController:
 
     new_actuators = CC.actuators.copy()
     new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
+    new_actuators.steerOutputCan = self.apply_steer_last
 
     accel = self.acc(CC, CS, can_sends, CC.enabled)
     if accel is not None:
@@ -212,16 +214,17 @@ class CarController:
         can_sends.append(new_msg)
 
   def hybrid_acc_button(self, CC, CS):
-    experimental_mode = self.cachedParams.get_bool("ExperimentalMode", 1000) and self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 1000)
-    acc_boost = 0 if experimental_mode else 2 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
-    target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
-
     # Move the adaptive curse control to the target speed
     eco_limit = None
     if CC.jvePilotState.carControl.accEco == 1:  # if eco mode
       eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)
     elif CC.jvePilotState.carControl.accEco == 2:  # if eco mode
       eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
+
+    experimental_mode = self.cachedParams.get_bool("ExperimentalMode", 1000) and self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 1000)
+    follow_boost = (3 - CC.jvePilotState.carState.accFollowDistance) * 0.66
+    acc_boost = clip(CC.actuators.accel, 0, eco_limit * CV.MPH_TO_MS) if experimental_mode else follow_boost * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
+    target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
 
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
