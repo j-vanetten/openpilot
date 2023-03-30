@@ -1,6 +1,7 @@
 import math
+from common.numpy_fast import clip
 from opendbc.can.packer import CANPacker
-from common.realtime import DT_CTRL
+from common.realtime  import DT_CTRL
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, create_lkas_heartbit, create_wheel_buttons_command
 from selfdrive.car.chrysler.values import RAM_CARS, PRE_2019, CarControllerParams, ChryslerFlags
@@ -152,7 +153,7 @@ class CarController:
 
   def hybrid_acc_button(self, CC, CS):
     experimental_mode = self.cachedParams.get_bool("ExperimentalMode", 1000) and self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 1000)
-    acc_boost = 0 if experimental_mode else 2 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
+    acc_boost = clip(CC.actuators.accel, 0, CV.MPH_TO_MS) if experimental_mode else 2 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
     target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
 
     # Move the adaptive curse control to the target speed

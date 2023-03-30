@@ -200,7 +200,7 @@ ExperimentalButton::ExperimentalButton(QWidget *parent) : QPushButton(parent) {
   experimental_img = loadPixmap("../assets/img_experimental.svg", {img_size, img_size});
 
   QObject::connect(this, &QPushButton::toggled, [=](bool checked) {
-    params.putBool("ExperimentalMode", checked);
+    //params.putBool("ExperimentalMode", checked);
   });
 }
 
