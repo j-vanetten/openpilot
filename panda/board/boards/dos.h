@@ -17,7 +17,7 @@ void dos_enable_can_transceiver(uint8_t transceiver, bool enabled) {
       set_gpio_output(GPIOB, 10, !enabled);
       break;
     default:
-      puts("Invalid CAN transceiver ("); puth(transceiver); puts("): enabling failed\n");
+      print("Invalid CAN transceiver ("); puth(transceiver); print("): enabling failed\n");
       break;
   }
 }
@@ -53,23 +53,15 @@ void dos_set_bootkick(bool enabled){
   set_gpio_output(GPIOC, 4, !enabled);
 }
 
-void dos_set_usb_power_mode(uint8_t mode) {
-  bool valid = false;
-  switch (mode) {
-    case USB_POWER_CLIENT:
-      dos_set_bootkick(false);
-      valid = true;
-      break;
-    case USB_POWER_CDP:
-      dos_set_bootkick(true);
-      valid = true;
-      break;
-    default:
-      puts("Invalid USB power mode\n");
-      break;
-  }
-  if (valid) {
-    usb_power_mode = mode;
+void dos_board_tick(bool ignition, bool usb_enum, bool heartbeat_seen) {
+  if (ignition && !usb_enum) {
+    // enable bootkick if ignition seen
+    dos_set_bootkick(true);
+  } else if (heartbeat_seen) {
+    // disable once openpilot is up
+    dos_set_bootkick(false);
+  } else {
+
   }
 }
 
@@ -96,7 +88,7 @@ void dos_set_can_mode(uint8_t mode){
       }
       break;
     default:
-      puts("Tried to set unsupported CAN mode: "); puth(mode); puts("\n");
+      print("Tried to set unsupported CAN mode: "); puth(mode); print("\n");
       break;
   }
 }
@@ -118,12 +110,12 @@ void dos_set_fan_enabled(bool enabled){
   set_gpio_output(GPIOA, 1, enabled);
 }
 
-void dos_set_clock_source_mode(uint8_t mode){
-  clock_source_init(mode);
-}
-
 void dos_set_siren(bool enabled){
   set_gpio_output(GPIOC, 12, enabled);
+}
+
+bool dos_read_som_gpio (void){
+  return (get_gpio_input(GPIOC, 2) != 0);
 }
 
 void dos_init(void) {
@@ -147,17 +139,26 @@ void dos_init(void) {
   set_gpio_output(GPIOC, 10, 1);
   set_gpio_output(GPIOC, 11, 1);
 
+#ifdef ENABLE_SPI
+  // A4-A7: SPI
+  set_gpio_alternate(GPIOA, 4, GPIO_AF5_SPI1);
+  set_gpio_alternate(GPIOA, 5, GPIO_AF5_SPI1);
+  set_gpio_alternate(GPIOA, 6, GPIO_AF5_SPI1);
+  set_gpio_alternate(GPIOA, 7, GPIO_AF5_SPI1);
+  register_set_bits(&(GPIOA->OSPEEDR), GPIO_OSPEEDER_OSPEEDR4 | GPIO_OSPEEDER_OSPEEDR5 | GPIO_OSPEEDER_OSPEEDR6 | GPIO_OSPEEDER_OSPEEDR7);
+#endif
+
   // C8: FAN PWM aka TIM3_CH3
   set_gpio_alternate(GPIOC, 8, GPIO_AF2_TIM3);
+
+  // C2: SOM GPIO used as input (fan control at boot)
+  set_gpio_mode(GPIOC, 2, MODE_INPUT);
+  set_gpio_pullup(GPIOC, 2, PULL_DOWN);
 
   // Initialize IR PWM and set to 0%
   set_gpio_alternate(GPIOB, 7, GPIO_AF2_TIM4);
   pwm_init(TIM4, 2);
   dos_set_ir_power(0U);
-
-  // Initialize fan and set to 0%
-  fan_init();
-  dos_set_fan_enabled(false);
 
   // Initialize harness
   harness_init();
@@ -173,6 +174,9 @@ void dos_init(void) {
   dos_set_led(LED_GREEN, false);
   dos_set_led(LED_BLUE, false);
 
+  // Bootkick
+  dos_set_bootkick(true);
+
   // Set normal CAN mode
   dos_set_can_mode(CAN_MODE_NORMAL);
 
@@ -182,7 +186,7 @@ void dos_init(void) {
   }
 
   // Init clock source (camera strobe) using PWM
-  dos_set_clock_source_mode(CLOCK_SOURCE_MODE_PWM);
+  clock_source_init();
 }
 
 const harness_configuration dos_harness_config = {
@@ -201,26 +205,31 @@ const harness_configuration dos_harness_config = {
 
 const board board_dos = {
   .board_type = "Dos",
+  .board_tick = dos_board_tick,
   .harness_config = &dos_harness_config,
   .has_gps = false,
   .has_hw_gmlan = false,
   .has_obd = true,
   .has_lin = false,
+#ifdef ENABLE_SPI
+  .has_spi = true,
+#else
+  .has_spi = false,
+#endif
+  .has_canfd = false,
   .has_rtc_battery = true,
   .fan_max_rpm = 6500U,
   .init = dos_init,
   .enable_can_transceiver = dos_enable_can_transceiver,
   .enable_can_transceivers = dos_enable_can_transceivers,
   .set_led = dos_set_led,
-  .set_usb_power_mode = dos_set_usb_power_mode,
   .set_gps_mode = unused_set_gps_mode,
   .set_can_mode = dos_set_can_mode,
-  .usb_power_mode_tick = unused_usb_power_mode_tick,
   .check_ignition = dos_check_ignition,
   .read_current = unused_read_current,
   .set_fan_enabled = dos_set_fan_enabled,
   .set_ir_power = dos_set_ir_power,
   .set_phone_power = unused_set_phone_power,
-  .set_clock_source_mode = dos_set_clock_source_mode,
-  .set_siren = dos_set_siren
+  .set_siren = dos_set_siren,
+  .read_som_gpio = dos_read_som_gpio
 };

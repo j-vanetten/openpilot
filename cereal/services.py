@@ -21,10 +21,16 @@ class Service:
 services = {
   # service: (should_log, frequency, qlog decimation (optional))
   # note: the "EncodeIdx" packets will still be in the log
-  "sensorEvents": (True, 100., 100),
+  "gyroscope": (True, 104., 104),
+  "gyroscope2": (True, 100., 100),
+  "accelerometer": (True, 104., 104),
+  "accelerometer2": (True, 100., 100),
+  "magnetometer": (True, 100., 100),
+  "lightSensor": (True, 100., 100),
+  "temperatureSensor": (True, 100., 100),
   "gpsNMEA": (True, 9.),
   "deviceState": (True, 2., 1),
-  "can": (True, 100.),
+  "can": (True, 100., 1223),  # decimation gives ~5 msgs in a full segment
   "controlsState": (True, 100., 10),
   "pandaStates": (True, 2., 1),
   "peripheralState": (True, 2., 1),
@@ -35,6 +41,7 @@ services = {
   "logMessage": (True, 0.),
   "errorLogMessage": (True, 0., 1),
   "liveCalibration": (True, 4., 4),
+  "liveTorqueParameters": (True, 4., 1),
   "androidLog": (True, 0.),
   "carState": (True, 100., 10),
   "carControl": (True, 100., 10),
@@ -67,10 +74,14 @@ services = {
   "navInstruction": (True, 1., 10),
   "navRoute": (True, 0.),
   "navThumbnail": (True, 0.),
+  "navModel": (True, 2., 4.),
+  "mapRenderState": (True, 2., 1.),
   "qRoadEncodeIdx": (False, 20.),
   "userFlag": (True, 0., 1),
+  "microphone": (True, 10., 10),
 
   # debug
+  "uiDebug": (True, 0., 1),
   "testJoystick": (True, 0.),
   "roadEncodeData": (False, 20.),
   "driverEncodeData": (False, 20.),

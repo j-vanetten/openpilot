@@ -5,6 +5,7 @@ from cereal import car
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import RadarInterfaceBase
 from selfdrive.car.chrysler.values import DBC, PRE_2019
+from common.params import Params
 
 RADAR_MSGS_C = list(range(0x2c2, 0x2d4 + 2, 2))  # c_ messages 706,...,724
 RADAR_MSGS_D = list(range(0x2a2, 0x2b4 + 2, 2))  # d_ messages
@@ -12,6 +13,9 @@ LAST_MSG = max(RADAR_MSGS_C + RADAR_MSGS_D)
 
 
 def _create_radar_can_parser(car_fingerprint):
+  if Params().get_bool("jvePilot.settings.visionOnly"):
+    return None
+  
   dbc = DBC[car_fingerprint]['radar']
   if dbc is None:
     return None
@@ -50,6 +54,7 @@ def _address_to_track(address):
 class RadarInterface(RadarInterfaceBase):
   def __init__(self, CP):
     super().__init__(CP)
+    self.CP = CP
     self.rcp = _create_radar_can_parser(CP.carFingerprint)
     self.updated_messages = set()
     self.trigger_msg = LAST_MSG
@@ -57,7 +62,7 @@ class RadarInterface(RadarInterfaceBase):
     self.yRel_multiplier = 1 if CP.carFingerprint in PRE_2019 else -1
 
   def update(self, can_strings):
-    if self.rcp is None:
+    if self.rcp is None or self.CP.radarUnavailable:
       return super().update(None)
 
     vls = self.rcp.update_strings(can_strings)

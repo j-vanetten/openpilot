@@ -24,6 +24,7 @@ struct MessageParseOptions {
 
 struct SignalValue {
   uint32_t address;
+  uint64_t ts_nanos;
   std::string name;
   double value;  // latest value
   std::vector<double> all_values;  // all values from this cycle
@@ -72,6 +73,17 @@ struct DBC {
   std::vector<Val> vals;
 };
 
+typedef struct ChecksumState {
+  int checksum_size;
+  int counter_size;
+  int checksum_start_bit;
+  int counter_start_bit;
+  bool little_endian;
+  SignalType checksum_type;
+  unsigned int (*calc_checksum)(uint32_t address, const Signal &sig, const std::vector<uint8_t> &d);
+} ChecksumState;
+
 DBC* dbc_parse(const std::string& dbc_path);
+DBC* dbc_parse_from_stream(const std::string &dbc_name, std::istream &stream, ChecksumState *checksum = nullptr);
 const DBC* dbc_lookup(const std::string& dbc_name);
 std::vector<std::string> get_dbc_names();

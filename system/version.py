@@ -7,7 +7,8 @@ from functools import lru_cache
 from common.basedir import BASEDIR
 from system.swaglog import cloudlog
 
-TESTED_BRANCHES = ['jvePilot-release', 'origin/jvePilot-release']
+RELEASE_BRANCHES = ['jvePilot-release', 'origin/jvePilot-release', 'nightly']
+TESTED_BRANCHES = RELEASE_BRANCHES + []
 
 training_version: bytes = b"0.2.0"
 terms_version: bytes = b"2"
@@ -96,6 +97,9 @@ def is_comma_remote() -> bool:
 def is_tested_branch() -> bool:
   return get_short_branch() in TESTED_BRANCHES
 
+@cache
+def is_release_branch() -> bool:
+  return get_short_branch() in RELEASE_BRANCHES
 
 @cache
 def is_dirty() -> bool:

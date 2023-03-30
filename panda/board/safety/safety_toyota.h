@@ -6,13 +6,20 @@ const SteeringLimits TOYOTA_STEERING_LIMITS = {
   .max_rt_delta = 450,        // the real time limit is 1800/sec, a 20% buffer
   .max_rt_interval = 250000,
   .type = TorqueMotorLimited,
+
+  // the EPS faults when the steering angle rate is above a certain threshold for too long. to prevent this,
+  // we allow setting STEER_REQUEST bit to 0 while maintaining the requested torque value for a single frame
+  .min_valid_request_frames = 18,
+  .max_invalid_request_frames = 1,
+  .min_valid_request_rt_interval = 170000,  // 170ms; a ~10% buffer on cutting every 19 frames
+  .has_steer_req_tolerance = true,
 };
 
 // longitudinal limits
-const int TOYOTA_MAX_ACCEL = 2000;        // 2.0 m/s2
-const int TOYOTA_MIN_ACCEL = -3500;       // -3.5 m/s2
-
-const int TOYOTA_STANDSTILL_THRSLD = 100;  // 1kph
+const LongitudinalLimits TOYOTA_LONG_LIMITS = {
+  .max_accel = 2000,   // 2.0 m/s2
+  .min_accel = -3500,  // -3.5 m/s2
+};
 
 // panda interceptor threshold needs to be equivalent to openpilot threshold to avoid controls mismatches
 // If thresholds are mismatched then it is possible for panda to see the gas fall and rise while openpilot is in the pre-enabled state
@@ -98,15 +105,10 @@ static int toyota_rx_hook(CANPacket_t *to_push) {
       }
     }
 
-    // sample speed
     if (addr == 0xaa) {
-      int speed = 0;
-      // sum 4 wheel speeds
-      for (uint8_t i=0U; i<8U; i+=2U) {
-        int wheel_speed = (GET_BYTE(to_push, i) << 8U) + GET_BYTE(to_push, (i+1U));
-        speed += wheel_speed - 0x1a6f;
-      }
-      vehicle_moving = ABS(speed / 4) > TOYOTA_STANDSTILL_THRSLD;
+      // check that all wheel speeds are at zero value with offset
+      bool standstill = (GET_BYTES_04(to_push) == 0x6F1A6F1AU) && (GET_BYTES_48(to_push) == 0x6F1A6F1AU);
+      vehicle_moving = !standstill;
     }
 
     // most cars have brake_pressed on 0x226, corolla and rav4 on 0x224
@@ -130,7 +132,7 @@ static int toyota_rx_hook(CANPacket_t *to_push) {
   return valid;
 }
 
-static int toyota_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
+static int toyota_tx_hook(CANPacket_t *to_send) {
 
   int tx = 1;
   int addr = GET_ADDR(to_send);
@@ -145,10 +147,8 @@ static int toyota_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
 
     // GAS PEDAL: safety check
     if (addr == 0x200) {
-      if (!longitudinal_allowed) {
-        if (GET_BYTE(to_send, 0) || GET_BYTE(to_send, 1)) {
-          tx = 0;
-        }
+      if (longitudinal_interceptor_checks(to_send)) {
+        tx = 0;
       }
     }
 
@@ -156,21 +156,20 @@ static int toyota_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     if (addr == 0x343) {
       int desired_accel = (GET_BYTE(to_send, 0) << 8) | GET_BYTE(to_send, 1);
       desired_accel = to_signed(desired_accel, 16);
-      if (!longitudinal_allowed || toyota_stock_longitudinal) {
-        if (desired_accel != 0) {
-          tx = 0;
-        }
-      }
+
+      bool violation = false;
+      violation |= longitudinal_accel_checks(desired_accel, TOYOTA_LONG_LIMITS);
 
       // only ACC messages that cancel are allowed when openpilot is not controlling longitudinal
       if (toyota_stock_longitudinal) {
         bool cancel_req = GET_BIT(to_send, 24U) != 0U;
         if (!cancel_req) {
-          tx = 0;
+          violation = true;
+        }
+        if (desired_accel != TOYOTA_LONG_LIMITS.inactive_accel) {
+          violation = true;
         }
       }
-
-      bool violation = max_limit_check(desired_accel, TOYOTA_MAX_ACCEL, TOYOTA_MIN_ACCEL);
 
       if (violation) {
         tx = 0;

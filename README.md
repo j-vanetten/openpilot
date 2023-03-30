@@ -48,7 +48,7 @@ This is my personal OpenPilot fork that includes features that I feel make it a 
 * Auto follow feature to adjust the follow distance based on speed (Speeds are configurable)
 * ACC Eco to limit the throttle when accelerating  
 * Syncs jvePilot display speed with the vehicle speedometer 
-* Use LKAS button in the dash to disable lane line driving and instead use the new KL driving model. [Read about KL model here](https://blog.comma.ai/end-to-end-lateral-planning).
+* Use LKAS button in the dash to toggle Experimental Mode if Experimental Mode is enabled in the settings
 * Gas/brake indication using green/red colors on speed indicator
 
 ### Longitudinal control
@@ -219,10 +219,15 @@ Use SSH and opEdit to change these settings.
 ### Minimum Steer Check  
 When disabled, jvePilot will no longer put a minimum on steer speed.
 Requires a mod like a [hardware interceptor](https://github.com/xps-genesis/panda/tree/xps_wp_chrysler_basic).
-* Setting: `steer.checkMinimum`
 * Default: True 
 * Vehicle Restart Required: Yes
-* Allowed values: False, True
+
+### Vision Only
+When enabled, the model will no longer use any radar signals and rely on vision only.
+Enable this setting if you are seeing the lead car yellow triangle acting erratically.  
+* Default: False 
+* Vehicle Restart Required: Yes
+
 ---
 
 ![](https://user-images.githubusercontent.com/37757984/127420744-89ca219c-8f8e-46d3-bccf-c1cb53b81bb1.png)
@@ -269,7 +274,7 @@ To use openpilot in a car, you need four things
 * A supported device to run this software: a [comma three](https://comma.ai/shop/products/three).
 * This software. The setup procedure of the comma three allows the user to enter a URL for custom software.
 The URL, openpilot.comma.ai will install the release version of openpilot. To install openpilot master, you can use installer.comma.ai/commaai/master, and replacing commaai with another GitHub username can install a fork.
-* One of [the 150+ supported cars](docs/CARS.md). We support Honda, Toyota, Hyundai, Nissan, Kia, Chrysler, Lexus, Acura, Audi, VW, and more. If your car is not supported but has adaptive cruise control and lane-keeping assist, it's likely able to run openpilot.
+* One of [the 200+ supported cars](docs/CARS.md). We support Honda, Toyota, Hyundai, Nissan, Kia, Chrysler, Lexus, Acura, Audi, VW, and more. If your car is not supported but has adaptive cruise control and lane-keeping assist, it's likely able to run openpilot.
 * A [car harness](https://comma.ai/shop/products/car-harness) to connect to your car.
 
 We have detailed instructions for [how to mount the device in a car](https://comma.ai/setup).
@@ -277,7 +282,7 @@ We have detailed instructions for [how to mount the device in a car](https://com
 Running on PC
 ------
 
-All of openpilot's services can run as normal on a PC, even without special hardware or a car. To develop or experiment with openpilot you can run openpilot on recorded or simulated data.
+All openpilot services can run as usual on a PC without requiring special hardware or a car. You can also run openpilot on recorded or simulated data to develop or experiment with openpilot.
 
 With openpilot's tools, you can plot logs, replay drives, and watch the full-res camera streams. See [the tools README](tools/README.md) for more information.
 
@@ -330,7 +335,6 @@ Directory Structure
     ├── opendbc             # Files showing how to interpret data from cars
     ├── panda               # Code used to communicate on CAN
     ├── third_party         # External libraries
-    ├── pyextra             # Extra python packages
     └── system              # Generic services
         ├── camerad         # Driver to capture images from the camera sensors
         ├── clocksd         # Broadcasts current time
@@ -346,7 +350,7 @@ Directory Structure
         ├── debug           # Tools to help you debug and do car ports
         ├── locationd       # Precise localization and vehicle parameter estimation
         ├── loggerd         # Logger and uploader of car data
-        ├── manager         # Deamon that starts/stops all other daemons as needed
+        ├── manager         # Daemon that starts/stops all other daemons as needed
         ├── modeld          # Driving and monitoring model runners
         ├── monitoring      # Daemon to determine driver attention
         ├── navd            # Turn-by-turn navigation
@@ -370,7 +374,4 @@ NO WARRANTY EXPRESSED OR IMPLIED.**
 <img src="https://d1qb2nb5cznatu.cloudfront.net/startups/i/1061157-bc7e9bf3b246ece7322e6ffe653f6af8-medium_jpg.jpg?buster=1458363130" width="75"></img> <img src="https://cdn-images-1.medium.com/max/1600/1*C87EjxGeMPrkTuVRVWVg4w.png" width="225"></img>
 
 [![openpilot tests](https://github.com/commaai/openpilot/workflows/openpilot%20tests/badge.svg?event=push)](https://github.com/commaai/openpilot/actions)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/alerts/)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/context:python)
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/context:cpp)
 [![codecov](https://codecov.io/gh/commaai/openpilot/branch/master/graph/badge.svg)](https://codecov.io/gh/commaai/openpilot)

@@ -1,16 +1,26 @@
-// this is needed for 1 mbps support
-#define CAN_QUANTA 8U
-#define CAN_SEQ1 6 // roundf(quanta * 0.875f) - 1;
-#define CAN_SEQ2 1 // roundf(quanta * 0.125f);
+// Flasher and pedal use raw mailbox access
+#define GET_MAILBOX_BYTE(msg, b) (((int)(b) > 3) ? (((msg)->RDHR >> (8U * ((unsigned int)(b) % 4U))) & 0xFFU) : (((msg)->RDLR >> (8U * (unsigned int)(b))) & 0xFFU))
+#define GET_MAILBOX_BYTES_04(msg) ((msg)->RDLR)
+#define GET_MAILBOX_BYTES_48(msg) ((msg)->RDHR)
 
-#define CAN_PCLK 24000U
+// SAE 2284-3 : minimum 16 tq, SJW 3, sample point at 81.3%
+#define CAN_QUANTA 16U
+#define CAN_SEQ1 12U
+#define CAN_SEQ2 3U
+#define CAN_SJW  3U
+
+#define CAN_PCLK 48000U
 // 333 = 33.3 kbps
 // 5000 = 500 kbps
 #define can_speed_to_prescaler(x) (CAN_PCLK / CAN_QUANTA * 10U / (x))
 
 #define CAN_NAME_FROM_CANIF(CAN_DEV) (((CAN_DEV)==CAN1) ? "CAN1" : (((CAN_DEV) == CAN2) ? "CAN2" : "CAN3"))
 
-void puts(const char *a);
+void print(const char *a);
+
+// kbps multiplied by 10
+const uint32_t speeds[] = {100U, 200U, 500U, 1000U, 1250U, 2500U, 5000U, 10000U};
+const uint32_t data_speeds[] = {0U}; // No separate data speed, dummy
 
 bool llcan_set_speed(CAN_TypeDef *CAN_obj, uint32_t speed, bool loopback, bool silent) {
   bool ret = true;
@@ -24,7 +34,7 @@ bool llcan_set_speed(CAN_TypeDef *CAN_obj, uint32_t speed, bool loopback, bool s
     timeout_counter++;
 
     if(timeout_counter >= CAN_INIT_TIMEOUT_MS){
-      puts(CAN_NAME_FROM_CANIF(CAN_obj)); puts(" set_speed timed out (1)!\n");
+      print(CAN_NAME_FROM_CANIF(CAN_obj)); print(" set_speed timed out (1)!\n");
       ret = false;
       break;
     }
@@ -32,9 +42,10 @@ bool llcan_set_speed(CAN_TypeDef *CAN_obj, uint32_t speed, bool loopback, bool s
 
   if(ret){
     // set time quanta from defines
-    register_set(&(CAN_obj->BTR), ((CAN_BTR_TS1_0 * (CAN_SEQ1-1)) |
-              (CAN_BTR_TS2_0 * (CAN_SEQ2-1)) |
-              (can_speed_to_prescaler(speed) - 1U)), 0xC37F03FFU);
+    register_set(&(CAN_obj->BTR), ((CAN_BTR_TS1_0 * (CAN_SEQ1-1U)) |
+                                   (CAN_BTR_TS2_0 * (CAN_SEQ2-1U)) |
+                                   (CAN_BTR_SJW_0 * (CAN_SJW-1U)) |
+                                   (can_speed_to_prescaler(speed) - 1U)), 0xC37F03FFU);
 
     // silent loopback mode for debugging
     if (loopback) {
@@ -54,7 +65,7 @@ bool llcan_set_speed(CAN_TypeDef *CAN_obj, uint32_t speed, bool loopback, bool s
       timeout_counter++;
 
       if(timeout_counter >= CAN_INIT_TIMEOUT_MS){
-        puts(CAN_NAME_FROM_CANIF(CAN_obj)); puts(" set_speed timed out (2)!\n");
+        print(CAN_NAME_FROM_CANIF(CAN_obj)); print(" set_speed timed out (2)!\n");
         ret = false;
         break;
       }
@@ -78,7 +89,7 @@ bool llcan_init(CAN_TypeDef *CAN_obj) {
     timeout_counter++;
 
     if(timeout_counter >= CAN_INIT_TIMEOUT_MS){
-      puts(CAN_NAME_FROM_CANIF(CAN_obj)); puts(" initialization timed out!\n");
+      print(CAN_NAME_FROM_CANIF(CAN_obj)); print(" initialization timed out!\n");
       ret = false;
       break;
     }
@@ -97,7 +108,7 @@ bool llcan_init(CAN_TypeDef *CAN_obj) {
     register_clear_bits(&(CAN_obj->FMR), CAN_FMR_FINIT);
 
     // enable certain CAN interrupts
-    register_set_bits(&(CAN_obj->IER), CAN_IER_TMEIE | CAN_IER_FMPIE0 |  CAN_IER_WKUIE);
+    register_set_bits(&(CAN_obj->IER), CAN_IER_TMEIE | CAN_IER_FMPIE0 | CAN_IER_ERRIE | CAN_IER_LECIE | CAN_IER_BOFIE | CAN_IER_EPVIE | CAN_IER_EWGIE | CAN_IER_FOVIE0 | CAN_IER_FFIE0);
 
     if (CAN_obj == CAN1) {
       NVIC_EnableIRQ(CAN1_TX_IRQn);
@@ -114,15 +125,13 @@ bool llcan_init(CAN_TypeDef *CAN_obj) {
         NVIC_EnableIRQ(CAN3_SCE_IRQn);
     #endif
     } else {
-      puts("Invalid CAN: initialization failed\n");
+      print("Invalid CAN: initialization failed\n");
     }
   }
   return ret;
 }
 
 void llcan_clear_send(CAN_TypeDef *CAN_obj) {
-  CAN_obj->TSR |= CAN_TSR_ABRQ0;
-  register_clear_bits(&(CAN_obj->MSR), CAN_MSR_ERRI);
-  // cppcheck-suppress selfAssignment ; needed to clear the register
-  CAN_obj->MSR = CAN_obj->MSR;
+  CAN_obj->TSR |= CAN_TSR_ABRQ0; // Abort message transmission on error interrupt
+  CAN_obj->MSR |= CAN_MSR_ERRI; // Clear error interrupt
 }

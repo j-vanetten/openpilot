@@ -1,8 +1,10 @@
+import math
+from common.numpy_fast import clip
 from opendbc.can.packer import CANPacker
-from common.realtime import DT_CTRL
+from common.realtime  import DT_CTRL
 from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, create_lkas_heartbit, create_wheel_buttons_command
-from selfdrive.car.chrysler.values import RAM_CARS, PRE_2019, CarControllerParams
+from selfdrive.car.chrysler.values import RAM_CARS, PRE_2019, CarControllerParams, ChryslerFlags
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.conversions import Conversions as CV
@@ -42,8 +44,9 @@ class CarController:
 
     self.autoFollowDistanceLock = None
     self.button_frame = 0
+    self.last_target = 0
 
-  def update(self, CC, CS):
+  def update(self, CC, CS, now_nanos):
     can_sends = []
 
     lkas_active = CC.latActive and self.lkas_control_bit_prev
@@ -53,12 +56,12 @@ class CarController:
 
     # Lane-less button
     if CS.button_pressed(ButtonType.lkasToggle, False):
-      CC.jvePilotState.carControl.useLaneLines = not CC.jvePilotState.carControl.useLaneLines
-      self.settingsParams.put("jvePilot.settings.useLaneLines",
-                              "1" if CC.jvePilotState.carControl.useLaneLines else "0")
+      CC.jvePilotState.carControl.lkasButtonLight = not CC.jvePilotState.carControl.lkasButtonLight
+      self.settingsParams.put("jvePilot.settings.lkasButtonLight",
+                              "1" if CC.jvePilotState.carControl.lkasButtonLight else "0")
       CC.jvePilotState.notifyUi = True
     if self.frame % 10 == 0:
-      new_msg = create_lkas_heartbit(self.packer, 1 if CC.jvePilotState.carControl.useLaneLines else 0, CS.lkasHeartbit)
+      new_msg = create_lkas_heartbit(self.packer, 1 if CC.jvePilotState.carControl.lkasButtonLight else 0, CS.lkasHeartbit)
       can_sends.append(new_msg)
 
     self.wheel_button_control(CC, CS, can_sends, CC.enabled, das_bus, CC.cruiseControl.cancel, CC.cruiseControl.resume)
@@ -71,17 +74,17 @@ class CarController:
 
     # steering
     # TODO: can we make this more sane? why is it different for all the cars?
-    low_steer_models = self.CP.carFingerprint in PRE_2019
+    high_steer = self.CP.flags & ChryslerFlags.HIGHER_MIN_STEERING_SPEED
     lkas_control_bit = self.lkas_control_bit_prev
     if self.steerNoMinimum:
-      lkas_control_bit = CC.enabled or low_steer_models
+      lkas_control_bit = CC.enabled or not high_steer
     elif CS.out.vEgo > self.CP.minSteerSpeed:
       lkas_control_bit = True
+    elif high_steer:
+      if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
+        lkas_control_bit = False
     elif self.CP.carFingerprint in RAM_CARS:
       if CS.out.vEgo < (self.CP.minSteerSpeed - 0.5):
-        lkas_control_bit = False
-    elif not low_steer_models:
-      if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
         lkas_control_bit = False
 
     # EPS faults if LKAS re-enables too quickly
@@ -104,6 +107,7 @@ class CarController:
 
     new_actuators = CC.actuators.copy()
     new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
+    new_actuators.steerOutputCan = self.apply_steer_last
 
     return new_actuators, can_sends
 
@@ -148,14 +152,17 @@ class CarController:
       can_sends.append(new_msg)
 
   def hybrid_acc_button(self, CC, CS):
-    target = CC.jvePilotState.carControl.vTargetFuture + 2 * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
-
     # Move the adaptive curse control to the target speed
     eco_limit = None
     if CC.jvePilotState.carControl.accEco == 1:  # if eco mode
       eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel1', 1000)
     elif CC.jvePilotState.carControl.accEco == 2:  # if eco mode
       eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
+
+    experimental_mode = self.cachedParams.get_bool("ExperimentalMode", 1000) and self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 1000)
+    follow_boost = (3 - CC.jvePilotState.carState.accFollowDistance) * 0.66
+    acc_boost = clip(CC.actuators.accel, 0, eco_limit * CV.MPH_TO_MS) if experimental_mode else follow_boost * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
+    target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
 
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
@@ -165,8 +172,7 @@ class CarController:
     if diff > ACC_BRAKE_THRESHOLD and abs(target - CC.jvePilotState.carControl.vMaxCruise) > ACC_BRAKE_THRESHOLD:  # ignore change in max cruise speed
       target -= diff
 
-    # round to nearest unit
-    target = round(min(CC.jvePilotState.carControl.vMaxCruise, target) * self.round_to_unit)
+    target = math.ceil(min(CC.jvePilotState.carControl.vMaxCruise, target) * self.round_to_unit)
     current = round(CS.out.cruiseState.speed * self.round_to_unit)
     minSetting = round(self.minAccSetting * self.round_to_unit)
 
@@ -201,3 +207,12 @@ class CarController:
           return 'ACC_Distance_Dec'
         else:
           return 'ACC_Distance_Inc'
+
+  def acc_hysteresis(self, new_target):
+    if new_target > self.last_target:
+      self.last_target = new_target
+    elif new_target < self.last_target - 0.75 * CV.MPH_TO_MS:
+      self.last_target = new_target
+
+    return self.last_target
+
