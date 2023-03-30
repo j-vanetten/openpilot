@@ -1,7 +1,12 @@
-Version jvePilot-0.9.1(v3.13.1)
+Version jvePilot-0.9.1(v3.13.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
-* Better adjust ACC speed based on current follow distance setting
+* Removed lane lines toggle using LKAS dash button. Lane lines has going away.
+* LKAS button can now toggle experimental mode that slows for stop lights and stop signs.
+  * Enable Experimental Mode in the dash will make the mode available to toggle using the button
+  * When button is lit, experimental mode will be enabled.
+* Add option to ignore the radar and use vision only 
+* Add Fingerprint V1 for AUS Jeep Grand Cherokee Trailhawk
 * Added @Miniz199922's 2019 Grand Cherokee Fingerprint
 * Update to 0.9.1
   * New driving model
@@ -22,15 +27,6 @@ Visit http://bit.ly/jvereadme for more information
   * Toyota C-HR 2021 support thanks to eFiniLan!
   * Toyota C-HR Hybrid 2022 support thanks to Korben00!
   * Volkswagen Crafter and MAN TGE 2017-23 support thanks to jyoung8607!
-
-Version jvePilot-0.9.0(v3.13.0)
-========================
-* Removed lane lines toggle using LKAS dash button. Lane lines has going away.
-* LKAS button can now toggle experimental mode that slows for stop lights and stop signs.
-  * Enable Experimental Mode in the dash will make the mode available to toggle using the button
-  * When button is lit, experimental mode will be enabled.
-* Add option to ignore the radar and use vision only 
-* Add Fingerprint V1 for AUS Jeep Grand Cherokee Trailhawk
 * Update to 0.9.0
   * New driving model
     * Internal feature space information content increased tenfold during training to ~700 bits, which makes the model dramatically more accurate
