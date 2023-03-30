@@ -1,6 +1,7 @@
 Version jvePilot-0.9.1(v3.13.1)
 ========================
 Visit http://bit.ly/jvereadme for more information
+* Better adjust ACC speed based on current follow distance setting
 * Update to 0.9.1
   * New driving model
     * 30% improved height estimation resulting in better driving performance for tall cars
