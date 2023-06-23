@@ -101,19 +101,16 @@ class CarInterface(CarInterfaceBase):
 
     # events
     events = self.create_common_events(ret, extra_gears=[car.CarState.GearShifter.low],
-                                       gas_resume_speed=GAS_RESUME_SPEED, pcm_enable=False)
+                                       gas_resume_speed=GAS_RESUME_SPEED)
 
-    if c.enabled and ret.brakePressed and ret.standstill and not self.disable_auto_resume:
-      events.add(car.CarEvent.EventName.accBrakeHold)
-    else:
-      # Low speed steer alert hysteresis logic
-      if self.CP.minSteerSpeed > 0. and ret.vEgo < (self.CP.minSteerSpeed + 0.5):
-        self.low_speed_alert = True
-      elif ret.vEgo > (self.CP.minSteerSpeed + 1.):
-        self.low_speed_alert = False
+    # Low speed steer alert hysteresis logic
+    if self.CP.minSteerSpeed > 0. and ret.vEgo < (self.CP.minSteerSpeed + 0.5):
+      self.low_speed_alert = True
+    elif ret.vEgo > (self.CP.minSteerSpeed + 1.):
+      self.low_speed_alert = False
 
-      if self.low_speed_alert:
-        events.add(car.CarEvent.EventName.belowSteerSpeed)
+    if self.low_speed_alert:
+      events.add(car.CarEvent.EventName.belowSteerSpeed)
 
     if self.CS.button_pressed(ButtonType.cancel):
       events.add(car.CarEvent.EventName.buttonCancel)  # cancel button pressed

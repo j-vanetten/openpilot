@@ -37,7 +37,6 @@ class CarController:
 
     self.settingsParams = Params()
     self.cachedParams = CachedParams()
-    self.auto_resume = self.settingsParams.get_bool('jvePilot.settings.autoResume')
     self.minAccSetting = V_CRUISE_MIN_MS if self.settingsParams.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
     self.round_to_unit = CV.MS_TO_KPH if self.settingsParams.get_bool("IsMetric") else CV.MS_TO_MPH
     self.steerNoMinimum = self.settingsParams.get_bool("jvePilot.settings.steer.noMinimum")
@@ -141,7 +140,7 @@ class CarController:
       if enabled and not CS.out.brakePressed:
         button_counter_offset = [1, 1, 0, None][self.button_frame % 4]
         if button_counter_offset is not None:
-          if self.auto_resume and (resume or (CS.out.standstill and not CS.out.cruiseState.enabled)):
+          if resume:
             buttons_to_press = ["ACC_Resume"]
           elif CS.out.cruiseState.enabled:  # Control ACC
             buttons_to_press = [self.auto_follow_button(CC, CS), self.hybrid_acc_button(CC, CS)]
