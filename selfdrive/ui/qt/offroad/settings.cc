@@ -89,13 +89,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                                   "../assets/jvepilot/settings/icon_acc_speed_change.png",
                                   this));
 
-  // autoResume
-  addItem(new ParamControl("jvePilot.settings.autoResume",
-                                  "Auto Resume",
-                                  "When enabled, jvePilot will resume after ACC comes to a stop behind another vehicle.",
-                                  "../assets/jvepilot/settings/icon_auto_resume.png",
-                                  this));
-
   // audioAlertOnSteeringLoss
   addItem(new ParamControl("jvePilot.settings.audioAlertOnSteeringLoss",
                                   "Audio Alert on Steering Loss",

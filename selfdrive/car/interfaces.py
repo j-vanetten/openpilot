@@ -85,7 +85,6 @@ class CarInterfaceBase(ABC):
       self.CC = CarController(self.cp.dbc_name, CP, self.VM)
 
     params = Params()
-    self.disable_auto_resume = params.get('jvePilot.settings.autoResume', encoding='utf8') != "1"
 
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
@@ -303,7 +302,7 @@ class CarInterfaceBase(ABC):
 
     # we engage when pcm is active (rising edge)
     # enabling can optionally be blocked by the car interface
-    if pcm_enable or self.disable_auto_resume:
+    if pcm_enable:
       if cs_out.cruiseState.enabled and not self.CS.out.cruiseState.enabled and allow_enable:
         events.add(EventName.pcmEnable)
       elif not cs_out.cruiseState.enabled:
