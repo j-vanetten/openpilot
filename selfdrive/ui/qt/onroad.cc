@@ -449,7 +449,6 @@ void AnnotatedCameraWidget::drawHud(QPainter &p) {
     drawText(p, rect().center().x(), 210, speedStr, QColor(0, 200, 0, pedalPressedAmount));
   }
   p.setFont(InterFont(66));
-  configFont(p, "Inter", 66, "Regular");
   drawText(p, rect().center().x(), 290, speedUnit, 200);
 
   if (accEco >= 0) { // got data yet?
