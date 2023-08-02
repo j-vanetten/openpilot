@@ -58,7 +58,6 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
   if (btns && btns->size() > 0) {
     hasToggle = true;
     for (int i = 0; i < btns->size(); i++) {
-      config_layout->addWidget(horizontal_line());
       const ConfigButton btn = btns->at(i);
 
       const auto existng_value = Params().get(btn.param);
