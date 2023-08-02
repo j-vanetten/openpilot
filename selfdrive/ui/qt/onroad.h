@@ -92,15 +92,6 @@ private:
   void drawText(QPainter &p, int x, int y, const QString &text, QColor color);
   void drawText(QPainter &p, int x, int y, const QString &text, int alpha = 255);
 
-  QPixmap dm_img;
-  QPixmap eco_imgs[3];
-  QPixmap auto_follow_imgs[2];
-  int pedalPressedAmount;
-  int accEco;
-  bool autoFollowEnabled;
-  const int radius = 192;
-  const int img_size = (radius / 2) * 1.5;
-
   QPixmap eco_imgs[3];
   QPixmap auto_follow_imgs[2];
   int pedalPressedAmount;
