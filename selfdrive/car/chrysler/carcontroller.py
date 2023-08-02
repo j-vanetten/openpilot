@@ -159,10 +159,13 @@ class CarController:
       eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
 
     experimental_mode = self.cachedParams.get_bool("ExperimentalMode", 1000) and self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 1000)
-    follow_boost = (3 - CC.jvePilotState.carState.accFollowDistance) * 0.66
-    acc_boost = clip(CC.actuators.accel, 0, eco_limit * CV.MPH_TO_MS) if experimental_mode else follow_boost * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
-    target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
+    if experimental_mode:
+      acc_boost = clip(CC.actuators.accel, 0, eco_limit * CV.MPH_TO_MS) if eco_limit else 0
+    else:
+      follow_boost = (3 - CC.jvePilotState.carState.accFollowDistance) * 0.66
+      acc_boost = follow_boost * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
 
+    target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
 
