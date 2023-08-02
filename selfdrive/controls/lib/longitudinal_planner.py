@@ -57,6 +57,9 @@ class LongitudinalPlanner:
     self.v_desired_filter = FirstOrderFilter(init_v, 2.0, DT_MDL)
     self.v_model_error = 0.0
 
+    self.cachedParams = CachedParams()
+    self.experimental_mode = False
+
     self.v_desired_trajectory = np.zeros(CONTROL_N)
     self.a_desired_trajectory = np.zeros(CONTROL_N)
     self.j_desired_trajectory = np.zeros(CONTROL_N)
@@ -72,11 +75,6 @@ class LongitudinalPlanner:
     except (ValueError, TypeError):
       self.personality = log.LongitudinalPersonality.standard
 
-    self.cachedParams = CachedParams()
-    self.experimental_mode = False
-    self.read_param()
-
-  def read_param(self):
     self.experimental_mode = self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 500) \
                              and self.cachedParams.get_bool('ExperimentalMode', 500)
     e2e = self.experimental_mode and self.CP.openpilotLongitudinalControl
