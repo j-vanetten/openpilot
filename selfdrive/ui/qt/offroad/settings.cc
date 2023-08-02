@@ -282,11 +282,6 @@ void TogglesPanel::updateToggles() {
     }
     op_long_toggle->setVisible(CP.getExperimentalLongitudinalAvailable() && !is_release);
     if (hasLongitudinalControl(CP)) {
-
-    const bool expLongAvailable = false; // CP.getExperimentalLongitudinalAvailable()
-    const bool op_long = CP.getOpenpilotLongitudinalControl() && !expLongAvailable;
-    const bool exp_long_enabled = expLongAvailable && params.getBool("ExperimentalLongitudinalEnabled");
-    if (op_long || exp_long_enabled) {
       // normal description and toggle
       experimental_mode_toggle->setEnabled(true);
       experimental_mode_toggle->setDescription(e2e_description);
@@ -301,7 +296,7 @@ void TogglesPanel::updateToggles() {
 
       QString long_desc = unavailable + " " + \
                           tr("openpilot longitudinal control may come in a future update.");
-      if (expLongAvailable) {
+      if (false) {
         if (is_release) {
           long_desc = unavailable + " " + tr("An alpha version of openpilot longitudinal control can be tested, along with Experimental mode, on non-release branches.");
         } else {
