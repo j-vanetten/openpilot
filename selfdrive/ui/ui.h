@@ -19,6 +19,11 @@
 #define COLOR_SPEED_GAS_ALPHA(x) nvgRGBA(0, 200, 0, x)
 #define COLOR_SPEED_BRAKE_ALPHA(x) nvgRGBA(200, 0, 0, x)
 
+const int bdr_s = 30;
+const int header_h = 420;
+const int footer_h = 280;
+const int button_bigger = 96;
+
 const int UI_BORDER_SIZE = 30;
 const int UI_HEADER_HEIGHT = 420;
 
