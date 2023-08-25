@@ -234,7 +234,7 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
 static int chrysler_tx_hook(CANPacket_t *to_send) {
 
   int tx = 1;
-  int addr = GET_ADDR(to_send);
+//  int addr = GET_ADDR(to_send);
 
   if (chrysler_platform == CHRYSLER_RAM_DT) {
     tx = msg_allowed(to_send, CHRYSLER_RAM_DT_TX_MSGS, sizeof(CHRYSLER_RAM_DT_TX_MSGS) / sizeof(CHRYSLER_RAM_DT_TX_MSGS[0]));
