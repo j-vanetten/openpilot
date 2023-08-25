@@ -2,7 +2,7 @@ import math
 from common.numpy_fast import clip
 from opendbc.can.packer import CANPacker
 from common.realtime  import DT_CTRL
-from selfdrive.car import apply_toyota_steer_torque_limits
+from selfdrive.car import apply_meas_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, \
   create_lkas_heartbit, create_wheel_buttons_command, \
   acc_command, acc_log
@@ -61,7 +61,6 @@ class CarController:
 
     self.settingsParams = Params()
     self.cachedParams = CachedParams()
-    self.auto_resume = self.settingsParams.get_bool('jvePilot.settings.autoResume')
     self.minAccSetting = V_CRUISE_MIN_MS if self.settingsParams.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
     self.round_to_unit = CV.MS_TO_KPH if self.settingsParams.get_bool("IsMetric") else CV.MS_TO_MPH
     self.steerNoMinimum = self.settingsParams.get_bool("jvePilot.settings.steer.noMinimum")
@@ -130,7 +129,7 @@ class CarController:
 
     # steer torque
     new_steer = int(round(CC.actuators.steer * self.params.STEER_MAX))
-    apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
+    apply_steer = apply_meas_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
     if not lkas_active or not lkas_control_bit:
       apply_steer = 0
     self.apply_steer_last = apply_steer
@@ -201,7 +200,7 @@ class CarController:
         if enabled and not CS.out.brakePressed:
           button_counter_offset = [1, 1, 0, None][self.button_frame % 4]
           if button_counter_offset is not None:
-            if self.auto_resume and (resume or (CS.out.standstill and not CS.out.cruiseState.enabled)):
+            if resume:
 
                 buttons_to_press = ["ACC_Resume"]
 
@@ -222,10 +221,13 @@ class CarController:
       eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
 
     experimental_mode = self.cachedParams.get_bool("ExperimentalMode", 1000) and self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 1000)
-    follow_boost = (3 - CC.jvePilotState.carState.accFollowDistance) * 0.66
-    acc_boost = clip(CC.actuators.accel, 0, eco_limit * CV.MPH_TO_MS) if experimental_mode else follow_boost * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
-    target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
+    if experimental_mode:
+      acc_boost = clip(CC.actuators.accel, 0, eco_limit * CV.MPH_TO_MS) if eco_limit else 0
+    else:
+      follow_boost = (3 - CC.jvePilotState.carState.accFollowDistance) * 0.66
+      acc_boost = follow_boost * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
 
+    target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
 
