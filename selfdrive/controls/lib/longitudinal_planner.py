@@ -28,9 +28,9 @@ _A_TOTAL_MAX_V = [1.7, 3.2]
 _A_TOTAL_MAX_BP = [20., 40.]
 
 FOLLOW_PERSONALITY = [log.LongitudinalPersonality.aggressive,
-                     log.LongitudinalPersonality.aggressive,
+                      log.LongitudinalPersonality.aggressive,
                       log.LongitudinalPersonality.standard,
-                     log.LongitudinalPersonality.relaxed]
+                      log.LongitudinalPersonality.relaxed]
 
 
 def get_max_accel(v_ego):
