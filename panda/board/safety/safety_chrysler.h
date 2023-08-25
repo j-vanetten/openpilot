@@ -244,19 +244,18 @@ static int chrysler_tx_hook(CANPacket_t *to_send) {
     tx = msg_allowed(to_send, CHRYSLER_TX_MSGS, sizeof(CHRYSLER_TX_MSGS) / sizeof(CHRYSLER_TX_MSGS[0]));
   }
 
-  // STEERING
-  if (tx && (addr == chrysler_addrs->LKAS_COMMAND)) {
-    int start_byte = (chrysler_platform == CHRYSLER_PACIFICA) ? 0 : 1;
-    int desired_torque = ((GET_BYTE(to_send, start_byte) & 0x7U) << 8) | GET_BYTE(to_send, start_byte + 1);
-    desired_torque -= 1024;
-
-    const SteeringLimits limits = (chrysler_platform == CHRYSLER_PACIFICA) ? CHRYSLER_STEERING_LIMITS :
-                                  (chrysler_platform == CHRYSLER_RAM_DT) ? CHRYSLER_RAM_DT_STEERING_LIMITS : CHRYSLER_RAM_HD_STEERING_LIMITS;
-// FIX ME!
+  // STEERING (FIX ME)
+//  if (tx && (addr == chrysler_addrs->LKAS_COMMAND)) {
+//    int start_byte = (chrysler_platform == CHRYSLER_PACIFICA) ? 0 : 1;
+//    int desired_torque = ((GET_BYTE(to_send, start_byte) & 0x7U) << 8) | GET_BYTE(to_send, start_byte + 1);
+//    desired_torque -= 1024;
+//
+//    const SteeringLimits limits = (chrysler_platform == CHRYSLER_PACIFICA) ? CHRYSLER_STEERING_LIMITS :
+//                                  (chrysler_platform == CHRYSLER_RAM_DT) ? CHRYSLER_RAM_DT_STEERING_LIMITS : CHRYSLER_RAM_HD_STEERING_LIMITS;
 //    if (steer_torque_cmd_checks(desired_torque, -1, limits)) {
 //      tx = 0;
 //    }
-  }
+//  }
 
 //  // FORCE CANCEL: only the cancel button press is allowed
 //  if (addr == chrysler_addrs->CRUISE_BUTTONS) {
