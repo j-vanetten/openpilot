@@ -2,7 +2,7 @@ import math
 from common.numpy_fast import clip
 from opendbc.can.packer import CANPacker
 from common.realtime  import DT_CTRL
-from selfdrive.car import apply_toyota_steer_torque_limits
+from selfdrive.car import apply_meas_steer_torque_limits
 from selfdrive.car.chrysler.chryslercan import create_lkas_hud, create_lkas_command, create_lkas_heartbit, create_wheel_buttons_command
 from selfdrive.car.chrysler.values import RAM_CARS, PRE_2019, CarControllerParams, ChryslerFlags
 
@@ -95,7 +95,7 @@ class CarController:
 
     # steer torque
     new_steer = int(round(CC.actuators.steer * self.params.STEER_MAX))
-    apply_steer = apply_toyota_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
+    apply_steer = apply_meas_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
     if not lkas_active or not lkas_control_bit:
       apply_steer = 0
     self.apply_steer_last = apply_steer
@@ -159,10 +159,13 @@ class CarController:
       eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
 
     experimental_mode = self.cachedParams.get_bool("ExperimentalMode", 1000) and self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 1000)
-    follow_boost = (3 - CC.jvePilotState.carState.accFollowDistance) * 0.66
-    acc_boost = clip(CC.actuators.accel, 0, eco_limit * CV.MPH_TO_MS) if experimental_mode else follow_boost * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
-    target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
+    if experimental_mode:
+      acc_boost = clip(CC.actuators.accel, 0, eco_limit * CV.MPH_TO_MS) if eco_limit else 0
+    else:
+      follow_boost = (3 - CC.jvePilotState.carState.accFollowDistance) * 0.66
+      acc_boost = follow_boost * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
 
+    target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
     if eco_limit:
       target = min(target, CS.out.vEgo + (eco_limit * CV.MPH_TO_MS))
 
