@@ -1,4 +1,4 @@
-Version jvePilot-0.9.1(v3.14.0)
+Version jvePilot-0.9.4(v3.14.0)
 ========================
 Visit http://bit.ly/jvereadme for more information
 * Update to 0.9.4
