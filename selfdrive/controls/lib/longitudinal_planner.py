@@ -27,6 +27,11 @@ A_CRUISE_MAX_BP = [0., 10.0, 25., 40.]
 _A_TOTAL_MAX_V = [1.7, 3.2]
 _A_TOTAL_MAX_BP = [20., 40.]
 
+FOLLOW_PERSONALITY = [log.LongitudinalPersonality.aggressive,
+                     log.LongitudinalPersonality.aggressive,
+                      log.LongitudinalPersonality.standard,
+                     log.LongitudinalPersonality.relaxed]
+
 
 def get_max_accel(v_ego):
   return A_CRUISE_MAX
@@ -69,7 +74,7 @@ class LongitudinalPlanner:
     self.read_param()
     self.personality = log.LongitudinalPersonality.standard
 
-  def read_param(self):
+  def read_param(self, sm):
     try:
       self.personality = int(self.params.get('LongitudinalPersonality'))
     except (ValueError, TypeError):
@@ -79,6 +84,9 @@ class LongitudinalPlanner:
                              and self.cachedParams.get_bool('ExperimentalMode', 500)
     e2e = self.experimental_mode and self.CP.openpilotLongitudinalControl
     self.mpc.mode = 'blended' if e2e else 'acc'
+
+    follow = sm['carState'].jvePilotState.carState.accFollowDistance
+    self.personality = FOLLOW_PERSONALITY[follow]
 
   @staticmethod
   def parse_model(model_msg, model_error):
@@ -100,7 +108,7 @@ class LongitudinalPlanner:
     if self.param_read_counter % 50 == 0:
       self.read_param()
     self.param_read_counter += 1
-    self.read_param()
+    self.read_param(sm)
 
     v_ego = sm['carState'].vEgo
     v_cruise_kph = sm['controlsState'].vCruise

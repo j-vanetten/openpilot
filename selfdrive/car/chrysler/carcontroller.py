@@ -164,6 +164,7 @@ class CarController:
     else:
       follow_boost = (3 - CC.jvePilotState.carState.accFollowDistance) * 0.66
       acc_boost = follow_boost * CV.MPH_TO_MS  # add extra speed so ACC does the limiting
+      acc_boost = 0  # testing
 
     target = self.acc_hysteresis(CC.jvePilotState.carControl.vTargetFuture + acc_boost)
     if eco_limit:
