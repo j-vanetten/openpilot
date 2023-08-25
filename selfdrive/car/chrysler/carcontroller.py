@@ -105,6 +105,15 @@ class CarController:
         can_sends.append(create_lkas_hud(self.packer, self.CP, lkas_active, CC.hudControl.visualAlert, self.hud_count, CS.lkas_car_model, CS.auto_high_beam))
         self.hud_count += 1
 
+    # Longitudinal
+    new_actuators = CC.actuators.copy()
+    new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
+    new_actuators.steerOutputCan = self.apply_steer_last
+
+    accel = self.acc(CC, CS, can_sends, CC.enabled)
+    if accel is not None:
+      new_actuators.accel = accel
+
     # steering
     # TODO: can we make this more sane? why is it different for all the cars?
     high_steer = self.CP.flags & ChryslerFlags.HIGHER_MIN_STEERING_SPEED
@@ -130,21 +139,13 @@ class CarController:
     # steer torque
     new_steer = int(round(CC.actuators.steer * self.params.STEER_MAX))
     apply_steer = apply_meas_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
-    if not lkas_active or not lkas_control_bit:
+    if not lkas_active or not lkas_control_bit or not CS.longEnabled:
       apply_steer = 0
     self.apply_steer_last = apply_steer
 
     can_sends.append(create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit))
 
     self.frame += 1
-
-    new_actuators = CC.actuators.copy()
-    new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
-    new_actuators.steerOutputCan = self.apply_steer_last
-
-    accel = self.acc(CC, CS, can_sends, CC.enabled)
-    if accel is not None:
-      new_actuators.accel = accel
 
     return new_actuators, can_sends
 
