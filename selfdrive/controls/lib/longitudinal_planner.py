@@ -75,11 +75,6 @@ class LongitudinalPlanner:
     self.personality = log.LongitudinalPersonality.standard
 
   def read_param(self, sm):
-    try:
-      self.personality = int(self.params.get('LongitudinalPersonality'))
-    except (ValueError, TypeError):
-      self.personality = log.LongitudinalPersonality.standard
-
     self.experimental_mode = self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 500) \
                              and self.cachedParams.get_bool('ExperimentalMode', 500)
     e2e = self.experimental_mode and self.CP.openpilotLongitudinalControl
