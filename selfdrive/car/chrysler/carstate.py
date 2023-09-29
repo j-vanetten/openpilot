@@ -272,13 +272,13 @@ class CarState(CarStateBase):
       ("STEERING_LEVERS", 10),
       ("ORC_1", 2),
       ("BCM_1", 1),
-      ("ESP_8", 50),
-      ("ACCEL_RELATED_120", 50),
+      ("ESP_8", 33),
+      ("ACCEL_RELATED_120", 33),
       ("TRACTION_BUTTON", 1),
 
-      ("ECM_1", 50),
-      ("ECM_TRQ", 50),
-      ("TCM_A7", 50),
+      ("ECM_1", 33),
+      ("ECM_TRQ", 33),
+      ("TCM_A7", 33),
     ]
 
     if CP.enableBsm:
@@ -335,6 +335,6 @@ class CarState(CarStateBase):
       ]
 
       signals += forward_lkas_heartbit_signals
-      checks.append(("LKAS_HEARTBIT", 10))
+      checks.append(("LKAS_HEARTBIT", 5))
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 2)
