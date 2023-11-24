@@ -178,7 +178,6 @@ class CarState(CarStateBase):
       ("ORC_1", 2),
       ("BCM_1", 1),
       ("ESP_8", 50),
-      ("TRACTION_BUTTON", 50),
       ("ACCEL_RELATED_120", 50),
       ("TRACTION_BUTTON", 1),
     ]
