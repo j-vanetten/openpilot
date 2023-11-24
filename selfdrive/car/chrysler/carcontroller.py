@@ -61,7 +61,7 @@ class CarController:
     #   self.last_button_frame = self.frame
     #   can_sends.append(chryslercan.create_cruise_buttons(self.packer, CS.button_counter + 1, das_bus, resume=True))
 
-    # Lane-less button
+    # jvePilot
     if CS.button_pressed(ButtonType.lkasToggle, False):
       CC.jvePilotState.carControl.lkasButtonLight = not CC.jvePilotState.carControl.lkasButtonLight
       self.settingsParams.put("jvePilot.settings.lkasButtonLight",
@@ -70,6 +70,7 @@ class CarController:
     if self.frame % 10 == 0:
       new_msg = chryslercan.create_lkas_heartbit(self.packer, 1 if CC.jvePilotState.carControl.lkasButtonLight else 0, CS.lkasHeartbit)
       can_sends.append(new_msg)
+    self.wheel_button_control(CC, CS, can_sends, CC.enabled, das_bus, CC.cruiseControl.cancel, CC.cruiseControl.resume)
 
     # HUD alerts
     if self.frame % 25 == 0:
