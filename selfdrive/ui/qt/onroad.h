@@ -81,6 +81,8 @@ private:
   const int radius = 192;
   const int img_size = (radius / 2) * 1.5;
 
+  void drawText(QPainter &p, int x, int y, const QString &text, int alpha = 255);
+
   QVBoxLayout *main_layout;
   ExperimentalButton *experimental_btn;
   QPixmap dm_img;

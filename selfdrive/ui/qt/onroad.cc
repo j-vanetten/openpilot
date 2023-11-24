@@ -445,16 +445,17 @@ void AnnotatedCameraWidget::drawHud(QPainter &p) {
 
   // current speed
   p.setFont(InterFont(176, QFont::Bold));
-  p.drawText(rect().center().x(), 210, speedStr);
+  drawText(p, rect().center().x(), 210, speedStr, 255);
+  p.setFont(InterFont(66));
+  drawText(p, rect().center().x(), 290, speedUnit, 200);
+
+  // Color Speed
   if (pedalPressedAmount < 0) {
     p.setPen(QColor(200, 0, 0, -pedalPressedAmount));
   } else if (pedalPressedAmount > 0) {
     p.setPen(QColor(0, 200, 0, pedalPressedAmount));
   }
-  p.drawText(rect().center().x(), 210, speedStr);
-  p.setFont(InterFont(66));
-  p.setPen(QColor(0xff, 0xff, 0xff, 200));
-  p.drawText(rect().center().x(), 290, speedUnit);
+  drawText(p, rect().center().x(), 210, speedStr, -1);
 
   if (accEco >= 0) { // got data yet?
     // Auto Follow
@@ -474,6 +475,16 @@ void AnnotatedCameraWidget::drawHud(QPainter &p) {
   }
 
   p.restore();
+}
+
+void AnnotatedCameraWidget::drawText(QPainter &p, int x, int y, const QString &text, int alpha) {
+  QRect real_rect = p.fontMetrics().boundingRect(text);
+  real_rect.moveCenter({x, y - real_rect.height() / 2});
+
+  if (alpha >= 0) {
+    p.setPen(QColor(0xff, 0xff, 0xff, alpha));
+  }
+  p.drawText(real_rect.x(), real_rect.bottom(), text);
 }
 
 void AnnotatedCameraWidget::initializeGL() {
