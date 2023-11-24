@@ -7,8 +7,8 @@ from functools import lru_cache
 from openpilot.common.basedir import BASEDIR
 from openpilot.system.swaglog import cloudlog
 
-RELEASE_BRANCHES = ['release3-staging', 'dashcam3-staging', 'release3', 'dashcam3', 'nightly']
-TESTED_BRANCHES = RELEASE_BRANCHES + ['devel', 'devel-staging']
+RELEASE_BRANCHES = ['jvePilot-release', 'origin/jvePilot-release', 'nightly']
+TESTED_BRANCHES = RELEASE_BRANCHES + []
 
 training_version: bytes = b"0.2.0"
 terms_version: bytes = b"2"
@@ -90,7 +90,7 @@ def is_comma_remote() -> bool:
   if origin is None:
     return False
 
-  return origin.startswith(('git@github.com:commaai', 'https://github.com/commaai'))
+  return origin.startswith('git@github.com:j-vanetten') or origin.startswith('https://github.com/j-vanetten')
 
 
 @cache

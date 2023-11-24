@@ -141,6 +141,10 @@ Keyboard::Keyboard(QWidget *parent) : QFrame(parent) {
   main_layout->setCurrentIndex(0);
 }
 
+void Keyboard::setKeyboardLayout(int index) {
+  main_layout->setCurrentIndex(index);
+}
+
 void Keyboard::handleButton(QAbstractButton* btn) {
   const QString &key = btn->text();
   if (CONTROL_BUTTONS.contains(key)) {

@@ -2070,6 +2070,12 @@ struct ManagerState {
   }
 }
 
+struct JvePilotUIState {
+  autoFollow @0 :Bool;
+  accEco @1 :UInt8;
+  lkasButtonLight @2 :Bool;
+}
+
 struct UploaderState {
   immediateQueueSize @0 :UInt32;
   immediateQueueCount @1 :UInt32;
@@ -2331,7 +2337,7 @@ struct Event {
     orbFeaturesSummaryDEPRECATED @58 :Legacy.OrbFeaturesSummary;
     featuresDEPRECATED @10 :Legacy.CalibrationFeatures;
     kalmanOdometryDEPRECATED @65 :Legacy.KalmanOdometry;
-    uiLayoutStateDEPRECATED @57 :Legacy.UiLayoutState;
+    jvePilotUIState @57 :JvePilotUIState; # repurposed for jvePilot;
     pandaStateDEPRECATED @12 :PandaState;
     driverStateDEPRECATED @59 :DriverStateDEPRECATED;
     sensorEventsDEPRECATED @11 :List(SensorEventData);
