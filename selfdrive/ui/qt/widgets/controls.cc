@@ -1,6 +1,5 @@
 #include "selfdrive/ui/qt/widgets/controls.h"
 #include "selfdrive/ui/qt/widgets/input.h"
-#include "selfdrive/hardware/hw.h"
 
 #include <QPainter>
 #include <QStyleOption>

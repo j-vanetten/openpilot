@@ -445,24 +445,26 @@ void AnnotatedCameraWidget::drawHud(QPainter &p) {
 
   // current speed
   p.setFont(InterFont(176, QFont::Bold));
-  drawText(p, rect().center().x(), 210, speedStr);
+  p.drawText(rect().center().x(), 210, speedStr);
   if (pedalPressedAmount < 0) {
-    drawText(p, rect().center().x(), 210, speedStr, QColor(200, 0, 0, -pedalPressedAmount));
+    p.setPen(QColor(200, 0, 0, -pedalPressedAmount));
   } else if (pedalPressedAmount > 0) {
-    drawText(p, rect().center().x(), 210, speedStr, QColor(0, 200, 0, pedalPressedAmount));
+    p.setPen(QColor(0, 200, 0, pedalPressedAmount));
   }
+  p.drawText(rect().center().x(), 210, speedStr);
   p.setFont(InterFont(66));
-  drawText(p, rect().center().x(), 290, speedUnit, 200);
+  p.setPen(QColor(0xff, 0xff, 0xff, 200));
+  p.drawText(rect().center().x(), 290, speedUnit);
 
   if (accEco >= 0) { // got data yet?
     // Auto Follow
     drawIcon(p,
-             rect().right() - radius / 2 - bdr_s * 2,
-             rect().bottom() - footer_h / 2 - button_bigger - radius,
+             QPoint(rect().right() - radius / 2 - bdr_s * 2,
+             rect().bottom() - footer_h / 2 - button_bigger - radius),
              auto_follow_imgs[autoFollowEnabled], QColor(0, 0, 0, 0), 1.0);
 
     // eco icon
-    drawIcon(p, rect().right() - radius / 2 - bdr_s * 2 - button_bigger, rect().bottom() - footer_h / 2 - button_bigger,
+    drawIcon(p, QPoint(rect().right() - radius / 2 - bdr_s * 2 - button_bigger, rect().bottom() - footer_h / 2 - button_bigger),
              eco_imgs[accEco], QColor(0, 0, 0, 0), 1.0);
     uiState()->scene.accEco_btn = QRect(
       rect().right() - radius / 2 - bdr_s * 2 - button_bigger,
@@ -472,18 +474,6 @@ void AnnotatedCameraWidget::drawHud(QPainter &p) {
   }
 
   p.restore();
-}
-
-void AnnotatedCameraWidget::drawText(QPainter &p, int x, int y, const QString &text, int alpha) {
-  p.drawText(x, y, text, QColor(0xff, 0xff, 0xff, alpha));
-}
-
-void AnnotatedCameraWidget::drawText(QPainter &p, int x, int y, const QString &text, QColor color) {
-  QRect real_rect = p.fontMetrics().boundingRect(text);
-  real_rect.moveCenter({x, y - real_rect.height() / 2});
-
-  p.setPen(color);
-  p.drawText(real_rect.x(), real_rect.bottom(), text);
 }
 
 void AnnotatedCameraWidget::initializeGL() {

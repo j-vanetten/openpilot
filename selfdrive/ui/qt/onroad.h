@@ -73,8 +73,6 @@ public:
   MapSettingsButton *map_settings_btn;
 
 private:
-  void drawText(QPainter &p, int x, int y, const QString &text, int alpha = 255);
-
   QPixmap eco_imgs[3];
   QPixmap auto_follow_imgs[2];
   int pedalPressedAmount;
