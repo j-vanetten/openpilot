@@ -1,9 +1,10 @@
 #include "selfdrive/ui/qt/widgets/controls.h"
+#include "selfdrive/ui/qt/widgets/input.h"
 
 #include <QPainter>
 #include <QStyleOption>
 
-AbstractControl::AbstractControl(const QString &title, const QString &desc, const QString &icon, QWidget *parent) : QFrame(parent) {
+AbstractControl::AbstractControl(const QString &title, const QString &desc, const QString &icon, QWidget *parent, QList<struct ConfigButton> *btns) : QFrame(parent) {
   QVBoxLayout *main_layout = new QVBoxLayout(this);
   main_layout->setMargin(0);
 
@@ -32,32 +33,67 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
   value->setStyleSheet("color: #aaaaaa");
   hlayout->addWidget(value);
 
+  // value next to control button
+  value = new ElidedLabel();
+  value->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  value->setStyleSheet("color: #aaaaaa");
+  hlayout->addWidget(value);
+
   main_layout->addLayout(hlayout);
 
+  QVBoxLayout *config_layout = new QVBoxLayout;
+
+  bool hasToggle = false;
   // description
-  description = new QLabel(desc);
-  description->setContentsMargins(40, 20, 40, 20);
-  description->setStyleSheet("font-size: 40px; color: grey");
-  description->setWordWrap(true);
-  description->setVisible(false);
-  main_layout->addWidget(description);
+  if (!desc.isEmpty()) {
+    hasToggle = true;
+    description = new QLabel(desc);
+    description->setContentsMargins(40, 20, 40, 20);
+    description->setStyleSheet("font-size: 40px; color: grey");
+    description->setWordWrap(true);
+    config_layout->addWidget(description);
+  }
 
-  connect(title_label, &QPushButton::clicked, [=]() {
-    if (!description->isVisible()) {
-      emit showDescriptionEvent();
+  if (btns && btns->size() > 0) {
+    hasToggle = true;
+    for (int i = 0; i < btns->size(); i++) {
+      const ConfigButton btn = btns->at(i);
+
+      const auto existng_value = Params().get(btn.param);
+      const auto control_title = QString::fromStdString(btn.title.toStdString() + ": " + existng_value);
+      const auto b = new ButtonControl(control_title, "CHANGE", btn.text);
+      QObject::connect(b, &ButtonControl::clicked, [=]() {
+          auto set_value = Params().get(btn.param);
+          auto new_value = InputDialog::getConfigDecimal(btn.title, parent, set_value, btn.min, btn.max);
+          if (new_value.length() > 0) {
+            Params().put(btn.param, new_value.toStdString());
+            b->setLabel(QString::fromStdString(btn.title.toStdString() + ": " + new_value.toStdString()));
+          }
+        });
+      b->setContentsMargins(40, 20, 0, 0);
+
+      config_layout->addWidget(b);
     }
+  }
 
-    if (!description->text().isEmpty()) {
-      description->setVisible(!description->isVisible());
-    }
-  });
-
+  if (hasToggle) {
+    config_widget = new QWidget;
+    config_widget->setVisible(false);
+    config_widget->setLayout(config_layout);
+    connect(title_label, &QPushButton::clicked, [=]() {
+      if (!description->isVisible()) {
+        emit showDescriptionEvent();
+      }
+      config_widget->setVisible(!config_widget->isVisible());
+    });
+    main_layout->addWidget(config_widget);
+  }
   main_layout->addStretch();
 }
 
 void AbstractControl::hideEvent(QHideEvent *e) {
-  if (description != nullptr) {
-    description->hide();
+  if (config_widget != nullptr) {
+    config_widget->hide();
   }
 }
 

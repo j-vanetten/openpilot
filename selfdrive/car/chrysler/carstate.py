@@ -5,6 +5,21 @@ from opendbc.can.can_define import CANDefine
 from openpilot.selfdrive.car.interfaces import CarStateBase
 from openpilot.selfdrive.car.chrysler.values import DBC, STEER_THRESHOLD, RAM_CARS
 
+import numpy as np
+
+ButtonType = car.CarState.ButtonEvent.Type
+
+CHECK_BUTTONS = {ButtonType.cancel: ["CRUISE_BUTTONS", 'ACC_Cancel'],
+                 ButtonType.resumeCruise: ["CRUISE_BUTTONS", 'ACC_Resume'],
+                 ButtonType.accelCruise: ["CRUISE_BUTTONS", 'ACC_Accel'],
+                 ButtonType.decelCruise: ["CRUISE_BUTTONS", 'ACC_Decel'],
+                 ButtonType.followInc: ["CRUISE_BUTTONS", 'ACC_Distance_Inc'],
+                 ButtonType.followDec: ["CRUISE_BUTTONS", 'ACC_Distance_Dec'],
+                 ButtonType.lkasToggle: ["TRACTION_BUTTON", 'TOGGLE_LKAS']}
+
+PEDAL_GAS_PRESSED_XP = [0, 32, 255]
+PEDAL_BRAKE_PRESSED_XP = [0, 24, 255]
+PEDAL_PRESSED_YP = [0, 128, 255]
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -21,8 +36,9 @@ class CarState(CarStateBase):
     else:
       self.shifter_values = can_define.dv["GEAR"]["PRNDL"]
 
-  def update(self, cp, cp_cam):
+    self.lkasHeartbit = None
 
+  def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
 
     # lock info
@@ -42,11 +58,10 @@ class CarState(CarStateBase):
 
     # car speed
     if self.CP.carFingerprint in RAM_CARS:
-      ret.vEgoRaw = cp.vl["ESP_8"]["Vehicle_Speed"] * CV.KPH_TO_MS
       ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["Transmission_Status"]["Gear_State"], None))
     else:
-      ret.vEgoRaw = (cp.vl["SPEED_1"]["SPEED_LEFT"] + cp.vl["SPEED_1"]["SPEED_RIGHT"]) / 2.
       ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(cp.vl["GEAR"]["PRNDL"], None))
+    ret.vEgoRaw = cp.vl["ESP_8"]["Vehicle_Speed"] * CV.KPH_TO_MS
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = not ret.vEgoRaw > 0.001
     ret.wheelSpeeds = self.get_wheel_speeds(
@@ -78,6 +93,7 @@ class CarState(CarStateBase):
     ret.cruiseState.nonAdaptive = cp_cruise.vl["DAS_4"]["ACC_STATE"] in (1, 2)  # 1 NormalCCOn and 2 NormalCCSet
     ret.cruiseState.standstill = cp_cruise.vl["DAS_3"]["ACC_STANDSTILL"] == 1
     ret.accFaulted = cp_cruise.vl["DAS_3"]["ACC_FAULTED"] != 0
+    self.lkasHeartbit = cp_cam.vl["LKAS_HEARTBIT"]
 
     if self.CP.carFingerprint in RAM_CARS:
       # Auto High Beam isn't Located in this message on chrysler or jeep currently located in 729 message
@@ -95,7 +111,50 @@ class CarState(CarStateBase):
     self.lkas_car_model = cp_cam.vl["DAS_6"]["CAR_MODEL"]
     self.button_counter = cp.vl["CRUISE_BUTTONS"]["COUNTER"]
 
+    brake = cp.vl["ESP_8"]["BRK_PRESSURE"]
+    gas = cp.vl["ACCEL_RELATED_120"]["ACCEL"]
+    if gas > 0:
+      ret.jvePilotCarState.pedalPressedAmount = float(np.interp(gas, PEDAL_GAS_PRESSED_XP, PEDAL_PRESSED_YP)) / 256
+    elif brake > 0:
+      ret.jvePilotCarState.pedalPressedAmount = float(np.interp(brake / 16, PEDAL_BRAKE_PRESSED_XP, PEDAL_PRESSED_YP)) / -256
+    else:
+      ret.jvePilotCarState.pedalPressedAmount = 0
+
+    ret.jvePilotCarState.accFollowDistance = int(min(3, max(0, cp.vl["DAS_4"]['ACC_DISTANCE_CONFIG_2'])))
+
+    button_events = []
+    for buttonType in CHECK_BUTTONS:
+      self.check_button(button_events, buttonType, bool(cp.vl[CHECK_BUTTONS[buttonType][0]][CHECK_BUTTONS[buttonType][1]]))
+    ret.buttonEvents = button_events
+
     return ret
+
+  def check_button(self, button_events, button_type, pressed):
+    pressed_frames = 0
+    pressed_changed = False
+    for ob in self.out.buttonEvents:
+      if ob.type == button_type:
+        pressed_frames = ob.pressedFrames
+        pressed_changed = ob.pressed != pressed
+        break
+
+    if pressed or pressed_changed:
+      be = car.CarState.ButtonEvent.new_message()
+      be.type = button_type
+      be.pressed = pressed
+      be.pressedFrames = pressed_frames
+
+      if not pressed_changed:
+        be.pressedFrames += 1
+
+      button_events.append(be)
+
+  def button_pressed(self, button_type, pressed=True):
+    for b in self.out.buttonEvents:
+      if b.type == button_type:
+        if b.pressed == pressed:
+          return b
+        break
 
   @staticmethod
   def get_cruise_messages():
@@ -118,6 +177,9 @@ class CarState(CarStateBase):
       ("STEERING_LEVERS", 10),
       ("ORC_1", 2),
       ("BCM_1", 1),
+      ("ESP_8", 50),
+      ("ACCEL_RELATED_120", 50),
+      ("TRACTION_BUTTON", 1),
     ]
 
     if CP.enableBsm:
@@ -125,7 +187,6 @@ class CarState(CarStateBase):
 
     if CP.carFingerprint in RAM_CARS:
       messages += [
-        ("ESP_8", 50),
         ("EPS_3", 50),
         ("Transmission_Status", 50),
       ]
@@ -146,5 +207,11 @@ class CarState(CarStateBase):
 
     if CP.carFingerprint in RAM_CARS:
       messages += CarState.get_cruise_messages()
+    else:
+      # LKAS_HEARTBIT data needs to be forwarded!
+      forward_lkas_heartbit_messages = [
+        ("LKAS_HEARTBIT", 10),
+      ]
+      messages += forward_lkas_heartbit_messages
 
     return CANParser(DBC[CP.carFingerprint]["pt"], messages, 2)

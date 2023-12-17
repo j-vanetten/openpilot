@@ -86,6 +86,25 @@ private:
 };
 
 std::unordered_map<std::string, uint32_t> keys = {
+    {"jvePilot.carState.accEco", PERSISTENT},
+    {"jvePilot.settings.accEco.speedAheadLevel1", PERSISTENT},
+    {"jvePilot.settings.accEco.speedAheadLevel2", PERSISTENT},
+    {"jvePilot.settings.autoFollow", PERSISTENT},
+    {"jvePilot.settings.autoFollow.speed1-2Bars", PERSISTENT},
+    {"jvePilot.settings.autoFollow.speed2-3Bars", PERSISTENT},
+    {"jvePilot.settings.autoFollow.speed3-4Bars", PERSISTENT},
+    {"jvePilot.settings.audioAlertOnSteeringLoss", PERSISTENT},
+    {"jvePilot.settings.steer.noMinimum", PERSISTENT},
+    {"jvePilot.settings.deviceOffset", PERSISTENT},
+    {"jvePilot.settings.reverseAccSpeedChange", PERSISTENT},
+    {"jvePilot.settings.visionOnly", PERSISTENT},
+    {"jvePilot.settings.reverseRadar", PERSISTENT},
+    {"jvePilot.settings.slowInCurves", PERSISTENT},
+    {"jvePilot.settings.slowInCurves.speedRatio", PERSISTENT},
+    {"jvePilot.settings.slowInCurves.speedDropOff", PERSISTENT},
+    {"jvePilot.settings.slowInCurves.speedDropOffAngle", PERSISTENT},
+    {"jvePilot.settings.lkasButtonLight", PERSISTENT},
+
     {"AccessToken", CLEAR_ON_MANAGER_START | DONT_LOG},
     {"ApiCache_Device", PERSISTENT},
     {"ApiCache_NavDestinations", PERSISTENT},

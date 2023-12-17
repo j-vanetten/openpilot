@@ -26,6 +26,7 @@ class LateralPlanner:
     self.r_lane_change_prob = 0.0
 
     self.debug_mode = debug
+    self.lateralPlan = None
 
   def update(self, sm):
     v_ego_car = sm['carState'].vEgo
@@ -71,4 +72,5 @@ class LateralPlanner:
     lateralPlan.laneChangeState = self.DH.lane_change_state
     lateralPlan.laneChangeDirection = self.DH.lane_change_direction
 
+    self.lateralPlan = plan_send.lateralPlan
     pm.send('lateralPlan', plan_send)

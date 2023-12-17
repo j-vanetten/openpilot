@@ -15,6 +15,7 @@ from openpilot.selfdrive.car import apply_hysteresis, gen_empty_fingerprint, sca
 from openpilot.selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, get_friction
 from openpilot.selfdrive.controls.lib.events import Events
 from openpilot.selfdrive.controls.lib.vehicle_model import VehicleModel
+from common.params import Params
 
 ButtonType = car.CarState.ButtonEvent.Type
 GearShifter = car.CarState.GearShifter
@@ -84,6 +85,8 @@ class CarInterfaceBase(ABC):
     self.CC = None
     if CarController is not None:
       self.CC = CarController(self.cp.dbc_name, CP, self.VM)
+
+    params = Params()
 
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
@@ -156,6 +159,7 @@ class CarInterfaceBase(ABC):
     ret.wheelSpeedFactor = 1.0
 
     ret.pcmCruise = True     # openpilot's state is tied to the PCM's cruise state on most cars
+    ret.pcmCruiseSpeed = True   # jvePilot just wants to disable pcm speed sync
     ret.minEnableSpeed = -1. # enable is done by stock ACC, so ignore this
     ret.steerRatioRear = 0.  # no rear steering, at least on the listed cars aboveA
     ret.openpilotLongitudinalControl = False
@@ -232,7 +236,7 @@ class CarInterfaceBase(ABC):
   def apply(self, c: car.CarControl, now_nanos: int) -> Tuple[car.CarControl.Actuators, List[bytes]]:
     pass
 
-  def create_common_events(self, cs_out, extra_gears=None, pcm_enable=True, allow_enable=True,
+  def create_common_events(self, cs_out, extra_gears=None, pcm_enable=True, allow_enable=True, gas_resume_speed=-1,
                            enable_buttons=(ButtonType.accelCruise, ButtonType.decelCruise)):
     events = Events()
 
@@ -266,13 +270,16 @@ class CarInterfaceBase(ABC):
     if cs_out.steeringPressed:
       events.add(EventName.steerOverride)
 
+    if not cs_out.cruiseState.enabled and len(events.names) and cs_out.vEgo <= gas_resume_speed:
+      events.add(EventName.pcmDisable)  # added safety.  Disable on anything sus if waiting to resume
+
     # Handle button presses
     for b in cs_out.buttonEvents:
       # Enable OP long on falling edge of enable buttons (defaults to accelCruise and decelCruise, overridable per-port)
       if not self.CP.pcmCruise and (b.type in enable_buttons and not b.pressed):
         events.add(EventName.buttonEnable)
       # Disable on rising and falling edge of cancel for both stock and OP long
-      if b.type == ButtonType.cancel:
+      if b.type == ButtonType.cancel and b.pressed:
         events.add(EventName.buttonCancel)
 
     # Handle permanent and temporary steering faults
