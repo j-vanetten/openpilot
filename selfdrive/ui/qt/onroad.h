@@ -73,6 +73,14 @@ public:
   MapSettingsButton *map_settings_btn;
 
 private:
+  QPixmap eco_imgs[3];
+  QPixmap auto_follow_imgs[2];
+  int pedalPressedAmount;
+  int accEco;
+  bool autoFollowEnabled;
+  const int radius = 192;
+  const int img_size = (radius / 2) * 1.5;
+
   void drawText(QPainter &p, int x, int y, const QString &text, int alpha = 255);
 
   QVBoxLayout *main_layout;
@@ -136,6 +144,7 @@ private:
   QHBoxLayout* split;
 
 private slots:
+  void notify_state();
   void offroadTransition(bool offroad);
   void primeChanged(bool prime);
   void updateState(const UIState &s);

@@ -58,6 +58,7 @@ STEER_THRESHOLD = 120
 RAM_DT = {CAR.RAM_1500, }
 RAM_HD = {CAR.RAM_HD, }
 RAM_CARS = RAM_DT | RAM_HD
+PRE_2019 = {CAR.PACIFICA_2017_HYBRID, CAR.PACIFICA_2018_HYBRID, CAR.PACIFICA_2018, CAR.JEEP_CHEROKEE,}
 
 
 @dataclass
@@ -127,14 +128,14 @@ FW_QUERY_CONFIG = FwQueryConfig(
 
 
 DBC = {
-  CAR.PACIFICA_2017_HYBRID: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_pacifica_2017_hybrid_private_fusion'),
-  CAR.PACIFICA_2018: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_pacifica_2017_hybrid_private_fusion'),
-  CAR.PACIFICA_2020: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_pacifica_2017_hybrid_private_fusion'),
-  CAR.PACIFICA_2018_HYBRID: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_pacifica_2017_hybrid_private_fusion'),
-  CAR.PACIFICA_2019_HYBRID: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_pacifica_2017_hybrid_private_fusion'),
-  CAR.DODGE_DURANGO: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_pacifica_2017_hybrid_private_fusion'),
-  CAR.JEEP_GRAND_CHEROKEE: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_pacifica_2017_hybrid_private_fusion'),
-  CAR.JEEP_GRAND_CHEROKEE_2019: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_pacifica_2017_hybrid_private_fusion'),
+  CAR.PACIFICA_2017_HYBRID: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_jvepilot', 'chrysler_pacifica_2017_hybrid_private_fusion'),
+  CAR.PACIFICA_2018: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_jvepilot', 'chrysler_pacifica_2017_hybrid_private_fusion'),
+  CAR.PACIFICA_2020: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_jvepilot', 'chrysler_pacifica_2017_hybrid_private_fusion'),
+  CAR.PACIFICA_2018_HYBRID: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_jvepilot', 'chrysler_pacifica_2017_hybrid_private_fusion'),
+  CAR.PACIFICA_2019_HYBRID: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_jvepilot', 'chrysler_pacifica_2017_hybrid_private_fusion'),
+  CAR.DODGE_DURANGO: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_jvepilot', 'chrysler_pacifica_2017_hybrid_private_fusion'),
+  CAR.JEEP_GRAND_CHEROKEE: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_jvepilot', 'chrysler_pacifica_2017_hybrid_private_fusion'),
+  CAR.JEEP_GRAND_CHEROKEE_2019: dbc_dict('chrysler_pacifica_2017_hybrid_generated', 'chrysler_jvepilot', 'chrysler_pacifica_2017_hybrid_private_fusion'),
   CAR.RAM_1500: dbc_dict('chrysler_ram_dt_generated', None),
   CAR.RAM_HD: dbc_dict('chrysler_ram_hd_generated', None),
 }

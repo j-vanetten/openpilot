@@ -23,6 +23,137 @@
 #include "selfdrive/ui/qt/util.h"
 #include "selfdrive/ui/qt/qt_window.h"
 
+JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent) {
+  QList<AbstractControl*> toggles;
+
+  // slowInCurves
+  QList<struct ConfigButton> slowInCurvesConfigs = {
+    { "jvePilot.settings.slowInCurves.speedRatio",
+      0.1, 2,
+      "Speed Ratio",
+      "Default: 1.0, Min: 0.1, Max: 2.0\n"
+        "Use this to tune the speed in curves to your liking."
+        "\nFor example, 1.2 to go 20% faster and .8 to go 20% slower across all curvatures."
+    }
+    ,{ "jvePilot.settings.slowInCurves.speedDropOff",
+      1, 3,
+      "Speed Drop Off",
+      "Default: 2.0\n"
+        "Experimental. Lower this value to decrease how quickly speed drops as the curve increases."
+        "\nTo go faster in turns at higher speeds, decrease this value.  To compensate for this change, you may need to increase the Speed Ratio."
+    }
+  };
+  addItem(new ParamControl("jvePilot.settings.slowInCurves",
+                                  "Slow in Curves",
+                                  "jvePilot will slow in curves so that you don't have to.",
+                                  "../assets/jvepilot/settings/icon_slow_in_curves.png",
+                                  this,
+                                  &slowInCurvesConfigs));
+  // autoFollow
+  QList<struct ConfigButton> autoFollowConfigs = {
+    { "jvePilot.settings.autoFollow.speed1-2Bars",
+      0, 300,
+      "1-2 Bar Change Over (MPH)",
+      "Default: 15 mph, Min: 0, Max: 300\n"
+        "Use this to change the speed at which Auto Follow will switch between one to two bars."
+    },
+    { "jvePilot.settings.autoFollow.speed2-3Bars",
+      0, 300,
+      "2-3 Bar Change Over (MPH)",
+      "Default: 30 mph, Min: 0, Max: 300\n"
+        "Use this to change the speed at which Auto Follow will switch between two to three bars."
+    },
+    { "jvePilot.settings.autoFollow.speed3-4Bars",
+      0, 300,
+      "3-4 Bar Change Over (MPH)",
+      "Default: 65 mph, Min: 0, Max: 300\n"
+        "Use this to change the speed at which Auto Follow will switch between three to four bars."
+    }
+  };
+  addItem(new ParamControl("jvePilot.settings.autoFollow",
+                                  "Start with Auto Follow Enabled",
+                                  "When enabled, jvePilot will enable Auto Follow on the start of every drive.",
+                                  "../assets/jvepilot/settings/icon_auto_follow.png",
+                                  this,
+                                  &autoFollowConfigs));
+
+  // reverseAccSpeedChange
+  addItem(new ParamControl("jvePilot.settings.reverseAccSpeedChange",
+                                  "Reverse ACC +/- Speeds",
+                                  "When enabled, quick pressing the ACC +/- buttons changes the speed in 5 increments."
+                                  " Hold a little longer to change by 1."
+                                  " Disable to keep stock setting.",
+                                  "../assets/jvepilot/settings/icon_acc_speed_change.png",
+                                  this));
+
+  // audioAlertOnSteeringLoss
+  addItem(new ParamControl("jvePilot.settings.audioAlertOnSteeringLoss",
+                                  "Audio Alert on Steering Loss",
+                                  "When enabled, jvePilot will play an alert when speed it too low to steer.",
+                                  "../assets/jvepilot/settings/alert_steer_loss.png",
+                                  this));
+
+  // accEco
+  QList<struct ConfigButton> ecoConfigs = {
+    { "jvePilot.settings.accEco.speedAheadLevel1",
+      1, 100,
+      "Keep ahead at Eco 1 (MPH)",
+      "Default: 7 mph, Min: 1, Max: 100\n"
+        "The higher the number the more acceleration that occurs."
+    },
+    { "jvePilot.settings.accEco.speedAheadLevel2",
+      1, 100,
+      "Keep ahead at Eco 2 (MPH)",
+      "Default: 5 mph, Min: 1, Max: 100\n"
+        "The higher the number the more acceleration that occurs."
+    }
+  };
+  addItem(new LabelControl("ACC Eco",
+                                  "",
+                                  "Use these settings to tune how much acceleration occurs by limiting how much ACC is set above your current speed.",
+                                  this,
+                                  "../assets/jvepilot/settings/icon_acc_eco.png",
+                                  &ecoConfigs));
+
+  // misc
+  QList<struct ConfigButton> miscConfigs = {
+    { "jvePilot.settings.deviceOffset",
+      -2, 2,
+      "Device Offset",
+      "Default: 0.00 meters, Min: -2.00, Max: 2.00\n"
+        "Compensate for mounting your device off-center in the windshield."
+        "\nFor example, 0.04 if your device is 4cm left of center."
+        "\nNOTE: This is not how far the CAMERA is off-center, but how far the MOUNT/DEVICE is off-center."
+    }
+  };
+  addItem(new LabelControl("jvePilot Control Settings",
+                                  "",
+                                  "Use these settings to tune some of jvePilot's control settings.",
+                                  this,
+                                  "../assets/jvepilot/settings/icon_misc.png",
+                                  &miscConfigs));
+  // Minimum Steer Check
+  addItem(new ParamControl("jvePilot.settings.steer.noMinimum",
+                           "ADVANCED: Speed Spoofing Mod",
+                           "If you have a mod that allows OP to steering down to a stop, enable this.",
+                           "../assets/jvepilot/settings/icon_wp_mod.png",
+                           this));
+
+  // Minimum Steer Check
+  addItem(new ParamControl("jvePilot.settings.visionOnly",
+                           "ADVANCED: Vision only",
+                           "Enable this setting if you are seeing the lead car yellow triangle acting erratically.",
+                           "../assets/jvepilot/settings/icon_eye.png",
+                           this));
+
+  // Reverse Radar
+  addItem(new ParamControl("jvePilot.settings.reverseRadar",
+                           "ADVANCED: Reverse Radar X Axis",
+                           "Enable this setting if the lead car yellow triangle is reversed on the X axis",
+                           "../assets/offroad/icon_calibration.png",
+                           this));
+}
+
 TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
   // param, title, desc, icon
   std::vector<std::tuple<QString, QString, QString, QString>> toggle_defs{
@@ -44,7 +175,7 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
     {
       "ExperimentalMode",
       tr("Experimental Mode"),
-      "",
+      tr(" "),
       "../assets/img_experimental_white.svg",
     },
     {
@@ -176,7 +307,7 @@ void TogglesPanel::updateToggles() {
 
       QString long_desc = unavailable + " " + \
                           tr("openpilot longitudinal control may come in a future update.");
-      if (CP.getExperimentalLongitudinalAvailable()) {
+      if (false) {
         if (is_release) {
           long_desc = unavailable + " " + tr("An alpha version of openpilot longitudinal control can be tested, along with Experimental mode, on non-release branches.");
         } else {
@@ -353,7 +484,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     QPushButton {
       font-size: 140px;
       padding-bottom: 20px;
-      border-radius: 100px;
+      border-radius: 85px;
       background-color: #292929;
       font-weight: 400;
     }
@@ -361,7 +492,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
       background-color: #3B3B3B;
     }
   )");
-  close_btn->setFixedSize(200, 200);
+  close_btn->setFixedSize(170, 170);
   sidebar_layout->addSpacing(45);
   sidebar_layout->addWidget(close_btn, 0, Qt::AlignCenter);
   QObject::connect(close_btn, &QPushButton::clicked, this, &SettingsWindow::closeSettings);
@@ -378,6 +509,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     {tr("Device"), device},
     {tr("Network"), new Networking(this)},
     {tr("Toggles"), toggles},
+    {tr("jvePilot"), new JvePilotTogglesPanel(this)},
     {tr("Software"), new SoftwarePanel(this)},
   };
 
@@ -391,7 +523,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
         color: grey;
         border: none;
         background: none;
-        font-size: 65px;
+        font-size: 60px;
         font-weight: 500;
       }
       QPushButton:checked {

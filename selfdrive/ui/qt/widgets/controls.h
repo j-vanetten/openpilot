@@ -14,6 +14,18 @@
 #include "selfdrive/ui/qt/widgets/input.h"
 #include "selfdrive/ui/qt/widgets/toggle.h"
 
+QFrame *horizontal_line(QWidget *parent = nullptr);
+
+// config for a widget
+struct ConfigButton {
+  public:
+  std::string param;
+  float min;
+  float max;
+  QString title;
+  QString text;
+};
+
 class ElidedLabel : public QLabel {
   Q_OBJECT
 
@@ -68,7 +80,7 @@ signals:
   void showDescriptionEvent();
 
 protected:
-  AbstractControl(const QString &title, const QString &desc = "", const QString &icon = "", QWidget *parent = nullptr);
+  AbstractControl(const QString &title, const QString &desc = "", const QString &icon = "", QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {});
   void hideEvent(QHideEvent *e) override;
 
   QHBoxLayout *hlayout;
@@ -77,6 +89,7 @@ protected:
 private:
   ElidedLabel *value;
   QLabel *description = nullptr;
+  QWidget *config_widget = nullptr;
 };
 
 // widget to display a value
@@ -84,7 +97,7 @@ class LabelControl : public AbstractControl {
   Q_OBJECT
 
 public:
-  LabelControl(const QString &title, const QString &text = "", const QString &desc = "", QWidget *parent = nullptr) : AbstractControl(title, desc, "", parent) {
+  LabelControl(const QString &title, const QString &text = "", const QString &desc = "", QWidget *parent = nullptr, const QString &icon = "", QList<struct ConfigButton> *btns = {}) : AbstractControl(title, desc, icon, parent, btns) {
     label.setText(text);
     label.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     hlayout->addWidget(&label);
@@ -103,6 +116,7 @@ public:
   ButtonControl(const QString &title, const QString &text, const QString &desc = "", QWidget *parent = nullptr);
   inline void setText(const QString &text) { btn.setText(text); }
   inline QString text() const { return btn.text(); }
+  inline void setLabel(const QString &text) { title_label->setText(text); }
 
 signals:
   void clicked();
@@ -118,7 +132,7 @@ class ToggleControl : public AbstractControl {
   Q_OBJECT
 
 public:
-  ToggleControl(const QString &title, const QString &desc = "", const QString &icon = "", const bool state = false, QWidget *parent = nullptr) : AbstractControl(title, desc, icon, parent) {
+  ToggleControl(const QString &title, const QString &desc = "", const QString &icon = "", const bool state = false, QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {}) : AbstractControl(title, desc, icon, parent, btns) {
     toggle.setFixedSize(150, 100);
     if (state) {
       toggle.togglePosition();
@@ -144,7 +158,24 @@ class ParamControl : public ToggleControl {
   Q_OBJECT
 
 public:
-  ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, QWidget *parent = nullptr);
+  ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {}) : ToggleControl(title, desc, icon, false, parent, btns) {
+    key = param.toStdString();
+    QObject::connect(this, &ParamControl::toggleFlipped, [=](bool state) {
+      QString content("<body><h2 style=\"text-align: center;\">" + title + "</h2><br>"
+                      "<p style=\"text-align: center; margin: 0 128px; font-size: 50px;\">" + getDescription() + "</p></body>");
+      ConfirmationDialog dialog(content, tr("Enable"), tr("Cancel"), true, this);
+
+      bool confirmed = store_confirm && params.getBool(key + "Confirmed");
+      if (!confirm || confirmed || !state || dialog.exec()) {
+        if (store_confirm && state) params.putBool(key + "Confirmed", true);
+        params.putBool(key, state);
+        setIcon(state);
+      } else {
+        toggle.togglePosition();
+      }
+    });
+  }
+
   void setConfirmation(bool _confirm, bool _store_confirm) {
     confirm = _confirm;
     store_confirm = _store_confirm;

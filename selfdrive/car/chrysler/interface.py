@@ -2,9 +2,11 @@
 from cereal import car
 from panda import Panda
 from openpilot.selfdrive.car import get_safety_config
-from openpilot.selfdrive.car.chrysler.values import CAR, RAM_HD, RAM_DT, RAM_CARS, ChryslerFlags
+from openpilot.selfdrive.car.chrysler.values import CAR, DBC, RAM_HD, RAM_DT, RAM_CARS, ChryslerFlags
 from openpilot.selfdrive.car.interfaces import CarInterfaceBase
+from common.params import Params
 
+ButtonType = car.CarState.ButtonEvent.Type
 
 class CarInterface(CarInterfaceBase):
   @staticmethod
@@ -56,6 +58,8 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15, 0.30], [0.03, 0.05]]
       ret.lateralTuning.pid.kf = 0.00006
 
+      ret.enableBsm = True
+
     # Ram
     elif candidate == CAR.RAM_1500:
       ret.steerActuatorDelay = 0.2
@@ -84,7 +88,12 @@ class CarInterface(CarInterfaceBase):
       ret.minSteerSpeed = 17.5  # m/s 17 on the way up, 13 on the way down once engaged.
 
     ret.centerToFront = ret.wheelbase * 0.44
-    ret.enableBsm = 720 in fingerprint[0]
+    ret.enableBsm |= 720 in fingerprint[0]
+
+    if Params().get_bool("jvePilot.settings.steer.noMinimum"):
+      ret.minSteerSpeed = -0.1
+    ret.openpilotLongitudinalControl = True  # kind of...
+    ret.pcmCruiseSpeed = False  # Let jvePilot control the pcm cruise speed
 
     return ret
 

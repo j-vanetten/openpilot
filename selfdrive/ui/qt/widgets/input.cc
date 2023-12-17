@@ -2,6 +2,7 @@
 
 #include <QPushButton>
 #include <QButtonGroup>
+#include <QDoubleValidator>
 
 #include "system/hardware/hw.h"
 #include "selfdrive/ui/qt/util.h"
@@ -158,6 +159,25 @@ QString InputDialog::getText(const QString &prompt, QWidget *parent, const QStri
   return ret ? d.text() : QString();
 }
 
+QString InputDialog::getConfigDecimal(const QString &prompt, QWidget *parent, std::string existingValue, float min, float max) {
+  InputDialog d = InputDialog(prompt, parent);
+  const QString existing = QString::fromStdString(existingValue);
+  d.setText(existing);
+  d.setMinLength(1);
+  const auto validator = new QDoubleValidator(min, max, 4);
+  d.line->setValidator(validator);
+  d.k->setKeyboardLayout(2); // numbers
+  const int ret = d.exec();
+  if (ret) {
+    auto input = d.text();
+    int pos = 0;
+    if (validator->validate(input, pos) == QValidator::Acceptable) {
+      return d.text();
+    }
+  }
+  return QString();
+}
+
 QString InputDialog::text() {
   return line->text();
 }
@@ -184,6 +204,10 @@ void InputDialog::setMessage(const QString &message, bool clearInputField) {
 
 void InputDialog::setMinLength(int length) {
   minLength = length;
+}
+
+void InputDialog::setText(const QString &text) {
+  line->setText(text);
 }
 
 // ConfirmationDialog

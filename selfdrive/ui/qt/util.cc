@@ -26,7 +26,7 @@ QString getVersion() {
 }
 
 QString getBrand() {
-  return QObject::tr("openpilot");
+  return QObject::tr("jvePilot");
 }
 
 QString getUserAgent() {
@@ -246,9 +246,11 @@ QPixmap bootstrapPixmap(const QString &id) {
 bool hasLongitudinalControl(const cereal::CarParams::Reader &car_params) {
   // Using the experimental longitudinal toggle, returns whether longitudinal control
   // will be active without needing a restart of openpilot
-  return car_params.getExperimentalLongitudinalAvailable()
-             ? Params().getBool("ExperimentalLongitudinalEnabled")
-             : car_params.getOpenpilotLongitudinalControl();
+  const bool expLongAvailable = false; // CP.getExperimentalLongitudinalAvailable()
+  const bool op_long = car_params.getOpenpilotLongitudinalControl() && !expLongAvailable;
+  const bool exp_long_enabled = expLongAvailable && Params().getBool("ExperimentalLongitudinalEnabled");
+
+  return op_long || exp_long_enabled;
 }
 
 // ParamWatcher

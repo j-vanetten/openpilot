@@ -4,6 +4,7 @@ import numpy as np
 from openpilot.common.numpy_fast import clip, interp
 from openpilot.common.params import Params
 from cereal import log
+from common.cached_params import CachedParams
 
 import cereal.messaging as messaging
 from openpilot.common.conversions import Conversions as CV
@@ -18,7 +19,8 @@ from openpilot.selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, CONTROL
 from openpilot.common.swaglog import cloudlog
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
-A_CRUISE_MIN = -1.2
+A_CRUISE_MIN = -10.
+A_CRUISE_MAX = 10.
 A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
 A_CRUISE_MAX_BP = [0., 10.0, 25., 40.]
 
@@ -28,7 +30,7 @@ _A_TOTAL_MAX_BP = [20., 40.]
 
 
 def get_max_accel(v_ego):
-  return interp(v_ego, A_CRUISE_MAX_BP, A_CRUISE_MAX_VALS)
+  return A_CRUISE_MAX
 
 
 def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
@@ -57,6 +59,9 @@ class LongitudinalPlanner:
     self.v_desired_filter = FirstOrderFilter(init_v, 2.0, self.dt)
     self.v_model_error = 0.0
 
+    self.cachedParams = CachedParams()
+    self.experimental_mode = False
+
     self.v_desired_trajectory = np.zeros(CONTROL_N)
     self.a_desired_trajectory = np.zeros(CONTROL_N)
     self.j_desired_trajectory = np.zeros(CONTROL_N)
@@ -71,6 +76,11 @@ class LongitudinalPlanner:
       self.personality = int(self.params.get('LongitudinalPersonality'))
     except (ValueError, TypeError):
       self.personality = log.LongitudinalPersonality.standard
+
+    self.experimental_mode = self.cachedParams.get_bool('jvePilot.settings.lkasButtonLight', 500) \
+                             and self.cachedParams.get_bool('ExperimentalMode', 500)
+    e2e = self.experimental_mode and self.CP.openpilotLongitudinalControl
+    self.mpc.mode = 'blended' if e2e else 'acc'
 
   @staticmethod
   def parse_model(model_msg, model_error):
@@ -92,7 +102,7 @@ class LongitudinalPlanner:
     if self.param_read_counter % 50 == 0:
       self.read_param()
     self.param_read_counter += 1
-    self.mpc.mode = 'blended' if sm['controlsState'].experimentalMode else 'acc'
+    self.read_param()
 
     v_ego = sm['carState'].vEgo
     v_cruise_kph = min(sm['controlsState'].vCruise, V_CRUISE_MAX)
@@ -152,6 +162,12 @@ class LongitudinalPlanner:
     self.a_desired = float(interp(self.dt, ModelConstants.T_IDXS[:CONTROL_N], self.a_desired_trajectory))
     self.v_desired_filter.x = self.v_desired_filter.x + self.dt * (self.a_desired + a_prev) / 2.0
 
+    if self.cachedParams.get('jvePilot.settings.slowInCurves', 5000) == "1" \
+        and not self.experimental_mode:
+      curv = abs(sm['controlsState'].desiredCurvature)
+      if curv != 0:
+        self.v_desired_filter.x = float(min(self.v_desired_filter.x, self.limit_speed_in_curv(sm, curv)))
+
   def publish(self, sm, pm):
     plan_send = messaging.new_message('longitudinalPlan')
 
@@ -173,3 +189,16 @@ class LongitudinalPlanner:
     longitudinalPlan.personality = self.personality
 
     pm.send('longitudinalPlan', plan_send)
+
+  def limit_speed_in_curv(self, sm, curv):
+    v_ego = sm['carState'].vEgo
+    a_y_max = 2.975 - v_ego * 0.0375  # ~1.85 @ 75mph, ~2.6 @ 25mph
+
+    # drop off
+    drop_off = self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedDropOff', 5000)
+    if drop_off != 2 and a_y_max > 0:
+      a_y_max = np.sqrt(a_y_max) ** drop_off
+
+    v_curvature = np.sqrt(a_y_max / np.clip(curv, 1e-4, None))
+    model_speed = np.min(v_curvature)
+    return model_speed * self.cachedParams.get_float('jvePilot.settings.slowInCurves.speedRatio', 5000)

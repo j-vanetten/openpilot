@@ -1,3 +1,4 @@
+#include <QMouseEvent>
 #include "selfdrive/ui/qt/onroad.h"
 
 #include <algorithm>
@@ -12,6 +13,7 @@
 #include "common/swaglog.h"
 #include "common/timing.h"
 #include "selfdrive/ui/qt/util.h"
+#include "selfdrive/ui/qt/api.h"
 #ifdef ENABLE_MAPS
 #include "selfdrive/ui/qt/maps/map_helpers.h"
 #include "selfdrive/ui/qt/maps/map_panel.h"
@@ -92,17 +94,30 @@ void OnroadWindow::updateState(const UIState &s) {
   }
 }
 
+void OnroadWindow::notify_state() {
+  MessageBuilder msg;
+  auto state = msg.initEvent().initJvePilotUIState();
+  state.setAutoFollow(uiState()->scene.autoFollowEnabled);
+  state.setAccEco(uiState()->scene.accEco);
+  uiState()->pm->send("jvePilotUIState", msg);
+}
+
 void OnroadWindow::mousePressEvent(QMouseEvent* e) {
+  if (uiState()->scene.accEco_btn.contains(e->x(), e->y())) {
+    uiState()->scene.accEco = uiState()->scene.accEco == 2 ? 0 : uiState()->scene.accEco + 1;
+    notify_state();
+  } else {
 #ifdef ENABLE_MAPS
-  if (map != nullptr) {
-    // Switch between map and sidebar when using navigate on openpilot
-    bool sidebarVisible = geometry().x() > 0;
-    bool show_map = uiState()->scene.navigate_on_openpilot ? sidebarVisible : !sidebarVisible;
-    map->setVisible(show_map && !map->isVisible());
-  }
+    if (map != nullptr) {
+      // Switch between map and sidebar when using navigate on openpilot
+      bool sidebarVisible = geometry().x() > 0;
+      bool show_map = uiState()->scene.navigate_on_openpilot ? sidebarVisible : !sidebarVisible;
+      map->setVisible(show_map && !map->isVisible());
+    }
 #endif
-  // propagation event to parent(HomeWindow)
-  QWidget::mousePressEvent(e);
+    // propagation event to parent(HomeWindow)
+    QWidget::mousePressEvent(e);
+  }
 }
 
 void OnroadWindow::offroadTransition(bool offroad) {
@@ -224,7 +239,7 @@ void ExperimentalButton::changeMode() {
   const auto cp = (*uiState()->sm)["carParams"].getCarParams();
   bool can_change = hasLongitudinalControl(cp) && params.getBool("ExperimentalModeConfirmed");
   if (can_change) {
-    params.putBool("ExperimentalMode", !experimental_mode);
+    //params.putBool("ExperimentalMode", !experimental_mode);
   }
 }
 
@@ -276,6 +291,12 @@ AnnotatedCameraWidget::AnnotatedCameraWidget(VisionStreamType type, QWidget* par
   main_layout->addWidget(map_settings_btn, 0, Qt::AlignBottom | Qt::AlignRight);
 
   dm_img = loadPixmap("../assets/img_driver_face.png", {img_size + 5, img_size + 5});
+
+  eco_imgs[0] = QPixmap("../assets/jvepilot/img_acc_eco_off.png").scaled(img_size + button_bigger, img_size + button_bigger, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  eco_imgs[1] = QPixmap("../assets/jvepilot/img_acc_eco_1.png").scaled(img_size + button_bigger, img_size + button_bigger, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  eco_imgs[2] = QPixmap("../assets/jvepilot/img_acc_eco_2.png").scaled(img_size + button_bigger, img_size + button_bigger, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  auto_follow_imgs[0] = QPixmap("../assets/jvepilot/auto_follow_off.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  auto_follow_imgs[1] = QPixmap("../assets/jvepilot/auto_follow_on.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
 void AnnotatedCameraWidget::updateState(const UIState &s) {
@@ -312,6 +333,10 @@ void AnnotatedCameraWidget::updateState(const UIState &s) {
   speedUnit =  s.scene.is_metric ? tr("km/h") : tr("mph");
   hideBottomIcons = (cs.getAlertSize() != cereal::ControlsState::AlertSize::NONE);
   status = s.status;
+
+  pedalPressedAmount = int(sm["carState"].getCarState().getJvePilotCarState().getPedalPressedAmount() * 255);
+  accEco = s.scene.accEco;
+  autoFollowEnabled = s.scene.autoFollowEnabled == 1;
 
   // update engageability/experimental mode button
   experimental_btn->updateState(s);
@@ -421,9 +446,36 @@ void AnnotatedCameraWidget::drawHud(QPainter &p) {
 
   // current speed
   p.setFont(InterFont(176, QFont::Bold));
-  drawText(p, rect().center().x(), 210, speedStr);
+  drawText(p, rect().center().x(), 210, speedStr, 255);
+
+  // Color Speed
+  if (pedalPressedAmount < 0) {
+    p.setPen(QColor(200, 0, 0, -pedalPressedAmount));
+  } else if (pedalPressedAmount > 0) {
+    p.setPen(QColor(0, 200, 0, pedalPressedAmount));
+  }
+  drawText(p, rect().center().x(), 210, speedStr, -1);
+
+  //speed unit
   p.setFont(InterFont(66));
   drawText(p, rect().center().x(), 290, speedUnit, 200);
+
+  if (accEco >= 0) { // got data yet?
+    // Auto Follow
+    drawIcon(p,
+             QPoint(rect().right() - radius / 2 - bdr_s * 2,
+             rect().bottom() - footer_h / 2 - button_bigger - radius),
+             auto_follow_imgs[autoFollowEnabled], QColor(0, 0, 0, 0), 1.0);
+
+    // eco icon
+    drawIcon(p, QPoint(rect().right() - radius / 2 - bdr_s * 2 - button_bigger, rect().bottom() - footer_h / 2 - button_bigger),
+             eco_imgs[accEco], QColor(0, 0, 0, 0), 1.0);
+    uiState()->scene.accEco_btn = QRect(
+      rect().right() - radius / 2 - bdr_s * 2 - button_bigger,
+      rect().bottom() - footer_h / 2 - button_bigger,
+      img_size + button_bigger,
+      img_size + button_bigger);
+  }
 
   p.restore();
 }
@@ -432,7 +484,9 @@ void AnnotatedCameraWidget::drawText(QPainter &p, int x, int y, const QString &t
   QRect real_rect = p.fontMetrics().boundingRect(text);
   real_rect.moveCenter({x, y - real_rect.height() / 2});
 
-  p.setPen(QColor(0xff, 0xff, 0xff, alpha));
+  if (alpha >= 0) {
+    p.setPen(QColor(0xff, 0xff, 0xff, alpha));
+  }
   p.drawText(real_rect.x(), real_rect.bottom(), text);
 }
 

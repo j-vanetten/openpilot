@@ -17,6 +17,14 @@
 #include "common/timing.h"
 #include "system/hardware/hw.h"
 
+#define COLOR_SPEED_GAS_ALPHA(x) nvgRGBA(0, 200, 0, x)
+#define COLOR_SPEED_BRAKE_ALPHA(x) nvgRGBA(200, 0, 0, x)
+
+const int bdr_s = 30;
+const int header_h = 420;
+const int footer_h = 280;
+const int button_bigger = 96;
+
 const int UI_BORDER_SIZE = 30;
 const int UI_HEADER_HEIGHT = 420;
 
@@ -157,9 +165,16 @@ typedef struct UIScene {
   bool navigate_on_openpilot = false;
 
   float light_sensor;
-  bool started, ignition, is_metric, map_on_left, longitudinal_control;
+  bool started, ignition, is_metric, map_on_left, longitudinal_control, experimental_mode;
   bool world_objects_visible = false;
   uint64_t started_frame;
+
+  // jvePilot
+  int autoFollowEnabled = -1;
+  int accEco = -1;
+  bool use_lane_lines;
+
+  QRect accEco_btn;
 } UIScene;
 
 class UIState : public QObject {
@@ -179,6 +194,7 @@ public:
   int fb_w = 0, fb_h = 0;
 
   std::unique_ptr<SubMaster> sm;
+  std::unique_ptr<PubMaster> pm;
 
   UIStatus status;
   UIScene scene = {};
