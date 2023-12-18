@@ -80,35 +80,36 @@ class CarController:
         self.hud_count += 1
 
     # steering
-    # TODO: can we make this more sane? why is it different for all the cars?
-    high_steer = self.CP.flags & ChryslerFlags.HIGHER_MIN_STEERING_SPEED
-    lkas_control_bit = self.lkas_control_bit_prev
-    if self.steerNoMinimum:
-      lkas_control_bit = CC.enabled or not high_steer
-    elif CS.out.vEgo > self.CP.minSteerSpeed:
-      lkas_control_bit = True
-    elif high_steer:
-      if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
-        lkas_control_bit = False
-    elif self.CP.carFingerprint in RAM_CARS:
-      if CS.out.vEgo < (self.CP.minSteerSpeed - 0.5):
-        lkas_control_bit = False
-
-    # EPS faults if LKAS re-enables too quickly
-    lkas_control_bit = lkas_control_bit and (self.frame > self.next_lkas_control_change)
-
-    if not lkas_control_bit and self.lkas_control_bit_prev:
-      self.next_lkas_control_change = self.frame + 200
-    self.lkas_control_bit_prev = lkas_control_bit
-
-    # steer torque
     new_steer = int(round(CC.actuators.steer * self.params.STEER_MAX))
-    apply_steer = apply_meas_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
-    if not lkas_active or not lkas_control_bit:
-      apply_steer = 0
-    self.apply_steer_last = apply_steer
+    if self.frame % self.params.STEER_STEP == 0 or abs(new_steer - int(self.apply_steer_last) > 30):
+      # TODO: can we make this more sane? why is it different for all the cars?
+      high_steer = self.CP.flags & ChryslerFlags.HIGHER_MIN_STEERING_SPEED
+      lkas_control_bit = self.lkas_control_bit_prev
+      if self.steerNoMinimum:
+        lkas_control_bit = CC.enabled or not high_steer
+      elif CS.out.vEgo > self.CP.minSteerSpeed:
+        lkas_control_bit = True
+      elif high_steer:
+        if CS.out.vEgo < (self.CP.minSteerSpeed - 3.0):
+          lkas_control_bit = False
+      elif self.CP.carFingerprint in RAM_CARS:
+        if CS.out.vEgo < (self.CP.minSteerSpeed - 0.5):
+          lkas_control_bit = False
 
-    can_sends.append(chryslercan.create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit))
+      # EPS faults if LKAS re-enables too quickly
+      lkas_control_bit = lkas_control_bit and (self.frame > self.next_lkas_control_change)
+
+      if not lkas_control_bit and self.lkas_control_bit_prev:
+        self.next_lkas_control_change = self.frame + 200
+      self.lkas_control_bit_prev = lkas_control_bit
+
+      # steer torque
+      apply_steer = apply_meas_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
+      if not lkas_active or not lkas_control_bit:
+        apply_steer = 0
+      self.apply_steer_last = apply_steer
+
+      can_sends.append(chryslercan.create_lkas_command(self.packer, self.CP, int(apply_steer), lkas_control_bit))
 
     self.frame += 1
 
