@@ -86,7 +86,7 @@ class CarController:
       high_steer = self.CP.flags & ChryslerFlags.HIGHER_MIN_STEERING_SPEED
       lkas_control_bit = self.lkas_control_bit_prev
       if self.steerNoMinimum:
-        lkas_control_bit = CC.enabled or not high_steer
+        lkas_control_bit = CC.latActive or not high_steer
       elif CS.out.vEgo > self.CP.minSteerSpeed:
         lkas_control_bit = True
       elif high_steer:
