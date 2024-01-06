@@ -75,9 +75,10 @@ class CarController:
     # HUD alerts
     if self.frame % 25 == 0:
       if CS.lkas_car_model != -1:
+        aolc_enabled = CS.out.cruiseState.available and self.settingsParams.get_bool("jvePilot.settings.steer.aolc")
         can_sends.append(chryslercan.create_lkas_hud(self.packer, self.CP, lkas_active, CC.hudControl.visualAlert,
                                                      self.hud_count, CS.lkas_car_model, CS.auto_high_beam,
-                                                     self.settingsParams.get_bool("jvePilot.settings.steer.aolc")))
+                                                     aolc_enabled))
         self.hud_count += 1
 
     # steering
