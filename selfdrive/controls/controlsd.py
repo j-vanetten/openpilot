@@ -587,6 +587,8 @@ class Controls:
     self.active = self.state in ACTIVE_STATES
     if self.active:
       self.current_alert_types.append(ET.WARNING)
+    elif CS.cruiseState.available and self.params.get_bool("jvePilot.settings.steer.aolc"):
+      self.current_alert_types.append(ET.WARNING)
 
   def state_control(self, CS):
     """Given the state, this function returns a CarControl packet"""
