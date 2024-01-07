@@ -587,7 +587,7 @@ class Controls:
     self.active = self.state in ACTIVE_STATES
     if self.active:
       self.current_alert_types.append(ET.WARNING)
-    elif self.jvePilotState.carControl.aolcAvailable:
+    elif self.jvePilotState.carControl.aolcEnabled:
       self.current_alert_types.append(ET.WARNING)
 
   def state_control(self, CS):
