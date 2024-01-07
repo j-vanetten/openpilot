@@ -21,7 +21,6 @@ struct JvePilotState {
     accEco @2 :UInt8;
     lkasButtonLight @3 :Bool;
     vMaxCruise @4 :Float32;
-    aolcAvailable @5 :Bool;
   }
 }
 
