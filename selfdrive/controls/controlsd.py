@@ -587,7 +587,7 @@ class Controls:
     self.active = self.state in ACTIVE_STATES
     if self.active:
       self.current_alert_types.append(ET.WARNING)
-    elif self.jvePilotState.carControl.aolcEnabled:
+    elif self.jvePilotState.carControl.aolcReady:
       self.current_alert_types.append(ET.WARNING)
 
   def state_control(self, CS):
@@ -614,11 +614,11 @@ class Controls:
 
     CC.jvePilotState.carState = CS.jvePilotCarState
     CC.jvePilotState.carControl = self.jvePilotState.carControl
-    CC.jvePilotState.carControl.aolcEnabled = not self.events.contains(ET.NO_ENTRY) and CS.cruiseState.available and self.params.get_bool("jvePilot.settings.steer.aolc")
+    CC.jvePilotState.carControl.aolcReady = not self.events.contains(ET.NO_ENTRY) and CS.cruiseState.available and self.params.get_bool("jvePilot.settings.steer.aolc")
 
     # Check which actuators can be enabled
     standstill = CS.vEgo <= max(self.CP.minSteerSpeed, MIN_LATERAL_CONTROL_SPEED) or CS.standstill
-    CC.latActive = (self.active or CC.jvePilotState.carControl.aolcEnabled) and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
+    CC.latActive = (self.active or CC.jvePilotState.carControl.aolcReady) and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
                    (not standstill or self.joystick_mode)
     CC.longActive = self.enabled and not self.events.contains(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
 
