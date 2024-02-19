@@ -252,20 +252,22 @@ bool addr_safety_check(CANPacket_t *to_push,
 }
 
 void generic_rx_checks(bool stock_ecu_detected) {
+  bool aolc = alternative_experience & ALT_EXP_ALWAYS_ON_LATERAL_CONTROL
+
   // exit controls on rising edge of gas press
-  if (gas_pressed && !gas_pressed_prev && !(alternative_experience & ALT_EXP_DISABLE_DISENGAGE_ON_GAS)) {
+  if (gas_pressed && !gas_pressed_prev && !(alternative_experience & ALT_EXP_DISABLE_DISENGAGE_ON_GAS) && !aolc) {
     controls_allowed = false;
   }
   gas_pressed_prev = gas_pressed;
 
   // exit controls on rising edge of brake press
-  if (brake_pressed && (!brake_pressed_prev || vehicle_moving)) {
+  if (brake_pressed && (!brake_pressed_prev || vehicle_moving) && !aolc) {
     controls_allowed = false;
   }
   brake_pressed_prev = brake_pressed;
 
   // exit controls on rising edge of regen paddle
-  if (regen_braking && (!regen_braking_prev || vehicle_moving)) {
+  if (regen_braking && (!regen_braking_prev || vehicle_moving) && !aolc) {
     controls_allowed = false;
   }
   regen_braking_prev = regen_braking;
