@@ -39,7 +39,6 @@ class CarController:
     self.round_to_unit = CV.MS_TO_KPH if self.settingsParams.get_bool("IsMetric") else CV.MS_TO_MPH
     self.steerNoMinimum = self.settingsParams.get_bool("jvePilot.settings.steer.noMinimum")
     self.aolc_enabled = self.settingsParams.get_bool("jvePilot.settings.steer.aolc")
-    self.lkas_active_prev = False
 
     self.autoFollowDistanceLock = None
     self.button_frame = 0
@@ -47,6 +46,8 @@ class CarController:
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
+
+    lkas_active = CC.latActive and self.lkas_control_bit_prev
 
     # cruise buttons
     das_bus = 2 if self.CP.carFingerprint in RAM_CARS else 0
@@ -76,7 +77,7 @@ class CarController:
     if self.frame % 25 == 0:
       if CS.lkas_car_model != -1:
         aolc_available = CS.out.cruiseState.available and self.aolc_enabled
-        can_sends.append(chryslercan.create_lkas_hud(self.packer, self.CP, CC.latActive, CC.hudControl.visualAlert,
+        can_sends.append(chryslercan.create_lkas_hud(self.packer, self.CP, lkas_active, CC.hudControl.visualAlert,
                                                      self.hud_count, CS.lkas_car_model, CS.auto_high_beam,
                                                      aolc_available))
         self.hud_count += 1
@@ -99,10 +100,6 @@ class CarController:
           lkas_control_bit = False
 
       # EPS faults if LKAS re-enables too quickly
-      if CC.latActive and not self.lkas_active_prev:
-        self.next_lkas_control_change = self.frame + 200
-      self.lkas_active_prev = CC.latActive
-
       lkas_control_bit = lkas_control_bit and (self.frame > self.next_lkas_control_change)
 
       if not lkas_control_bit and self.lkas_control_bit_prev:
@@ -111,7 +108,7 @@ class CarController:
 
       # steer torque
       apply_steer = apply_meas_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
-      if not CC.latActive or not lkas_control_bit:
+      if not lkas_active or not lkas_control_bit:
         apply_steer = 0
       self.apply_steer_last = apply_steer
 
