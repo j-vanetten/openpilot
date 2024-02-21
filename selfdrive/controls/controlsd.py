@@ -104,10 +104,6 @@ class Controls:
     if not self.disengage_on_accelerator:
       self.CP.alternativeExperience |= ALTERNATIVE_EXPERIENCE.DISABLE_DISENGAGE_ON_GAS
 
-    self.aolc_enabled = self.params.get_bool("jvePilot.settings.steer.aolc")
-    if self.aolc_enabled:
-      self.CP.alternativeExperience |= ALTERNATIVE_EXPERIENCE.ALWAYS_ON_LATERAL_CONTROL
-
     # read params
     self.is_metric = self.params.get_bool("IsMetric")
     self.is_ldw_enabled = self.params.get_bool("IsLdwEnabled")
@@ -618,7 +614,7 @@ class Controls:
 
     CC.jvePilotState.carState = CS.jvePilotCarState
     CC.jvePilotState.carControl = self.jvePilotState.carControl
-    CC.jvePilotState.carControl.aolcReady = self.aolc_enabled and not self.events.contains(ET.NO_ENTRY) and CS.cruiseState.available
+    CC.jvePilotState.carControl.aolcReady = not self.events.contains(ET.NO_ENTRY) and CS.cruiseState.available and self.params.get_bool("jvePilot.settings.steer.aolc")
 
     # Check which actuators can be enabled
     standstill = CS.vEgo <= max(self.CP.minSteerSpeed, MIN_LATERAL_CONTROL_SPEED) or CS.standstill

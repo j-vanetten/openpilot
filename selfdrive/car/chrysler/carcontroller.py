@@ -38,7 +38,6 @@ class CarController:
     self.minAccSetting = V_CRUISE_MIN_MS if self.settingsParams.get_bool("IsMetric") else V_CRUISE_MIN_IMPERIAL_MS
     self.round_to_unit = CV.MS_TO_KPH if self.settingsParams.get_bool("IsMetric") else CV.MS_TO_MPH
     self.steerNoMinimum = self.settingsParams.get_bool("jvePilot.settings.steer.noMinimum")
-    self.aolc_enabled = self.settingsParams.get_bool("jvePilot.settings.steer.aolc")
 
     self.autoFollowDistanceLock = None
     self.button_frame = 0
@@ -76,7 +75,7 @@ class CarController:
     # HUD alerts
     if self.frame % 25 == 0:
       if CS.lkas_car_model != -1:
-        aolc_available = CS.out.cruiseState.available and self.aolc_enabled
+        aolc_available = CS.out.cruiseState.available and self.settingsParams.get_bool("jvePilot.settings.steer.aolc")
         can_sends.append(chryslercan.create_lkas_hud(self.packer, self.CP, lkas_active, CC.hudControl.visualAlert,
                                                      self.hud_count, CS.lkas_car_model, CS.auto_high_beam,
                                                      aolc_available))
