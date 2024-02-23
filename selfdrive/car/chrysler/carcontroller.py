@@ -99,9 +99,9 @@ class CarController:
           lkas_control_bit = False
 
       # EPS faults if LKAS re-enables too quickly
-      if CC.latActive and not self.lkas_active_prev:
-        self.next_lkas_control_change = self.frame + 200
-      self.lkas_active_prev = CC.latActive
+      # if CC.latActive and not self.lkas_active_prev:
+      #   self.next_lkas_control_change = self.frame + 200
+      # self.lkas_active_prev = CC.latActive
 
       lkas_control_bit = lkas_control_bit and (self.frame > self.next_lkas_control_change)
 
