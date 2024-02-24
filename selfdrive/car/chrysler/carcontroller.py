@@ -48,6 +48,8 @@ class CarController:
   def update(self, CC, CS, now_nanos):
     can_sends = []
 
+    lkas_active = CC.latActive and self.lkas_control_bit_prev
+
     # cruise buttons
     das_bus = 2 if self.CP.carFingerprint in RAM_CARS else 0
 
@@ -111,7 +113,7 @@ class CarController:
 
       # steer torque
       apply_steer = apply_meas_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorqueEps, self.params)
-      if not CC.latActive or not lkas_control_bit:
+      if not lkas_active or not lkas_control_bit:
         apply_steer = 0
       self.apply_steer_last = apply_steer
 

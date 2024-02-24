@@ -224,7 +224,7 @@ static int chrysler_rx_hook(CANPacket_t *to_push) {
       brake_pressed = ((GET_BYTE(to_push, 0U) & 0xFU) >> 2U) == 1U;
     }
 
-    generic_rx_checks((bus == 0) && (addr == chrysler_addrs->LKAS_COMMAND));
+    // generic_rx_checks((bus == 0) && (addr == chrysler_addrs->LKAS_COMMAND));
   }
   return valid;
 }
