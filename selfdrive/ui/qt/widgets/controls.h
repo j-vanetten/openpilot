@@ -158,23 +158,7 @@ class ParamControl : public ToggleControl {
   Q_OBJECT
 
 public:
-  ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {}) : ToggleControl(title, desc, icon, false, parent, btns) {
-    key = param.toStdString();
-    QObject::connect(this, &ParamControl::toggleFlipped, [=](bool state) {
-      QString content("<body><h2 style=\"text-align: center;\">" + title + "</h2><br>"
-                      "<p style=\"text-align: center; margin: 0 128px; font-size: 50px;\">" + getDescription() + "</p></body>");
-      ConfirmationDialog dialog(content, tr("Enable"), tr("Cancel"), true, this);
-
-      bool confirmed = store_confirm && params.getBool(key + "Confirmed");
-      if (!confirm || confirmed || !state || dialog.exec()) {
-        if (store_confirm && state) params.putBool(key + "Confirmed", true);
-        params.putBool(key, state);
-        setIcon(state);
-      } else {
-        toggle.togglePosition();
-      }
-    });
-  }
+  ParamControl(const QString &param, const QString &title, const QString &desc, const QString &icon, QWidget *parent = nullptr, QList<struct ConfigButton> *btns = {});
 
   void setConfirmation(bool _confirm, bool _store_confirm) {
     confirm = _confirm;
