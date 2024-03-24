@@ -33,6 +33,7 @@ BO_ 288 ECM_2: 7 XXX
  SG_ ESC_TORQUE_REQ_ENABLE : 6|1@1+ (1,0) [0|0] "" XXX
  SG_ TCM_TORQUE_REQ_ENABLE : 7|1@1+ (1,0) [0|0] "" XXX
  SG_ Accelerator_Position : 16|8@1+ (0.4,0) [0|100] "%" XXX
+ SG_ ACCEL : 23|8@0+ (1,0) [0|255] "" XXX
  SG_ CRUISE_OVERRIDE : 31|1@1+ (1,0) [0|0] "" XXX
  SG_ COUNTER : 47|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 55|8@0+ (1,0) [0|0] "" XXX

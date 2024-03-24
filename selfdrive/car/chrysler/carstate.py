@@ -112,9 +112,9 @@ class CarState(CarStateBase):
     self.button_counter = cp.vl["CRUISE_BUTTONS"]["COUNTER"]
 
     brake = cp.vl["ESP_8"]["BRK_PRESSURE"]
-    gas = cp.vl["ACCEL_RELATED_120"]["ACCEL"]
+    gas = float(cp.vl["ECM_2"]["ACCEL"])
     if gas > 0:
-      ret.jvePilotCarState.pedalPressedAmount = float(np.interp(gas, PEDAL_GAS_PRESSED_XP, PEDAL_PRESSED_YP)) / 256
+      ret.jvePilotCarState.pedalPressedAmount = float(gas  /100)
     elif brake > 0:
       ret.jvePilotCarState.pedalPressedAmount = float(np.interp(brake / 16, PEDAL_BRAKE_PRESSED_XP, PEDAL_PRESSED_YP)) / -256
     else:
@@ -178,7 +178,7 @@ class CarState(CarStateBase):
       ("ORC_1", 2),
       ("BCM_1", 1),
       ("ESP_8", 50),
-      ("ACCEL_RELATED_120", 50),
+      ("ECM_2", 50),
       ("TRACTION_BUTTON", 1),
     ]
 
