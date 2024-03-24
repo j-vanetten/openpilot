@@ -132,6 +132,13 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                                   this,
                                   "../assets/jvepilot/settings/icon_misc.png",
                                   &miscConfigs));
+  // Always One Lateral Control
+  addItem(new ParamControl("jvePilot.settings.steer.aolc",
+                           "BETA: Always On Lateral Control",
+                           "When enabled and ACC is enabled, jvePilot will steer even if ACC/jvePilot isn't active",
+                           "../assets/img_chffr_wheel.png",
+                           this));
+
   // Minimum Steer Check
   addItem(new ParamControl("jvePilot.settings.steer.noMinimum",
                            "ADVANCED: Speed Spoofing Mod",
