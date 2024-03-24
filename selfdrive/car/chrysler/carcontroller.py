@@ -3,7 +3,7 @@ from common.numpy_fast import clip
 from opendbc.can.packer import CANPacker
 from openpilot.selfdrive.car import apply_meas_steer_torque_limits
 from openpilot.selfdrive.car.chrysler import chryslercan
-from openpilot.selfdrive.car.chrysler.values import RAM_CARS, PRE_2019, CarControllerParams, ChryslerFlags
+from openpilot.selfdrive.car.chrysler.values import RAM_CARS, CarControllerParams, ChryslerFlags
 
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MIN, V_CRUISE_MIN_IMPERIAL
 from common.conversions import Conversions as CV
