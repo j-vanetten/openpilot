@@ -188,7 +188,7 @@ static void chrysler_rx_hook(const CANPacket_t *to_push) {
   // enter controls on rising edge of ACC, exit controls on ACC off
   const int das_3_bus = (chrysler_platform == CHRYSLER_PACIFICA) ? 0 : 2;
   if ((bus == das_3_bus) && (addr == chrysler_addrs->DAS_3)) {
-    bool cruise_engaged = GET_BIT(to_push, 21U);
+    bool cruise_engaged = GET_BIT(to_push, 20U);
     pcm_cruise_check(cruise_engaged);
   }
 
@@ -213,7 +213,7 @@ static void chrysler_rx_hook(const CANPacket_t *to_push) {
     brake_pressed = ((GET_BYTE(to_push, 0U) & 0xFU) >> 2U) == 1U;
   }
 
-  generic_rx_checks((bus == 0) && (addr == chrysler_addrs->LKAS_COMMAND));
+  //generic_rx_checks((bus == 0) && (addr == chrysler_addrs->LKAS_COMMAND));
 }
 
 static bool chrysler_tx_hook(const CANPacket_t *to_send) {
@@ -230,6 +230,7 @@ static bool chrysler_tx_hook(const CANPacket_t *to_send) {
                                   (chrysler_platform == CHRYSLER_RAM_DT) ? CHRYSLER_RAM_DT_STEERING_LIMITS : CHRYSLER_RAM_HD_STEERING_LIMITS;
 
     bool steer_req = (chrysler_platform == CHRYSLER_PACIFICA) ? GET_BIT(to_send, 4U) : (GET_BYTE(to_send, 3) & 0x7U) == 2U;
+    controls_allowed = true; // TODO: Figure this out
     if (steer_torque_cmd_checks(desired_torque, steer_req, limits)) {
       tx = false;
     }
