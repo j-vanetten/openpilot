@@ -17,7 +17,7 @@ CHECK_BUTTONS = {ButtonType.cancel: ["CRUISE_BUTTONS", 'ACC_Cancel'],
                  ButtonType.followDec: ["CRUISE_BUTTONS", 'ACC_Distance_Dec'],
                  ButtonType.lkasToggle: ["TRACTION_BUTTON", 'TOGGLE_LKAS']}
 
-PEDAL_GAS_PRESSED_XP = [0, 32, 255]
+PEDAL_GAS_PRESSED_XP = [0, 16, 100]
 PEDAL_BRAKE_PRESSED_XP = [0, 24, 255]
 PEDAL_PRESSED_YP = [0, 128, 255]
 
@@ -112,9 +112,9 @@ class CarState(CarStateBase):
     self.button_counter = cp.vl["CRUISE_BUTTONS"]["COUNTER"]
 
     brake = cp.vl["ESP_8"]["BRK_PRESSURE"]
-    gas = float(cp.vl["ECM_2"]["ACCEL"])
+    gas = cp.vl["ECM_2"]["ACCEL"]
     if gas > 0:
-      ret.jvePilotCarState.pedalPressedAmount = float(gas  /100)
+      ret.jvePilotCarState.pedalPressedAmount = float(np.interp(gas, PEDAL_GAS_PRESSED_XP, PEDAL_PRESSED_YP)) / 100
     elif brake > 0:
       ret.jvePilotCarState.pedalPressedAmount = float(np.interp(brake / 16, PEDAL_BRAKE_PRESSED_XP, PEDAL_PRESSED_YP)) / -256
     else:
