@@ -1,5 +1,6 @@
 Version jvePilot-0.9.6(v3.15)
 ========================
+Visit http://bit.ly/jvereadme for more information
 * Update to 0.9.6 (2024-02-27)
   * New driving model
     * Vision model trained on more data
@@ -21,7 +22,6 @@ Version jvePilot-0.9.6(v3.15)
 
 Version jvePilot-0.9.5(v3.14.1)
 ========================
-Visit http://bit.ly/jvereadme for more information
 * Some vehicles have the lead car indicator tracking in the opposite direction
   * New setting to allow reversing x-axis on radar
   * Update less steer torque less often for small changes
