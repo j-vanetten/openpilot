@@ -14,7 +14,7 @@ from panda import ALTERNATIVE_EXPERIENCE
 
 from openpilot.common.conversions import Conversions as CV
 from openpilot.common.numpy_fast import clip
-from openpilot.common.params import Params, put_nonblocking, put_bool_nonblocking
+from openpilot.common.params import Params
 from openpilot.common.realtime import config_realtime_process, Priority, Ratekeeper, DT_CTRL
 from openpilot.common.swaglog import cloudlog
 
@@ -566,7 +566,7 @@ class Controls:
     elif self.sm.updated['jvePilotUIState']:
       self.jvePilotState.carControl.autoFollow = self.sm['jvePilotUIState'].autoFollow
       self.jvePilotState.carControl.accEco = self.sm['jvePilotUIState'].accEco
-      put_nonblocking("jvePilot.carState.accEco", str(self.sm['jvePilotUIState'].accEco))
+      self.params.put_nonblocking("jvePilot.carState.accEco", str(self.sm['jvePilotUIState'].accEco))
 
     return CS
 
