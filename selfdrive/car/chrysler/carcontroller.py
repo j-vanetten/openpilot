@@ -50,7 +50,7 @@ class CarController:
 
     # delay lkas if just enabling ACC
     if CS.out.cruiseState.available and CS.out.cruiseState.available != self.last_available:
-      self.delay_lkas_active_until = self.frame > 200
+      self.delay_lkas_active_until = self.frame + 200
     self.last_available = CS.out.cruiseState.available
 
     lkas_active = CC.latActive and self.lkas_control_bit_prev and (CS.out.cruiseState.enabled or self.frame > self.delay_lkas_active_until)
