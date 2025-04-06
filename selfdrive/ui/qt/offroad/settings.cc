@@ -79,6 +79,14 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                            "../assets/img_chffr_wheel.png",
                            this));
 
+  // Blindspot Lane Highlight Toggle
+  addItem(new ParamControl("jvePilot.settings.blindspotHighlight",
+                           "Blindspot Lane Highlight",
+                           "When a vehicle is detected in your blindspot, the adjacent lane line will turn bold red.",
+                           "../assets/offroad/img_circled_check.png",
+                           this));
+
+
   // Auto enable ACC on start
   addItem(new ParamControl("jvePilot.settings.autoEnableAcc",
                            "ACC Ready on Start",

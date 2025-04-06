@@ -21,6 +21,11 @@ static void update_sockets(UIState *s) {
 static void update_state(UIState *s) {
   SubMaster &sm = *(s->sm);
   UIScene &scene = s->scene;
+  if (sm.updated("carState")) {
+   const auto &car_state = sm["carState"].getCarState();
+   scene.left_blindspot = car_state.getLeftBlindspot();
+   scene.right_blindspot = car_state.getRightBlindspot();
+  }
 
   if (sm.updated("liveCalibration")) {
     auto list2rot = [](const capnp::List<float>::Reader &rpy_list) ->Eigen::Matrix3f {
@@ -65,6 +70,7 @@ static void update_state(UIState *s) {
 void ui_update_params(UIState *s) {
   auto params = Params();
   s->scene.is_metric = params.getBool("IsMetric");
+  s->scene.blindspot_highlight_enabled = params.getBool("jvePilot.settings.blindspotHighlight");
 }
 
 void UIState::updateStatus() {

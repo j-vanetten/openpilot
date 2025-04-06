@@ -13,6 +13,55 @@ static int get_path_length_idx(const cereal::XYZTData::Reader &line, const float
   return max_idx;
 }
 
+void ModelRenderer::drawRedLanePoly(QPainter &painter, const cereal::XYZTData::Reader &line, bool flipGradient, float max_distance) {
+  QPointF left, right;
+  QPolygonF poly;
+  int max_idx = get_path_length_idx(line, max_distance);
+
+  for (int i = 0; i <= max_idx; ++i) {
+    if (mapToScreen(line.getX()[i], line.getY()[i] - 0.35, line.getZ()[i], &left))
+      poly.push_back(left);
+  }
+  for (int i = max_idx; i >= 0; --i) {
+    if (mapToScreen(line.getX()[i], line.getY()[i] + 0.35, line.getZ()[i], &right))
+      poly.push_back(right);
+  }
+
+  if (poly.size() > 3) {
+    QLinearGradient grad(flipGradient ? poly.first() : poly.last(),
+                         flipGradient ? poly.last() : poly.first());
+
+    grad.setColorAt(0.0, QColor(255, 0, 0, 100));
+    grad.setColorAt(1.0, QColor(255, 0, 0, 0));
+    painter.setBrush(QBrush(grad));
+    painter.setPen(Qt::NoPen);
+    painter.drawPolygon(poly);
+  }
+}
+
+void ModelRenderer::drawRedLanes(QPainter &painter, const cereal::ModelDataV2::Reader &model) {
+  auto *s = uiState();
+  const auto &lane_lines = model.getLaneLines();
+
+  if (!s->scene.blindspot_highlight_enabled) return;
+
+  // Match green path distance limit when lead is present
+  float max_distance = MAX_DRAW_DISTANCE;
+  const auto &lead = (*s->sm)["radarState"].getRadarState().getLeadOne();
+  if (lead.getStatus()) {
+    float lead_d = lead.getDRel() * 2.0f;
+    max_distance = std::clamp(lead_d - std::min(lead_d * 0.35f, 10.0f), 0.0f, MAX_DRAW_DISTANCE);
+  }
+
+  if (s->scene.left_blindspot && lane_lines.size() > 1) {
+    drawRedLanePoly(painter, lane_lines[1], false, max_distance);
+  }
+
+  if (s->scene.right_blindspot && lane_lines.size() > 2) {
+    drawRedLanePoly(painter, lane_lines[2], true, max_distance);
+  }
+}
+
 void ModelRenderer::draw(QPainter &painter, const QRect &surface_rect) {
   auto *s = uiState();
   auto &sm = *(s->sm);
@@ -36,6 +85,11 @@ void ModelRenderer::draw(QPainter &painter, const QRect &surface_rect) {
   update_model(model, lead_one);
   drawLaneLines(painter);
   drawPath(painter, model, surface_rect.height());
+
+  // Show red blindspot fills only when toggle is active
+  if (s->scene.blindspot_highlight_enabled) {
+    drawRedLanes(painter, model);
+  }
 
   if (longitudinal_control && sm.alive("radarState")) {
     update_leads(radar_state, model.getPosition());

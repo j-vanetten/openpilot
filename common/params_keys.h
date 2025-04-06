@@ -28,6 +28,7 @@ inline static std::unordered_map<std::string, uint32_t> keys = {
     {"jvePilot.settings.slowInCurves.speedDropOffAngle", PERSISTENT},
     {"jvePilot.carstate.lkasDisabled", PERSISTENT},
     {"jvePilot.settings.selectedCar", PERSISTENT},
+    {"jvePilot.settings.blindspotHighlight", PERSISTENT},
 
     {"AccessToken", CLEAR_ON_MANAGER_START | DONT_LOG},
     {"AdbEnabled", PERSISTENT},

@@ -60,6 +60,9 @@ typedef struct UIScene {
   float light_sensor = -1;
   bool started, ignition, is_metric;
   uint64_t started_frame;
+  bool blindspot_highlight_enabled = false;
+  bool left_blindspot = false;
+  bool right_blindspot = false;
 } UIScene;
 
 class UIState : public QObject {
