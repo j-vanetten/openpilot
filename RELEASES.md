@@ -2,6 +2,7 @@ Version jvePilot-0.9.8(v3.17)
 ========================
 * Proper handling of ACC long-press so you can hold it down to increment by 1 or 5
 * Fix beeping on ignition off
+* Change how ACC speed is calculated from the model
 * Version 0.9.8 (2025-02-28)
   * New driving model
     * Model now gates applying positive acceleration in Chill mode

@@ -1,5 +1,5 @@
 import math
-from common.numpy_fast import clip
+from common.numpy_fast import clip, mean
 from opendbc.can.packer import CANPacker
 from opendbc.car import Bus, DT_CTRL, apply_meas_steer_torque_limits
 from opendbc.car.car_helpers import button_pressed
@@ -198,8 +198,8 @@ class CarController(CarControllerBase):
       eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
 
     if len(self.sm['longitudinalPlan'].speeds):
-      extendFuture = clip(min(self.sm['longitudinalPlan'].accels) * 2, -EXTEND_FUTURE_MAX, EXTEND_FUTURE_MAX)
-      targetFuture = max(self.sm['longitudinalPlan'].speeds) + extendFuture + CV.KPH_TO_MS / 2
+      extendFuture = clip(mean(self.sm['longitudinalPlan'].accels) * 3, -EXTEND_FUTURE_MAX, EXTEND_FUTURE_MAX)
+      targetFuture = mean(self.sm['longitudinalPlan'].speeds) + extendFuture + CV.KPH_TO_MS / 2
     else:
       targetFuture = 0
 
