@@ -19,11 +19,11 @@ void ModelRenderer::drawRedLanePoly(QPainter &painter, const cereal::XYZTData::R
   int max_idx = get_path_length_idx(line, max_distance);
 
   for (int i = 0; i <= max_idx; ++i) {
-    if (mapToScreen(line.getX()[i], line.getY()[i] - 0.35, line.getZ()[i], &left))
+    if (mapToScreen(line.getX()[i], line.getY()[i] - 0.2, line.getZ()[i], &left))
       poly.push_back(left);
   }
   for (int i = max_idx; i >= 0; --i) {
-    if (mapToScreen(line.getX()[i], line.getY()[i] + 0.35, line.getZ()[i], &right))
+    if (mapToScreen(line.getX()[i], line.getY()[i] + 0.2, line.getZ()[i], &right))
       poly.push_back(right);
   }
 
