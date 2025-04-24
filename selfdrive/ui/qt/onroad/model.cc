@@ -13,7 +13,7 @@ static int get_path_length_idx(const cereal::XYZTData::Reader &line, const float
   return max_idx;
 }
 
-void ModelRenderer::drawRedLanePoly(QPainter &painter, const cereal::XYZTData::Reader &line, bool flipGradient, float max_distance) {
+void ModelRenderer::drawBlindspotPoly(QPainter &painter, const cereal::XYZTData::Reader &line, bool flipGradient, float max_distance) {
   QPointF left, right;
   QPolygonF poly;
   int max_idx = get_path_length_idx(line, max_distance);
@@ -39,7 +39,7 @@ void ModelRenderer::drawRedLanePoly(QPainter &painter, const cereal::XYZTData::R
   }
 }
 
-void ModelRenderer::drawRedLanes(QPainter &painter, const cereal::ModelDataV2::Reader &model) {
+void ModelRenderer::drawBlindspotLines(QPainter &painter, const cereal::ModelDataV2::Reader &model) {
   auto *s = uiState();
   const auto &lane_lines = model.getLaneLines();
 
@@ -54,11 +54,11 @@ void ModelRenderer::drawRedLanes(QPainter &painter, const cereal::ModelDataV2::R
   }
 
   if (s->scene.left_blindspot && lane_lines.size() > 1) {
-    drawRedLanePoly(painter, lane_lines[1], false, max_distance);
+    drawBlindspotPoly(painter, lane_lines[1], false, max_distance);
   }
 
   if (s->scene.right_blindspot && lane_lines.size() > 2) {
-    drawRedLanePoly(painter, lane_lines[2], true, max_distance);
+    drawBlindspotPoly(painter, lane_lines[2], true, max_distance);
   }
 }
 
@@ -88,7 +88,7 @@ void ModelRenderer::draw(QPainter &painter, const QRect &surface_rect) {
 
   // Show red blindspot fills only when toggle is active
   if (s->scene.blindspot_highlight_enabled) {
-    drawRedLanes(painter, model);
+    drawBlindspotLines(painter, model);
   }
 
   if (longitudinal_control && sm.alive("radarState")) {
