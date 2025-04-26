@@ -86,7 +86,6 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
                            "../assets/offroad/img_circled_check.png",
                            this));
 
-
   // Auto enable ACC on start
   addItem(new ParamControl("jvePilot.settings.autoEnableAcc",
                            "ACC Ready on Start",
