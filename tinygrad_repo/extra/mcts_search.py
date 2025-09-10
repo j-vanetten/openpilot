@@ -4,9 +4,10 @@ import numpy as np
 np.set_printoptions(suppress=True)
 import math, functools, time, random, statistics
 from tinygrad.helpers import DEBUG, getenv, CACHELEVEL, diskcache_get, diskcache_put, colored, Profiling
-from tinygrad.codegen.kernel import Kernel
+from tinygrad.codegen.opt.kernel import Kernel
 from tinygrad.device import Buffer, Device, CompileError
-from tinygrad.engine.search import _ensure_buffer_alloc, get_kernel_actions, _time_program
+from tinygrad.codegen.opt.search import _ensure_buffer_alloc, get_kernel_actions, _time_program
+from tinygrad.engine.realize import get_program
 
 class MCTSNode:
   def __init__(self, kernel:Kernel, parent=None):
@@ -110,7 +111,7 @@ def mcts_search(lin:Kernel, rawbufs:List[Buffer], amt:int) -> Kernel:
       seen_asts[opt_ast.key] = node
 
       # lowering (50% of the time)
-      p = node.kernel.to_program(name_override="test")
+      p = get_program(node.kernel.get_optimized_ast(name_override="test"), node.kernel.opts)
 
       # rollout
       tm1 = time.perf_counter()
@@ -162,7 +163,7 @@ def mcts_search(lin:Kernel, rawbufs:List[Buffer], amt:int) -> Kernel:
       if node.n == 0: return
       for parent in node.parents: G.add_edge(parent, node)
       gopts = node.kernel.applied_opts
-      edge_lbl = f"{str(gopts[-1].op)[7:]} {gopts[-1].axis} {gopts[-1].amt}" if len(gopts) else "ROOT"
+      edge_lbl = f"{str(gopts[-1].op)[7:]} {gopts[-1].axis} {gopts[-1].arg}" if len(gopts) else "ROOT"
       G.add_node(node, label=f"{node.i+1}\n{node.tm:.2f} us\n{edge_lbl}\nt {node.t:.2f}\nn {node.n}",
                  fillcolor="#80ff8080" if node.tm == best_tm else "#ffff8080", style='filled' if node.t == best_tm else '')
       if node.children is not None:

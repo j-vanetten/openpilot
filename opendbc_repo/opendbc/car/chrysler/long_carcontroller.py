@@ -1,5 +1,5 @@
 from cereal import car
-from common.params import Params
+from openpilot.common.params import Params
 from opendbc.car.car_helpers import button_pressed
 from opendbc.car.chrysler.values import HYBRID_CARS
 
@@ -37,7 +37,7 @@ class LongCarController:
         accDiff = -1
     if accDiff is not None:
       newEco = CS.out.jvePilotCarState.accEco + accDiff
-      self.settingsParams.put_nonblocking("jvePilot.settings.accEco", str(newEco))
+      self.settingsParams.put_nonblocking("jvePilot.settings.accEco", newEco)
 
     return True
 

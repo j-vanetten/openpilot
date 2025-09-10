@@ -1,8 +1,9 @@
-from cereal import car
+from opendbc.car import structs
+from opendbc.car.crc import CRC8J1850
 from opendbc.car.chrysler.values import RAM_CARS
 
-GearShifter = car.CarState.GearShifter
-VisualAlert = car.CarControl.HUDControl.VisualAlert
+GearShifter = structs.CarState.GearShifter
+VisualAlert = structs.CarControl.HUDControl.VisualAlert
 
 def create_lkas_hud(packer, CP, lat_active, hud_alert, hud_count, car_model, auto_high_beam, lat_available, cruise_available):
   # LKAS_HUD - Controls what lane-keeping icon is displayed
@@ -127,3 +128,42 @@ def acc_log(packer, adjustment, aTarget, vTarget, aEgo):
     'A_EGO': aEgo
   }
   return packer.make_can_msg("ACC_LOG", 0, values)
+
+def chrysler_checksum(address: int, sig, d: bytearray) -> int:
+  checksum = 0xFF
+  for j in range(len(d) - 1):
+    curr = d[j]
+    shift = 0x80
+    for _ in range(8):
+      bit_sum = curr & shift
+      temp_chk = checksum & 0x80
+      if bit_sum:
+        bit_sum = 0x1C
+        if temp_chk:
+          bit_sum = 1
+        checksum = (checksum << 1) & 0xFF
+        temp_chk = checksum | 1
+        bit_sum ^= temp_chk
+      else:
+        if temp_chk:
+          bit_sum = 0x1D
+        checksum = (checksum << 1) & 0xFF
+        bit_sum ^= checksum
+      checksum = bit_sum & 0xFF
+      shift >>= 1
+  return (~checksum) & 0xFF
+
+
+def fca_giorgio_checksum(address: int, sig, d: bytearray) -> int:
+  crc = 0
+  for i in range(len(d) - 1):
+    crc ^= d[i]
+    crc = CRC8J1850[crc]
+  if address == 0xDE:
+    return crc ^ 0x10
+  elif address == 0x106:
+    return crc ^ 0xF6
+  elif address == 0x122:
+    return crc ^ 0xF1
+  else:
+    return crc ^ 0x0A

@@ -3,11 +3,12 @@ import unittest, functools
 import numpy as np
 
 from hypothesis import given, settings, strategies as strat
-from test.helpers import assert_jit_cache_len
+from test.helpers import assert_jit_cache_len, not_support_multi_device, REAL_DEV
 from tinygrad.tensor import Tensor
-from tinygrad.engine.jit import TinyJit
+from tinygrad.engine.jit import TinyJit, GraphRunner, MultiGraphRunner, graph_class
+from tinygrad.engine.realize import CompiledRunner, BufferCopy, BufferXfer
 from tinygrad.device import Device
-from tinygrad.helpers import CI, Context, JIT
+from tinygrad.helpers import Context, JIT, GlobalCounters, getenv
 from tinygrad.dtype import dtypes
 from extra.models.unet import ResBlock
 
@@ -22,7 +23,7 @@ def _simple_test(add, extract=lambda x: x, N=10):
 class TestJit(unittest.TestCase):
 
   @settings(deadline=2e4)
-  @unittest.skipUnless(Device.DEFAULT in ["LLVM", "CLANG"], f"no support on {Device.DEFAULT}")
+  @unittest.skipUnless(REAL_DEV in ["LLVM", "CPU"], f"no support on {REAL_DEV}")
   @given(strat.sampled_from([Tensor.exp2, Tensor.log2, Tensor.sin]))
   def test_approx_jit_timeout(self, op):
     with Context(TRANSCENDENTAL=2):
@@ -277,6 +278,38 @@ class TestJit(unittest.TestCase):
     assert len(res3) == 5, "All values should be different, rand works in jit."
     assert res3 != res2, "Jit rand is diff with diff seeds"
 
+  @unittest.expectedFailure  # TODO: fix
+  def test_jit_v_nojit_random_regen(self):
+    def f(a, b):
+      rn = Tensor.randn(*a.shape)
+      rn = rn * a
+      rn2 = Tensor.randn(*a.shape)
+      rn2 = rn2 * b
+      rn = rn + rn2
+      rn2 = rn2 + Tensor.randn(*a.shape)
+      return ((a+b)*rn).realize(), ((a+b)*rn2).realize()
+    Tensor.manual_seed(0)
+    a = Tensor.randn(10, 10).realize()  # realize these before resetting the random seed
+    b = Tensor.randn(10, 10).realize()
+
+    Tensor.manual_seed(1234)
+    without_jit = set()
+    for _ in range(5):
+      o1, o2 = f(a, b)
+      without_jit.add(o1.numpy()[0][0])
+      without_jit.add(o2.numpy()[0][0])
+    assert len(without_jit) == 10, "All values should be different."
+
+    Tensor.manual_seed(1234)
+    jf = TinyJit(f)
+    with_jit = set()
+    for _ in range(5):
+      o1, o2 = jf(a, b)
+      with_jit.add(o1.numpy()[0][0])
+      with_jit.add(o2.numpy()[0][0])
+    assert len(with_jit) == 10, "All values should be different."
+    assert with_jit == without_jit, "Jit rand produced different values from no jit."
+
   def test_jit_multiple_random_regen(self):
     def f(a, b):
       rn = Tensor.randn(*a.shape)
@@ -318,6 +351,7 @@ class TestJit(unittest.TestCase):
     assert len(res3) == 10, "All values should be different, rand works in jit."
     assert res3 != res2, "Jit rand is diff with diff seeds"
 
+  #@unittest.expectedFailure # requires contiguous folding
   def test_jit_random_after_unrealized_random(self):
     @TinyJit
     def f(): return Tensor.rand()
@@ -361,7 +395,6 @@ class TestJit(unittest.TestCase):
     np.testing.assert_allclose(result_2.numpy(), [6], atol=1e-4, rtol=1e-5)
     np.testing.assert_allclose(result_3.numpy(), [6], atol=1e-4, rtol=1e-5)
 
-  @unittest.skipIf(CI and Device.DEFAULT=="METAL", "no ICB in CI, creation of graph fails")
   def test_jit_batch_split(self):
     if Device[Device.DEFAULT].graph is None or JIT >= 2: raise unittest.SkipTest("only test graphs")
 
@@ -406,7 +439,7 @@ class TestJit(unittest.TestCase):
       ja = jf(a)
       np.testing.assert_allclose(a.numpy(), ja.numpy(), atol=1e-4, rtol=1e-5)
 
-  @unittest.skipIf(CI and Device.DEFAULT in {"GPU", "CUDA", "METAL", "NV", "AMD"}, "no GPU CI")
+  @unittest.skipIf(not_support_multi_device(), "no multi")
   def test_jitted_transfers(self):
     d0, d1 = f"{Device.DEFAULT}:0", f"{Device.DEFAULT}:1"
 
@@ -423,7 +456,23 @@ class TestJit(unittest.TestCase):
       np.testing.assert_allclose(a.numpy(), xc.numpy(), atol=1e-4, rtol=1e-5)
       np.testing.assert_allclose(b.numpy(), yc.numpy(), atol=1e-4, rtol=1e-5)
 
-  @unittest.skipIf(CI and Device.DEFAULT in {"GPU", "CUDA", "METAL"}, "no GPU/CUDA/METAL in CI, fine to run on AMD/NV")
+  def test_jit_several_devs(self):
+    d0, d1 = f"{Device.DEFAULT}:0", "CPU"
+
+    def f(a, b):
+      x = a.to(d0).realize()
+      y = b.to(d0).realize()
+      return x+y.realize(), x*y.realize()
+
+    jf = TinyJit(f)
+    for _ in range(5):
+      a = Tensor.randn(10, 10, device=d1).realize()
+      b = Tensor.randn(10, 10, device=d1).realize()
+      zc, wc = jf(a, b)
+      np.testing.assert_allclose((a.numpy()+b.numpy()), zc.numpy(), atol=1e-4, rtol=1e-5)
+      np.testing.assert_allclose((a.numpy()*b.numpy()), wc.numpy(), atol=1e-4, rtol=1e-5)
+
+  @unittest.skipIf(not_support_multi_device(), "no multi")
   def test_jitted_view(self):
     d0, d1 = f"{Device.DEFAULT}:0", f"{Device.DEFAULT}:1"
 
@@ -496,8 +545,8 @@ class TestCopyInsideJit(unittest.TestCase):
     @TinyJit
     def add(x,y) -> Tensor: return x.to(Device.DEFAULT)+y
     for _ in range(5):
-      # create a Tensor in CLANG
-      a = Tensor.rand(16,16,device="CLANG").realize()
+      # create a Tensor on CPU
+      a = Tensor.rand(16,16,device="CPU").realize()
       b = Tensor.rand(16,16).realize()
       out = add(a,b)
       np.testing.assert_allclose(out.flatten().tolist(), [x+y for x,y in zip(a.flatten().tolist(), b.flatten().tolist())])
@@ -528,15 +577,260 @@ class TestJitPrune(unittest.TestCase):
     w2_prune = TinyJit(w2, prune=True)
 
     for _ in range(3):
-      a = Tensor.rand(16, device="CLANG").realize()
+      a = Tensor.rand(16, device="CPU").realize()
       out = w2_noprune(a)
       np.testing.assert_allclose(out.tolist(), [x*2+y for x,y in zip(weights.tolist(), a.tolist())])
 
     for _ in range(3):
-      a = Tensor.rand(16, device="CLANG").realize()
+      a = Tensor.rand(16, device="CPU").realize()
       out = w2_prune(a)
       np.testing.assert_allclose(out.tolist(), [x*2+y for x,y in zip(weights.tolist(), a.tolist())])
 
+  def test_prune_w_independent_copy_correct(self):
+    weights = Tensor.rand(16, device="CPU").realize()
+    def w2(x) -> Tensor: return (weights*2).contiguous().to(Device.DEFAULT) + x
+    w2_noprune = TinyJit(w2)
+    w2_prune = TinyJit(w2, prune=True)
+
+    for _ in range(3):
+      a = Tensor.rand(16).realize()
+      out = w2_noprune(a)
+      np.testing.assert_allclose(out.tolist(), [x*2+y for x,y in zip(weights.tolist(), a.tolist())])
+
+    for _ in range(3):
+      a = Tensor.rand(16).realize()
+      out = w2_prune(a)
+      np.testing.assert_allclose(out.tolist(), [x*2+y for x,y in zip(weights.tolist(), a.tolist())])
+
+    assert len(w2_prune.captured.jit_cache) == 1, "prune should have removed the copy"
+
+class TestJitFree(unittest.TestCase):
+  def test_free_intermediates(self):
+    ext_tensor = Tensor([1,24,23,45,1])
+    @TinyJit
+    def fxn(x:Tensor):
+      out = (x*2+ext_tensor).reshape(5,1).expand(5, 100).contiguous()
+      return out.sum()
+    for i in range(5):
+      out = fxn(Tensor([i,1,2,3,4]))
+      self.assertEqual(out.item(), 11400+200*i)
+    pre_free = GlobalCounters.mem_used
+    fxn.captured.free_intermediates()
+    savings_after_free = pre_free - GlobalCounters.mem_used
+
+    # Different allocator implementations have different savings.
+    expected_savings = 8196 if hasattr(Device[Device.DEFAULT].allocator, '_offset') else 2024
+
+    self.assertEqual(savings_after_free, expected_savings)
+    out = fxn(Tensor([11,1,2,3,4]))
+    self.assertEqual(out.item(), 13600)
+
+    # Try one more time...
+    pre_free = GlobalCounters.mem_used
+    fxn.captured.free_intermediates()
+    fxn.captured.free_intermediates() # 2nd time to validate
+    savings_after_free = pre_free - GlobalCounters.mem_used
+
+    self.assertEqual(savings_after_free, expected_savings)
+    out = fxn(Tensor([11,1,2,3,4]))
+    self.assertEqual(out.item(), 13600)
+
+  def test_updated_not_freed(self):
+    x = Tensor([1]).realize()
+    @TinyJit
+    def fxn(y):
+      nonlocal x
+      x += y
+      return x
+    for _ in range(5): fxn(Tensor([1]))
+    self.assertEqual(x.item(), 6)
+    pre_free = GlobalCounters.mem_used
+    fxn.captured.free_intermediates()
+    savings_after_free = pre_free - GlobalCounters.mem_used
+    self.assertEqual(savings_after_free, 0)
+    fxn(Tensor([2]))
+    self.assertEqual(x.item(), 8)
+
+  def test_replan_buffers_memory_layout(self):
+    if not hasattr(Device[Device.DEFAULT].allocator, '_offset'): raise unittest.SkipTest("replan_buffers_memory_layout useless")
+
+    ext_tensor = Tensor([1,24,23,45,1])
+    ext_tensor_2 = Tensor([2,2,2,2,2])
+    @TinyJit
+    def fxn(x:Tensor):
+      out = (x*ext_tensor_2+ext_tensor).reshape(5,1).expand(5, 100).contiguous()
+      return out.sum()
+    for i in range(5):
+      out = fxn(Tensor([i,1,2,3,4]))
+      self.assertEqual(out.item(), 11400+200*i)
+    assert len(set([b.base for item in fxn.captured.jit_cache for b in item.bufs if b is not None])) == 4
+    fxn.captured.replan_buffers_memory_layout()
+    assert len(set([b.base for item in fxn.captured.jit_cache for b in item.bufs if b is not None])) == 2
+
+    out = fxn(Tensor([11,1,2,3,4]))
+    self.assertEqual(out.item(), 13600)
+
+class TestJitGraphSplit(unittest.TestCase):
+  def compute(self, device, inp):
+    assert inp.device == device, f"Input device {inp.device} does not match expected {device}"
+    return (inp + 1.0).contiguous().realize()
+
+  def copy(self, device, to_device, inp):
+    assert inp.device == device, f"Input device {inp.device} does not match expected {device}"
+    return inp.to(to_device).realize()
+
+  def expect(self, f, *args, graph=None, multigraph=None, hcqgraph=None):
+    def _numpies(tpl): return tpl.numpy() if tpl.__class__ is Tensor else tuple([t.numpy() for t in tpl])
+
+    expected = _numpies(f(*args))
+    for i in range(4):
+      res = _numpies(f(*args))
+      np.testing.assert_allclose(res, expected, atol=1e-4, rtol=1e-5)
+
+    dev = Device[Device.DEFAULT]
+    graph_t = graph_class(dev)
+    if graph_t is None: return
+
+    got = f.jit_cache
+    from tinygrad.runtime.graph.hcq import HCQGraph
+    if graph_t is HCQGraph:
+      validate = hcqgraph
+    elif issubclass(graph_t, MultiGraphRunner):
+      validate = multigraph
+    else:
+      validate = graph
+
+    assert len(got) == len(validate), f"Expected {len(validate)} operations, got {len(got)}"
+    for expected, got in zip(validate, got):
+      if expected["type"] == "graph":
+        assert isinstance(got.prg, GraphRunner), f"Expected GraphRunner, got {type(got.prg)}"
+        assert len(got.prg.jit_cache) == expected["cnt"], f"Expected {expected['cnt']} operations in graph, got {len(got.prg.jit_cache)}"
+      elif expected["type"] == "comp":
+        assert isinstance(got.prg, CompiledRunner), f"Expected CompiledRunner, got {type(got.prg)}"
+      elif expected["type"] == "copy":
+        assert isinstance(got.prg, BufferCopy), f"Expected BufferCopy, got {type(got.prg)}"
+      elif expected["type"] == "xfer":
+        assert isinstance(got.prg, BufferXfer), f"Expected BufferXfer, got {type(got.prg)}"
+
+  def ji_graph(self, cnt): return {"type": "graph", "cnt": cnt}
+  def ji_comp(self): return {"type": "comp"}
+  def ji_copy(self): return {"type": "copy"}
+  def ji_xfer(self): return {"type": "xfer"}
+
+  def test_jit_split_simple(self):
+    @TinyJit
+    def f(inp):
+      op0 = self.compute(Device.DEFAULT, inp)
+      op1 = self.compute(Device.DEFAULT, op0)
+      op2 = self.compute(Device.DEFAULT, op1)
+      return op2
+
+    inp = Tensor.randn(10, 10, device=Device.DEFAULT).realize()
+    self.expect(f, inp,
+      graph=[self.ji_graph(3)],
+      multigraph=[self.ji_graph(3)],
+      hcqgraph=[self.ji_graph(3)])
+
+  def test_jit_cpu_simple(self):
+    if Device.DEFAULT == "CPU": raise unittest.SkipTest("CPU is not a valid default device for this test")
+
+    @TinyJit
+    def f(inp, inp_cpu):
+      op0 = self.compute(Device.DEFAULT, inp)
+      op1 = self.compute(Device.DEFAULT, op0)
+      op2 = self.compute("CPU", inp_cpu)
+      op3 = self.compute(Device.DEFAULT, op1)
+      return op2, op3
+
+    inp = Tensor.randn(10, 10, device=Device.DEFAULT).realize()
+    inp_cpu = Tensor.randn(10, 10, device="CPU").realize()
+    self.expect(f, inp, inp_cpu,
+      graph=[self.ji_graph(2), self.ji_comp(), self.ji_comp()],
+      multigraph=[self.ji_graph(2), self.ji_comp(), self.ji_comp()],
+      hcqgraph=[self.ji_graph(4)])
+
+  def test_jit_cpu_several(self):
+    if Device.DEFAULT == "CPU": raise unittest.SkipTest("CPU is not a valid default device for this test")
+
+    @TinyJit
+    def f(inp, inp_cpu):
+      op0 = self.compute(Device.DEFAULT, inp)
+      op1 = self.compute(Device.DEFAULT, op0)
+      op2 = self.compute("CPU", inp_cpu)
+      op3 = self.compute("CPU", op2)
+      op4 = self.compute(Device.DEFAULT, op1)
+      return op3, op4
+
+    inp = Tensor.randn(10, 10, device=Device.DEFAULT).realize()
+    inp_cpu = Tensor.randn(10, 10, device="CPU").realize()
+    self.expect(f, inp, inp_cpu,
+      graph=[self.ji_graph(2), self.ji_graph(2), self.ji_comp()],
+      multigraph=[self.ji_graph(2), self.ji_graph(2), self.ji_comp()],
+      hcqgraph=[self.ji_graph(5)])
+
+  def test_jit_multidev(self):
+    if Device.DEFAULT == "CPU": raise unittest.SkipTest("CPU is not a valid default device for this test")
+
+    try: Device[f"{Device.DEFAULT}:1"]
+    except Exception: raise unittest.SkipTest("no multidevice")
+
+    @TinyJit
+    def f(inp, inp_d1):
+      op0 = self.compute(Device.DEFAULT, inp)
+      op1 = self.compute(Device.DEFAULT, op0)
+      op2 = self.compute(f"{Device.DEFAULT}:1", inp_d1)
+      op3 = self.compute(f"{Device.DEFAULT}:1", op2)
+      op4 = self.compute(Device.DEFAULT, op1)
+      return op3, op4
+
+    inp = Tensor.randn(10, 10, device=Device.DEFAULT).realize()
+    inp_d1 = Tensor.randn(10, 10, device=f"{Device.DEFAULT}:1").realize()
+    self.expect(f, inp, inp_d1,
+      graph=[self.ji_graph(2), self.ji_graph(2), self.ji_comp()],
+      multigraph=[self.ji_graph(5)],
+      hcqgraph=[self.ji_graph(5)])
+
+  def test_jit_multidev_xfer(self):
+    if Device.DEFAULT in {"CPU", "LLVM"}: raise unittest.SkipTest("CPU/LLVM is not a valid default device for this test (zero-copies)")
+    if Device.DEFAULT == "METAL" or REAL_DEV == "METAL": raise unittest.SkipTest("Metal is flaky, with multidevice (same as metal llama 4gpu?)")
+
+    try: Device[f"{Device.DEFAULT}:1"]
+    except Exception: raise unittest.SkipTest("no multidevice")
+
+    @TinyJit
+    def f(inp, inp_d1):
+      op0 = self.compute(Device.DEFAULT, inp)
+      op1 = self.compute(Device.DEFAULT, op0)
+      op2 = self.compute(f"{Device.DEFAULT}:1", inp_d1)
+      op3 = self.copy(f"{Device.DEFAULT}:1", Device.DEFAULT, op2)
+      op4 = self.compute(f"{Device.DEFAULT}:1", op2)
+      op5 = self.compute(Device.DEFAULT, op3)
+      return op1, op4, op5
+
+    inp = Tensor.randn(10, 10, device=Device.DEFAULT).realize()
+    inp_d1 = Tensor.randn(10, 10, device=f"{Device.DEFAULT}:1").realize()
+    self.expect(f, inp, inp_d1,
+      graph=[self.ji_graph(2), self.ji_comp(), self.ji_xfer(), self.ji_comp(), self.ji_comp()],
+      multigraph=[self.ji_graph(6)],
+      hcqgraph=[self.ji_graph(6)])
+
+  @unittest.skipIf(getenv("MOCKGPU"), "MockGPU does not support parallel copies")
+  def test_jit_multidev_copy(self):
+    if Device.DEFAULT in {"CPU", "LLVM"}: raise unittest.SkipTest("CPU/LLVM is not a valid default device for this test (zero-copies)")
+
+    @TinyJit
+    def f(inp):
+      op0 = self.compute(Device.DEFAULT, inp)
+      op1 = self.compute(Device.DEFAULT, op0)
+      op2 = self.copy(Device.DEFAULT, "CPU", op1)
+      op3 = self.compute("CPU", op2)
+      return op3
+
+    inp = Tensor.randn(10, 10, device=Device.DEFAULT).realize()
+    self.expect(f, inp,
+      graph=[self.ji_graph(2), self.ji_copy(), self.ji_comp()],
+      multigraph=[self.ji_graph(2), self.ji_copy(), self.ji_comp()],
+      hcqgraph=[self.ji_graph(4)])
 
 if __name__ == '__main__':
   unittest.main()

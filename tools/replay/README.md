@@ -64,6 +64,8 @@ Options:
   -s, --start <seconds>  start from <seconds>
   -x <speed>             playback <speed>. between 0.2 - 3
   --demo                 use a demo route instead of providing your own
+  --auto                 Auto load the route from the best available source (no video):
+                         internal, openpilotci, comma_api, car_segments, testing_closet
   --data_dir <data_dir>  local directory with routes
   --prefix <prefix>      set OPENPILOT_PREFIX
   --dcam                 load driver camera
@@ -73,7 +75,7 @@ Options:
   --qcam                 load qcamera
   --no-hw-decoder        disable HW video decoding
   --no-vipc              do not output video
-  --all                  do output all messages including uiDebug, userFlag.
+  --all                  do output all messages including uiDebug, userBookmark.
                          this may causes issues when used along with UI
 
 Arguments:
@@ -81,20 +83,12 @@ Arguments:
                          connect.comma.ai
 ```
 
-## Visualize the Replay in the Openpilot UI
+## Visualize the Replay in the openpilot UI
 To visualize the replay within the openpilot UI, run the following commands:
 
 ```bash
 tools/replay/replay <route-name>
 cd selfdrive/ui && ./ui
-```
-
-## Try Radar Point Visualization with Rerun
-To visualize radar points, run rp_visualization.py while tools/replay/replay is active.
-
-```bash
-tools/replay/replay <route-name>
-python3 replay/rp_visualization.py
 ```
 
 ## Work with plotjuggler

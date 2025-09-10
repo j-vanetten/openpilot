@@ -2,8 +2,9 @@ from tinygrad import Device, dtypes
 from tinygrad.helpers import getenv, colorize_float
 from extra.optimization.helpers import load_worlds, ast_str_to_lin
 from test.external.fuzz_linearizer import get_fuzz_rawbufs
-from tinygrad.engine.search import bufs_from_lin
-from tinygrad.engine.realize import CompiledRunner
+from tinygrad.codegen.opt.heuristic import hand_coded_optimizations
+from tinygrad.codegen.opt.search import bufs_from_lin
+from tinygrad.engine.realize import CompiledRunner, get_program
 from tinygrad.tensor import _to_np_dtype
 import numpy as np
 
@@ -21,18 +22,18 @@ if __name__ == "__main__":
   for num,ast in enumerate(ast_strs):
     # cuda compile
     culin = ast_str_to_lin(ast, opts=cudev.renderer)
-    culin.hand_coded_optimizations()
-    has_bf16 = any(b.dtype == dtypes.bfloat16 for b in culin.membufs)
+    culin.apply_opts(hand_coded_optimizations(culin))
+    has_bf16 = any(b.dtype == dtypes.bfloat16 for b in culin.bufs)
 
-    cuda_prg = CompiledRunner(culin.to_program())
+    cuda_prg = CompiledRunner(get_program(culin.get_optimized_ast(), culin.opts))
     cubufs = bufs_from_lin(culin)
     test_cubufs = get_fuzz_rawbufs(culin) if not has_bf16 else cubufs
 
     rdr = nvdev.renderer
     rdr.device = "NV"
     nvlin = ast_str_to_lin(ast, opts=rdr)
-    nvlin.hand_coded_optimizations()
-    nv_prg = CompiledRunner(nvlin.to_program())
+    nvlin.apply_opts(hand_coded_optimizations(nvlin))
+    nv_prg = CompiledRunner(get_program(nvlin.get_optimized_ast(), nvlin.opts))
     nvbufs = bufs_from_lin(nvlin)
     test_nvbufs = get_fuzz_rawbufs(nvlin) if not has_bf16 else nvbufs
     if not has_bf16:

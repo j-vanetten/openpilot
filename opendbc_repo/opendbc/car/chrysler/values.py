@@ -5,9 +5,7 @@ from opendbc.car import Bus, CarSpecs, DbcDict, PlatformConfig, Platforms, uds
 from opendbc.car.structs import CarParams
 from opendbc.car.docs_definitions import CarHarness, CarDocs, CarParts
 from opendbc.car.fw_query_definitions import FwQueryConfig, Request, p16
-from common.params import Params
 
-params = Params()
 Ecu = CarParams.Ecu
 
 
@@ -20,6 +18,7 @@ class ChryslerSafetyFlags(IntFlag):
 class ChryslerFlags(IntFlag):
   # Detected flags
   HIGHER_MIN_STEERING_SPEED = 1
+
 
 @dataclass
 class ChryslerCarDocs(CarDocs):
@@ -49,7 +48,7 @@ class CAR(Platforms):
                      axleRatio=3.25),
   )
   CHRYSLER_PACIFICA_2019_HYBRID = ChryslerPlatformConfig(
-    [ChryslerCarDocs("Chrysler Pacifica Hybrid 2019-24")],
+    [ChryslerCarDocs("Chrysler Pacifica Hybrid 2019-25")],
     CHRYSLER_PACIFICA_2018_HYBRID.specs,
   )
   CHRYSLER_PACIFICA_2018 = ChryslerPlatformConfig(
@@ -72,14 +71,14 @@ class CAR(Platforms):
 
   # Jeep
   JEEP_GRAND_CHEROKEE = ChryslerPlatformConfig(  # includes 2017 Trailhawk
-    [ChryslerCarDocs("Jeep Grand Cherokee 2016-18", video_link="https://www.youtube.com/watch?v=eLR9o2JkuRk")],
+    [ChryslerCarDocs("Jeep Grand Cherokee 2016-18", video="https://www.youtube.com/watch?v=eLR9o2JkuRk")],
     ChryslerCarSpecs(mass=1778., wheelbase=2.71, steerRatio=16.7,
                      gearRatios=[4.71, 3.14, 2.10, 1.67, 1.29, 1.00, 0.84, 0.67],
                      axleRatio=3.45)
   )
 
   JEEP_GRAND_CHEROKEE_2019 = ChryslerPlatformConfig(  # includes 2020 Trailhawk
-    [ChryslerCarDocs("Jeep Grand Cherokee 2019-21", video_link="https://www.youtube.com/watch?v=jBe4lWnRSu4")],
+    [ChryslerCarDocs("Jeep Grand Cherokee 2019-21", video="https://www.youtube.com/watch?v=jBe4lWnRSu4")],
     JEEP_GRAND_CHEROKEE.specs,
   )
 
@@ -101,7 +100,7 @@ class CAR(Platforms):
 
 class CarControllerParams:
   def __init__(self, CP):
-    use_pid = params.get_bool("jvePilot.settings.steer.pid")
+    use_pid = CP.usePID
     self.STEER_ERROR_MAX = 80
     self.STEER_STEP = 2 if use_pid else 1
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "spi_declarations.h"
-#include "crc.h"
+#include "board/drivers/spi_declarations.h"
+#include "board/crc.h"
 
 #ifdef STM32H7
 #define SPI_BUF_SIZE 2048U
@@ -14,9 +14,8 @@ uint8_t spi_buf_rx[SPI_BUF_SIZE];
 uint8_t spi_buf_tx[SPI_BUF_SIZE];
 #endif
 
-uint16_t spi_checksum_error_count = 0;
+uint16_t spi_error_count = 0;
 
-#if defined(ENABLE_SPI) || defined(BOOTSTUB)
 static uint8_t spi_state = SPI_STATE_HEADER;
 static uint16_t spi_data_len_mosi;
 static bool spi_can_tx_ready = false;
@@ -108,7 +107,9 @@ void spi_rx_done(void) {
       response_len = 1U;
     } else {
       // response: NACK and reset state machine
-      print("- incorrect header sync or checksum "); hexdump(spi_buf_rx, SPI_HEADER_SIZE);
+      #ifdef DEBUG_SPI
+        print("- incorrect header sync or checksum "); hexdump(spi_buf_rx, SPI_HEADER_SIZE);
+      #endif
       spi_buf_tx[0] = SPI_NACK;
       next_rx_state = SPI_STATE_HEADER_NACK;
       response_len = 1U;
@@ -151,21 +152,26 @@ void spi_rx_done(void) {
           print("SPI: did expect data for can_write\n");
         }
       } else if (spi_endpoint == 0xABU) {
-        // test endpoint, send max response length
+        // test endpoint: mimics panda -> device transfer
         response_len = spi_data_len_miso;
         response_ack = true;
+      } else if (spi_endpoint == 0xACU) {
+        // test endpoint: mimics device -> panda transfer (with NACK)
+        response_ack = false;
       } else {
         print("SPI: unexpected endpoint"); puth(spi_endpoint); print("\n");
       }
     } else {
       // Checksum was incorrect
       response_ack = false;
-      print("- incorrect data checksum ");
-      puth4(spi_data_len_mosi);
-      print("\n");
-      hexdump(spi_buf_rx, SPI_HEADER_SIZE);
-      hexdump(&(spi_buf_rx[SPI_HEADER_SIZE]), MIN(spi_data_len_mosi, 64));
-      print("\n");
+      #ifdef DEBUG_SPI
+        print("- incorrect data checksum ");
+        puth4(spi_data_len_mosi);
+        print("\n");
+        hexdump(spi_buf_rx, SPI_HEADER_SIZE);
+        hexdump(&(spi_buf_rx[SPI_HEADER_SIZE]), MIN(spi_data_len_mosi, 64));
+        print("\n");
+      #endif
     }
 
     if (!response_ack) {
@@ -202,8 +208,8 @@ void spi_rx_done(void) {
   llspi_miso_dma(spi_buf_tx, response_len);
 
   spi_state = next_rx_state;
-  if (!checksum_valid && (spi_checksum_error_count < UINT16_MAX)) {
-    spi_checksum_error_count += 1U;
+  if (!checksum_valid && (spi_error_count < UINT16_MAX)) {
+    spi_error_count += 1U;
   }
 }
 
@@ -230,8 +236,3 @@ void spi_tx_done(bool reset) {
 void can_tx_comms_resume_spi(void) {
   spi_can_tx_ready = true;
 }
-#else
-void can_tx_comms_resume_spi(void) {
-  return;
-}
-#endif

@@ -10,6 +10,8 @@ from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.modeld.constants import index_function
 from openpilot.selfdrive.controls.radard import _LEAD_ACCEL_TAU
 
+from openpilot.common.cached_params import CachedParams
+
 if __name__ == '__main__':  # generating code
   from openpilot.third_party.acados.acados_template import AcadosModel, AcadosOcp, AcadosOcpSolver
 else:
@@ -58,6 +60,8 @@ STOP_DISTANCE = 6.0
 CRUISE_MIN_ACCEL = -1.2
 CRUISE_MAX_ACCEL = 1.6
 
+cachedParams = CachedParams()
+
 def get_jerk_factor(personality=log.LongitudinalPersonality.standard, long_control=False):
   if personality==log.LongitudinalPersonality.relaxed:
     return 1.0 if long_control else 2.0
@@ -71,11 +75,11 @@ def get_jerk_factor(personality=log.LongitudinalPersonality.standard, long_contr
 
 def get_T_FOLLOW(personality=log.LongitudinalPersonality.standard):
   if personality==log.LongitudinalPersonality.relaxed:
-    return 1.60
+    return cachedParams.get_float('jvePilot.settings.autoFollow.relaxed', 1000)
   elif personality==log.LongitudinalPersonality.standard:
-    return 1.30
+    return cachedParams.get_float('jvePilot.settings.autoFollow.standard', 1000)
   elif personality==log.LongitudinalPersonality.aggressive:
-    return 1.10
+    return cachedParams.get_float('jvePilot.settings.autoFollow.aggressive', 1000)
   else:
     raise NotImplementedError("Longitudinal personality not supported")
 

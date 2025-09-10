@@ -30,6 +30,7 @@ signals:
   void reviewTrainingGuide();
   void showDriverView();
   void expandToggleDescription(const QString &param);
+  void scrollToToggle(const QString &param);
 
 private:
   QPushButton *sidebar_alert_widget;
@@ -55,6 +56,7 @@ private slots:
 private:
   Params params;
   ButtonControl *pair_device;
+  ButtonControl *resetCalibBtn;
 };
 
 class JvePilotTogglesPanel : public ListWidget {
@@ -76,6 +78,7 @@ public:
 
 public slots:
   void expandToggleDescription(const QString &param);
+  void scrollToToggle(const QString &param);
 
 private slots:
   void updateState(const UIState &s);

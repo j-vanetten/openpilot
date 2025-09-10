@@ -1,7 +1,7 @@
 import math
 
 from cereal import car
-from common.conversions import Conversions as CV
+from opendbc.car.common.conversions import Conversions as CV
 from openpilot.common.numpy_fast import clip
 from opendbc.car.chrysler import chryslercan
 from opendbc.car.chrysler.long_carcontroller import LongCarController

@@ -1,6 +1,6 @@
 from cereal import log
 from openpilot.common.realtime import DT_CTRL
-from openpilot.common.conversions import Conversions as CV
+from openpilot.common.constants import CV
 
 from openpilot.common.params import Params
 
@@ -14,7 +14,7 @@ class LaneDepartureWarning:
     self.right = False
     self.last_blinker_frame = 0
 
-    self.device_offset = float(Params().get('jvePilot.settings.deviceOffset'))
+    self.device_offset = float(Params().get('jvePilot.settings.deviceOffset', return_default=True))
 
   def update(self, frame, modelV2, CS, CC):
     if CS.leftBlinker or CS.rightBlinker:

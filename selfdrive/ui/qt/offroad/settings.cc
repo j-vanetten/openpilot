@@ -63,6 +63,24 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
       "3-4 Bar Change Over (MPH)",
       "Default: 65 mph, Min: 0, Max: 300\n"
         "Use this to change the speed at which Auto Follow will switch between three to four bars."
+    },
+    { "jvePilot.settings.autoFollow.relaxed",
+      1, 2,
+      "Relaxed Profile Follow Time (seconds)",
+      "Default: 1.80, Min: 1, Max: 2\n"
+        "How much time the model stays behind the lead car in seconds in relaxed mode."
+    },
+    { "jvePilot.settings.autoFollow.standard",
+      1, 2,
+      "Standard Profile Follow Time (seconds)",
+      "Default: 1.40, Min: 1, Max: 2\n"
+        "How much time the model stays behind the lead car in seconds in standard mode."
+    },
+    { "jvePilot.settings.autoFollow.aggressive",
+      1, 2,
+      "Aggressive Profile Follow Time (seconds)",
+      "Default: 1.00, Min: 1, Max: 2\n"
+        "How much time the model stays behind the lead car in seconds in aggressive mode."
     }
   };
   addItem(new ParamControl("jvePilot.settings.autoFollow",
@@ -123,16 +141,24 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
       "Default: 5 mph, Min: 1, Max: 100\n"
         "The higher the number the more acceleration that occurs."
     },
+    { "jvePilot.settings.accEco.reductionRate",
+      0, 2,
+      "Eco speed reduction rate",
+      "Default: 0, Min: 0, Max: 1\n"
+        "For each MPH above 20, this amount is removed from the Eco keep ahead speed."
+    },
     { "jvePilot.settings.accEco.longAccelLevel1",
       0, 2,
       "Max acceleration at Eco 1 (m/s²)",
       "Default: 1 m/s², Min: 0, Max: 2\n"
+        "LONG CONTROL ONLY\n"
         "The higher the number the more acceleration that occurs."
     },
     { "jvePilot.settings.accEco.longAccelLevel2",
       0, 2,
       "Max acceleration at Eco 2 (m/s²)",
       "Default: 1.5 m/s² mph, Min: 0, Max: 2\n"
+        "LONG CONTROL ONLY\n"
         "The higher the number the more acceleration that occurs."
     }
   };
@@ -221,63 +247,63 @@ JvePilotTogglesPanel::JvePilotTogglesPanel(QWidget *parent) : ListWidget(parent)
 }
 
 TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
-  // param, title, desc, icon
-  std::vector<std::tuple<QString, QString, QString, QString>> toggle_defs{
+  // param, title, desc, icon, restart needed
+  std::vector<std::tuple<QString, QString, QString, QString, bool>> toggle_defs{
     {
       "OpenpilotEnabledToggle",
       tr("Enable openpilot"),
-      tr("Use the openpilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature. Changing this setting takes effect when the car is powered off."),
-      "../assets/img_chffr_wheel.png",
+      tr("Use the openpilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature."),
+      "../assets/icons/chffr_wheel.png",
+      true,
     },
     {
       "ExperimentalMode",
       tr("Experimental Mode"),
       tr(" "),
-      "../assets/img_experimental_white.svg",
+      "../assets/icons/experimental_white.svg",
+      false,
     },
     {
       "DisengageOnAccelerator",
       tr("Disengage on Accelerator Pedal"),
       tr("When enabled, pressing the accelerator pedal will disengage openpilot."),
-      "../assets/offroad/icon_disengage_on_accelerator.svg",
-    },
-    {
-      "FirehoseMode",
-      tr("FIREHOSE Mode"),
-      tr("Enable <b>FIREHOSE Mode</b> to get your driving data in the training set.<br><br>"
-         "Follow these steps to get your device ready:<br>"
-         "  1. Bring your device inside and connect to a good USB-C adapter<br>"
-         "  2. Connect to Wi-Fi<br>"
-         "  3. Enable this toggle<br>"
-         "  4. Leave it connected for at least 30 minutes<br>"
-         "<br>"
-         "This toggle turns off once you restart your device. Repeat once a week for maximum effectiveness."
-         ""),
-      "../assets/offroad/icon_warning.png",
+      "../assets/icons/disengage_on_accelerator.svg",
+      false,
     },
     {
       "IsLdwEnabled",
       tr("Enable Lane Departure Warnings"),
       tr("Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31 mph (50 km/h)."),
-      "../assets/offroad/icon_warning.png",
+      "../assets/icons/warning.png",
+      false,
     },
     {
       "AlwaysOnDM",
       tr("Always-On Driver Monitoring"),
       tr("Enable driver monitoring even when openpilot is not engaged."),
-      "../assets/offroad/icon_monitoring.png",
+      "../assets/icons/monitoring.png",
+      false,
     },
     {
       "RecordFront",
       tr("Record and Upload Driver Camera"),
       tr("Upload data from the driver facing camera and help improve the driver monitoring algorithm."),
-      "../assets/offroad/icon_monitoring.png",
+      "../assets/icons/monitoring.png",
+      true,
+    },
+    {
+      "RecordAudio",
+      tr("Record and Upload Microphone Audio"),
+      tr("Record and store microphone audio while driving. The audio will be included in the dashcam video in comma connect."),
+      "../assets/icons/microphone.png",
+      true,
     },
     {
       "IsMetric",
       tr("Use Metric System"),
       tr("Display speed in km/h instead of mph."),
-      "../assets/offroad/icon_metric.png",
+      "../assets/icons/metric.png",
+      false,
     },
   };
 
@@ -287,17 +313,29 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
                                           tr("Standard is recommended. In aggressive mode, openpilot will follow lead cars closer and be more aggressive with the gas and brake. "
                                              "In relaxed mode openpilot will stay further away from lead cars. On supported cars, you can cycle through these personalities with "
                                              "your steering wheel distance button."),
-                                          "../assets/offroad/icon_speed_limit.png",
+                                          "../assets/icons/speed_limit.png",
                                           longi_button_texts);
 
   // set up uiState update for personality setting
   QObject::connect(uiState(), &UIState::uiUpdate, this, &TogglesPanel::updateState);
 
-  for (auto &[param, title, desc, icon] : toggle_defs) {
+  for (auto &[param, title, desc, icon, needs_restart] : toggle_defs) {
     auto toggle = new ParamControl(param, title, desc, icon, this);
 
     bool locked = params.getBool((param + "Lock").toStdString());
     toggle->setEnabled(!locked);
+
+    if (needs_restart && !locked) {
+      toggle->setDescription(toggle->getDescription() + tr(" Changing this setting will restart openpilot if the car is powered on."));
+
+      QObject::connect(uiState(), &UIState::engagedChanged, [toggle](bool engaged) {
+        toggle->setEnabled(!engaged);
+      });
+
+      QObject::connect(toggle, &ParamControl::toggleFlipped, [=](bool state) {
+        params.putBool("OnroadCycleRequested", true);
+      });
+    }
 
     addItem(toggle);
     toggles[param.toStdString()] = toggle;
@@ -309,7 +347,7 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
   }
 
   // Toggles with confirmation dialogs
-  toggles["ExperimentalMode"]->setActiveIcon("../assets/img_experimental.svg");
+  toggles["ExperimentalMode"]->setActiveIcon("../assets/icons/experimental.svg");
   toggles["ExperimentalMode"]->setConfirmation(true, true);
 }
 
@@ -327,6 +365,15 @@ void TogglesPanel::updateState(const UIState &s) {
 
 void TogglesPanel::expandToggleDescription(const QString &param) {
   toggles[param.toStdString()]->showDescription();
+}
+
+void TogglesPanel::scrollToToggle(const QString &param) {
+  if (auto it = toggles.find(param.toStdString()); it != toggles.end()) {
+    auto scroll_area = qobject_cast<QScrollArea*>(parent()->parent());
+    if (scroll_area) {
+      scroll_area->ensureWidgetVisible(it->second);
+    }
+  }
 }
 
 void TogglesPanel::showEvent(QShowEvent *event) {
@@ -406,12 +453,24 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   connect(dcamBtn, &ButtonControl::clicked, [=]() { emit showDriverView(); });
   addItem(dcamBtn);
 
-  auto resetCalibBtn = new ButtonControl(tr("Reset Calibration"), tr("RESET"), "");
+  resetCalibBtn = new ButtonControl(tr("Reset Calibration"), tr("RESET"), "");
   connect(resetCalibBtn, &ButtonControl::showDescriptionEvent, this, &DevicePanel::updateCalibDescription);
   connect(resetCalibBtn, &ButtonControl::clicked, [&]() {
-    if (ConfirmationDialog::confirm(tr("Are you sure you want to reset calibration?"), tr("Reset"), this)) {
-      params.remove("CalibrationParams");
-      params.remove("LiveTorqueParameters");
+    if (!uiState()->engaged()) {
+      if (ConfirmationDialog::confirm(tr("Are you sure you want to reset calibration?"), tr("Reset"), this)) {
+        // Check engaged again in case it changed while the dialog was open
+        if (!uiState()->engaged()) {
+          params.remove("CalibrationParams");
+          params.remove("LiveTorqueParameters");
+          params.remove("LiveParameters");
+          params.remove("LiveParametersV2");
+          params.remove("LiveDelay");
+          params.putBool("OnroadCycleRequested", true);
+          updateCalibDescription();
+        }
+      }
+    } else {
+      ConfirmationDialog::alert(tr("Disengage to Reset Calibration"), this);
     }
   });
   addItem(resetCalibBtn);
@@ -451,7 +510,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   });
   QObject::connect(uiState(), &UIState::offroadTransition, [=](bool offroad) {
     for (auto btn : findChildren<ButtonControl *>()) {
-      if (btn != pair_device) {
+      if (btn != pair_device && btn != resetCalibBtn) {
         btn->setEnabled(offroad);
       }
     }
@@ -485,9 +544,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
 }
 
 void DevicePanel::updateCalibDescription() {
-  QString desc =
-      tr("openpilot requires the device to be mounted within 4° left or right and "
-         "within 5° up or 9° down. openpilot is continuously calibrating, resetting is rarely required.");
+  QString desc = tr("openpilot requires the device to be mounted within 4° left or right and within 5° up or 9° down.");
   std::string calib_bytes = params.get("CalibrationParams");
   if (!calib_bytes.empty()) {
     try {
@@ -505,7 +562,48 @@ void DevicePanel::updateCalibDescription() {
       qInfo() << "invalid CalibrationParams";
     }
   }
-  qobject_cast<ButtonControl *>(sender())->setDescription(desc);
+
+  int lag_perc = 0;
+  std::string lag_bytes = params.get("LiveDelay");
+  if (!lag_bytes.empty()) {
+    try {
+      AlignedBuffer aligned_buf;
+      capnp::FlatArrayMessageReader cmsg(aligned_buf.align(lag_bytes.data(), lag_bytes.size()));
+      lag_perc = cmsg.getRoot<cereal::Event>().getLiveDelay().getCalPerc();
+    } catch (kj::Exception) {
+      qInfo() << "invalid LiveDelay";
+    }
+  }
+  if (lag_perc < 100) {
+    desc += tr("\n\nSteering lag calibration is %1% complete.").arg(lag_perc);
+  } else {
+    desc += tr("\n\nSteering lag calibration is complete.");
+  }
+
+  std::string torque_bytes = params.get("LiveTorqueParameters");
+  if (!torque_bytes.empty()) {
+    try {
+      AlignedBuffer aligned_buf;
+      capnp::FlatArrayMessageReader cmsg(aligned_buf.align(torque_bytes.data(), torque_bytes.size()));
+      auto torque = cmsg.getRoot<cereal::Event>().getLiveTorqueParameters();
+      // don't add for non-torque cars
+      if (torque.getUseParams()) {
+        int torque_perc = torque.getCalPerc();
+        if (torque_perc < 100) {
+          desc += tr(" Steering torque response calibration is %1% complete.").arg(torque_perc);
+        } else {
+          desc += tr(" Steering torque response calibration is complete.");
+        }
+      }
+    } catch (kj::Exception) {
+      qInfo() << "invalid LiveTorqueParameters";
+    }
+  }
+
+  desc += "\n\n";
+  desc += tr("openpilot is continuously calibrating, resetting is rarely required. "
+             "Resetting calibration will restart openpilot if the car is powered on.");
+  resetCalibBtn->setDescription(desc);
 }
 
 void DevicePanel::reboot() {
@@ -554,6 +652,7 @@ void SettingsWindow::setCurrentPanel(int index, const QString &param) {
       }
     } else {
       emit expandToggleDescription(param);
+      emit scrollToToggle(param);
     }
   }
 
@@ -594,6 +693,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
 
   TogglesPanel *toggles = new TogglesPanel(this);
   QObject::connect(this, &SettingsWindow::expandToggleDescription, toggles, &TogglesPanel::expandToggleDescription);
+  QObject::connect(this, &SettingsWindow::scrollToToggle, toggles, &TogglesPanel::scrollToToggle);
 
   auto networking = new Networking(this);
   QObject::connect(uiState()->prime_state, &PrimeState::changed, networking, &Networking::setPrimeType);

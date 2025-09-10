@@ -2,7 +2,7 @@ import os
 import capnp
 from opendbc.car.common.basedir import BASEDIR
 
-# TODO: remove car from cereal/__init__.py and always import from opendbc
+# # TODO: remove car from cereal/__init__.py and always import from opendbc
 try:
   from cereal import car
 except ImportError:

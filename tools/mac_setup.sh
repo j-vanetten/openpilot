@@ -28,6 +28,8 @@ if [[ $(command -v brew) == "" ]]; then
     echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> $RC_FILE
     eval "$(/opt/homebrew/bin/brew shellenv)"
   fi
+else
+    brew up
 fi
 
 brew bundle --file=- <<-EOS
@@ -48,6 +50,7 @@ brew "zeromq"
 cask "gcc-arm-embedded"
 brew "portaudio"
 brew "gcc@13"
+cask "font-noto-color-emoji"
 EOS
 
 echo "[ ] finished brew install t=$SECONDS"

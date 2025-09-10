@@ -26,33 +26,6 @@ static void dos_enable_can_transceiver(uint8_t transceiver, bool enabled) {
   }
 }
 
-static void dos_enable_can_transceivers(bool enabled) {
-  for(uint8_t i=1U; i<=4U; i++){
-    // Leave main CAN always on for CAN-based ignition detection
-    if((harness.status == HARNESS_STATUS_FLIPPED) ? (i == 3U) : (i == 1U)){
-      dos_enable_can_transceiver(i, true);
-    } else {
-      dos_enable_can_transceiver(i, enabled);
-    }
-  }
-}
-
-static void dos_set_led(uint8_t color, bool enabled) {
-  switch (color){
-    case LED_RED:
-      set_gpio_output(GPIOC, 9, !enabled);
-      break;
-     case LED_GREEN:
-      set_gpio_output(GPIOC, 7, !enabled);
-      break;
-    case LED_BLUE:
-      set_gpio_output(GPIOC, 6, !enabled);
-      break;
-    default:
-      break;
-  }
-}
-
 static void dos_set_bootkick(BootState state) {
   set_gpio_output(GPIOC, 4, state != BOOT_BOOTKICK);
 }
@@ -89,11 +62,6 @@ static void dos_set_can_mode(uint8_t mode) {
   }
 }
 
-static bool dos_check_ignition(void){
-  // ignition is checked through harness
-  return harness_check_ignition();
-}
-
 static void dos_set_ir_power(uint8_t percentage){
   pwm_set(TIM4, 2, percentage);
 }
@@ -104,6 +72,10 @@ static void dos_set_fan_enabled(bool enabled){
 
 static void dos_set_siren(bool enabled){
   set_gpio_output(GPIOC, 12, enabled);
+}
+
+static uint32_t dos_read_voltage_mV(void){
+  return adc_get_mV(&(const adc_signal_t) ADC_CHANNEL_DEFAULT(ADC1, 12)) * 11U;
 }
 
 static bool dos_read_som_gpio (void){
@@ -117,25 +89,6 @@ static void dos_init(void) {
   set_gpio_alternate(GPIOA, 8, GPIO_AF11_CAN3);
   set_gpio_alternate(GPIOA, 15, GPIO_AF11_CAN3);
 
-  // C0: OBD_SBU1 (orientation detection)
-  // C3: OBD_SBU2 (orientation detection)
-  set_gpio_mode(GPIOC, 0, MODE_ANALOG);
-  set_gpio_mode(GPIOC, 3, MODE_ANALOG);
-
-  // C10: OBD_SBU1_RELAY (harness relay driving output)
-  // C11: OBD_SBU2_RELAY (harness relay driving output)
-  set_gpio_mode(GPIOC, 10, MODE_OUTPUT);
-  set_gpio_mode(GPIOC, 11, MODE_OUTPUT);
-  set_gpio_output_type(GPIOC, 10, OUTPUT_TYPE_OPEN_DRAIN);
-  set_gpio_output_type(GPIOC, 11, OUTPUT_TYPE_OPEN_DRAIN);
-  set_gpio_output(GPIOC, 10, 1);
-  set_gpio_output(GPIOC, 11, 1);
-
-#ifdef ENABLE_SPI
-  // SPI init
-  gpio_spi_init();
-#endif
-
   // C8: FAN PWM aka TIM3_CH3
   set_gpio_alternate(GPIOC, 8, GPIO_AF2_TIM3);
 
@@ -148,30 +101,14 @@ static void dos_init(void) {
   pwm_init(TIM4, 2);
   dos_set_ir_power(0U);
 
-  // Initialize harness
-  harness_init();
-
-
-  // Enable CAN transceivers
-  dos_enable_can_transceivers(true);
-
-  // Disable LEDs
-  dos_set_led(LED_RED, false);
-  dos_set_led(LED_GREEN, false);
-  dos_set_led(LED_BLUE, false);
-
   // Bootkick
   dos_set_bootkick(true);
 
-  // Set normal CAN mode
-  dos_set_can_mode(CAN_MODE_NORMAL);
-
   // Init clock source (camera strobe) using PWM
-  clock_source_init();
+  clock_source_init(false);
 }
 
 static harness_configuration dos_harness_config = {
-  .has_harness = true,
   .GPIO_SBU1 = GPIOC,
   .GPIO_SBU2 = GPIOC,
   .GPIO_relay_SBU1 = GPIOC,
@@ -180,19 +117,13 @@ static harness_configuration dos_harness_config = {
   .pin_SBU2 = 3,
   .pin_relay_SBU1 = 10,
   .pin_relay_SBU2 = 11,
-  .adc_channel_SBU1 = 10,
-  .adc_channel_SBU2 = 13
+  .adc_signal_SBU1 = ADC_CHANNEL_DEFAULT(ADC1, 10),
+  .adc_signal_SBU2 = ADC_CHANNEL_DEFAULT(ADC1, 13),
 };
 
 board board_dos = {
   .harness_config = &dos_harness_config,
-  .has_obd = true,
-#ifdef ENABLE_SPI
-  .has_spi = true,
-#else
   .has_spi = false,
-#endif
-  .has_canfd = false,
   .fan_max_rpm = 6500U,
   .fan_max_pwm = 100U,
   .avdd_mV = 3300U,
@@ -201,11 +132,10 @@ board board_dos = {
   .init = dos_init,
   .init_bootloader = unused_init_bootloader,
   .enable_can_transceiver = dos_enable_can_transceiver,
-  .enable_can_transceivers = dos_enable_can_transceivers,
-  .set_led = dos_set_led,
+  .led_GPIO = {GPIOC, GPIOC, GPIOC},
+  .led_pin = {9, 7, 6},
   .set_can_mode = dos_set_can_mode,
-  .check_ignition = dos_check_ignition,
-  .read_voltage_mV = white_read_voltage_mV,
+  .read_voltage_mV = dos_read_voltage_mV,
   .read_current_mA = unused_read_current,
   .set_fan_enabled = dos_set_fan_enabled,
   .set_ir_power = dos_set_ir_power,

@@ -2,6 +2,8 @@
 // Jungle board v2 (STM32H7) //
 // ///////////////////////// //
 
+#define ADC_CHANNEL(a, c) {.adc = (a), .channel = (c), .sample_time = SAMPLETIME_810_CYCLES, .oversampling = OVERSAMPLING_1}
+
 gpio_t power_pins[] = {
   {.bank = GPIOA, .pin = 0},
   {.bank = GPIOA, .pin = 1},
@@ -47,39 +49,23 @@ gpio_t sbu2_relay_pins[] = {
   {.bank = GPIOE, .pin = 12},
 };
 
-adc_channel_t sbu1_channels[] = {
-  {.adc = ADC3, .channel = 12},
-  {.adc = ADC3, .channel = 2},
-  {.adc = ADC3, .channel = 4},
-  {.adc = ADC3, .channel = 6},
-  {.adc = ADC3, .channel = 8},
-  {.adc = ADC3, .channel = 10},
+const adc_signal_t sbu1_channels[] = {
+  ADC_CHANNEL(ADC3, 12),
+  ADC_CHANNEL(ADC3, 2),
+  ADC_CHANNEL(ADC3, 4),
+  ADC_CHANNEL(ADC3, 6),
+  ADC_CHANNEL(ADC3, 8),
+  ADC_CHANNEL(ADC3, 10),
 };
 
-adc_channel_t sbu2_channels[] = {
-  {.adc = ADC1, .channel = 13},
-  {.adc = ADC3, .channel = 3},
-  {.adc = ADC3, .channel = 5},
-  {.adc = ADC3, .channel = 7},
-  {.adc = ADC3, .channel = 9},
-  {.adc = ADC3, .channel = 11},
+const adc_signal_t sbu2_channels[] = {
+  ADC_CHANNEL(ADC1, 13),
+  ADC_CHANNEL(ADC3, 3),
+  ADC_CHANNEL(ADC3, 5),
+  ADC_CHANNEL(ADC3, 7),
+  ADC_CHANNEL(ADC3, 9),
+  ADC_CHANNEL(ADC3, 11),
 };
-
-void board_v2_set_led(uint8_t color, bool enabled) {
-  switch (color) {
-    case LED_RED:
-      set_gpio_output(GPIOE, 4, !enabled);
-      break;
-     case LED_GREEN:
-      set_gpio_output(GPIOE, 3, !enabled);
-      break;
-    case LED_BLUE:
-      set_gpio_output(GPIOE, 2, !enabled);
-      break;
-    default:
-      break;
-  }
-}
 
 void board_v2_set_harness_orientation(uint8_t orientation) {
   switch (orientation) {
@@ -220,8 +206,7 @@ void board_v2_set_individual_ignition(uint8_t bitmask) {
 float board_v2_get_channel_power(uint8_t channel) {
   float ret = 0.0f;
   if ((channel >= 1U) && (channel <= 6U)) {
-    uint16_t readout = adc_get_mV(ADC1, channel - 1U); // these are mapped nicely in hardware
-
+    uint16_t readout = adc_get_mV(&(const adc_signal_t) ADC_CHANNEL(ADC1, channel - 1U)); // these are mapped nicely in hardware
     ret = (((float) readout / 33e6) - 0.8e-6) / 52e-6 * 12.0f;
   } else {
     print("Invalid channel ("); puth(channel); print(")\n");
@@ -234,10 +219,10 @@ uint16_t board_v2_get_sbu_mV(uint8_t channel, uint8_t sbu) {
   if ((channel >= 1U) && (channel <= 6U)) {
     switch(sbu){
       case SBU1:
-        ret = adc_get_mV(sbu1_channels[channel - 1U].adc, sbu1_channels[channel - 1U].channel);
+        ret = adc_get_mV(&sbu1_channels[channel - 1U]);
         break;
       case SBU2:
-        ret = adc_get_mV(sbu2_channels[channel - 1U].adc, sbu2_channels[channel - 1U].channel);
+        ret = adc_get_mV(&sbu2_channels[channel - 1U]);
         break;
       default:
         print("Invalid SBU ("); puth(sbu); print(")\n");
@@ -251,11 +236,6 @@ uint16_t board_v2_get_sbu_mV(uint8_t channel, uint8_t sbu) {
 
 void board_v2_init(void) {
   common_init_gpio();
-
-  // Disable LEDs
-  board_v2_set_led(LED_RED, false);
-  board_v2_set_led(LED_GREEN, false);
-  board_v2_set_led(LED_BLUE, false);
 
   // Normal CAN mode
   board_v2_set_can_mode(CAN_MODE_NORMAL);
@@ -308,11 +288,11 @@ void board_v2_init(void) {
 void board_v2_tick(void) {}
 
 board board_v2 = {
-  .has_canfd = true,
-  .has_sbu_sense = true,
   .avdd_mV = 3300U,
   .init = &board_v2_init,
-  .set_led = &board_v2_set_led,
+  .init_bootloader = &board_v2_tick,
+  .led_GPIO = {GPIOE, GPIOE, GPIOE},
+  .led_pin = {4, 3, 2},
   .board_tick = &board_v2_tick,
   .get_button = &board_v2_get_button,
   .set_panda_power = &board_v2_set_panda_power,

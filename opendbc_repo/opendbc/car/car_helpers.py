@@ -143,30 +143,30 @@ def fingerprint(can_recv: CanRecvCallable, can_send: CanSendCallable, set_obd_mu
   exact_match = True
   source = CarParams.FingerprintSource.can
 
-  selected = params.get("jvePilot.settings.selectedCar")
+  selected = params.get("jvePilot.settings.selectedCar", return_default=True)
   print(f"Car override selected: {selected}")
-  if selected == b"Grand Cherokee 2018":
+  if selected == "Grand Cherokee 2018":
     fw_candidates = [CHRYSLER_CAR.JEEP_GRAND_CHEROKEE]
     exact_fw_match = True
-  elif selected == b"Grand Cherokee 2019":
+  elif selected == "Grand Cherokee 2019":
     fw_candidates = [CHRYSLER_CAR.JEEP_GRAND_CHEROKEE_2019]
     exact_fw_match = True
-  elif selected == b"Pacifica Hybrid":
+  elif selected == "Pacifica Hybrid":
     fw_candidates = [CHRYSLER_CAR.CHRYSLER_PACIFICA_2018_HYBRID]
     exact_fw_match = True
-  elif selected == b"Pacifica Hybrid 2018":
+  elif selected == "Pacifica Hybrid 2018":
     fw_candidates = [CHRYSLER_CAR.CHRYSLER_PACIFICA_2018_HYBRID]
     exact_fw_match = True
-  elif selected == b"Pacifica Hybrid 2019":
+  elif selected == "Pacifica Hybrid 2019":
     fw_candidates = [CHRYSLER_CAR.CHRYSLER_PACIFICA_2019_HYBRID]
     exact_fw_match = True
-  elif selected == b"Pacifica":
+  elif selected == "Pacifica":
     fw_candidates = [CHRYSLER_CAR.CHRYSLER_PACIFICA_2018]
     exact_fw_match = True
-  elif selected == b"Pacifica 2020":
+  elif selected == "Pacifica 2020":
     fw_candidates = [CHRYSLER_CAR.CHRYSLER_PACIFICA_2020]
     exact_fw_match = True
-  elif selected == b"Durango":
+  elif selected == "Durango":
     fw_candidates = [CHRYSLER_CAR.DODGE_DURANGO]
     exact_fw_match = True
 
@@ -187,8 +187,8 @@ def fingerprint(can_recv: CanRecvCallable, can_send: CanSendCallable, set_obd_mu
   return car_fingerprint, finger, vin, car_fw, source, exact_match
 
 
-def get_car(can_recv: CanRecvCallable, can_send: CanSendCallable, set_obd_multiplexing: ObdCallback, experimental_long_allowed: bool,
-            num_pandas: int = 1, cached_params: CarParamsT | None = None):
+def get_car(can_recv: CanRecvCallable, can_send: CanSendCallable, set_obd_multiplexing: ObdCallback, alpha_long_allowed: bool,
+            is_release: bool, num_pandas: int = 1, cached_params: CarParamsT | None = None):
   candidate, fingerprints, vin, car_fw, source, exact_match = fingerprint(can_recv, can_send, set_obd_multiplexing, num_pandas, cached_params)
 
   if candidate is None:
@@ -196,7 +196,7 @@ def get_car(can_recv: CanRecvCallable, can_send: CanSendCallable, set_obd_multip
     candidate = "MOCK"
 
   CarInterface = interfaces[candidate]
-  CP: CarParams = CarInterface.get_params(candidate, fingerprints, car_fw, experimental_long_allowed, docs=False)
+  CP: CarParams = CarInterface.get_params(candidate, fingerprints, car_fw, alpha_long_allowed, is_release, docs=False)
   CP.carVin = vin
   CP.carFw = car_fw
   CP.fingerprintSource = source

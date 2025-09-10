@@ -18,6 +18,7 @@
 #include <QtXml/QDomDocument>
 
 #include "common/swaglog.h"
+#include "common/util.h"
 #include "system/hardware/hw.h"
 
 QString getVersion() {
@@ -57,6 +58,10 @@ QMap<QString, QString> getSupportedLanguages() {
 }
 
 QString timeAgo(const QDateTime &date) {
+  if (!util::system_time_valid()) {
+    return date.date().toString();
+  }
+
   int diff = date.secsTo(QDateTime::currentDateTimeUtc());
 
   QString s;
@@ -193,8 +198,8 @@ QPixmap bootstrapPixmap(const QString &id) {
 bool hasLongitudinalControl(const cereal::CarParams::Reader &car_params) {
   // Using the experimental longitudinal toggle, returns whether longitudinal control
   // will be active without needing a restart of openpilot
-  //  return car_params.getExperimentalLongitudinalAvailable()
-  //             ? Params().getBool("ExperimentalLongitudinalEnabled")
+  //  return car_params.getAlphaLongitudinalAvailable()
+  //             ? Params().getBool("AlphaLongitudinalEnabled")
   //             : car_params.getOpenpilotLongitudinalControl();
 
   return true;

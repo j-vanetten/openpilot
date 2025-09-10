@@ -52,7 +52,7 @@ Signals are device-dependent structures used for synchronization and timing in H
 The following Python code demonstrates the usage of signals:
 
 ```python
-signal = your_device.signal_t()
+signal = your_device.new_signal(value=0)
 
 HWQueue().timestamp(signal) \
          .signal(signal, value_to_fire) \
@@ -115,9 +115,8 @@ HCQ-compatible devices use a global timeline signal for synchronizing all operat
 ```python
 HWQueue().wait(your_device.timeline_signal, your_device.timeline_value - 1) \
          .exec(...)
-         .signal(your_device.timeline_signal, your_device.timeline_value) \
+         .signal(your_device.timeline_signal, your_device.next_timeline()) \
          .submit(your_device)
-your_device.timeline_value += 1
 
 # Optionally wait for execution
 your_device.timeline_signal.wait(your_device.timeline_value - 1)
