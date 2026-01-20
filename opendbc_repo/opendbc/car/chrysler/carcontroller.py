@@ -209,7 +209,7 @@ class CarController(CarControllerBase):
         CS.brake_hold = False
       elif not button_pressed(CS.out, ButtonType.cancel):
         if enabled and not CS.out.brakePressed:
-          button_counter_offset = [1, 1, 0, None][self.button_frame % 4]
+          button_counter_offset = [1, 1, 0, None, None][self.button_frame % 5]
           if button_counter_offset is not None:
             if resume:
               buttons_to_press = ["ACC_Resume"]
