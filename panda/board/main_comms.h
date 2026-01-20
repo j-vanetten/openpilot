@@ -28,9 +28,7 @@ static int get_health_pkt(void *dat) {
   health->heartbeat_lost_pkt = heartbeat_lost;
   health->safety_rx_checks_invalid_pkt = safety_rx_checks_invalid;
 
-  #ifndef STM32F4
   health->spi_error_count_pkt = spi_error_count;
-  #endif
 
   health->fault_status_pkt = fault_status;
   health->faults_pkt = faults;
@@ -38,7 +36,6 @@ static int get_health_pkt(void *dat) {
   health->interrupt_load_pkt = interrupt_load;
 
   health->fan_power = fan_state.power;
-  health->fan_stall_count = fan_state.total_stall_count;
 
   health->sbu1_voltage_mV = harness.sbu1_voltage_mV;
   health->sbu2_voltage_mV = harness.sbu2_voltage_mV;
@@ -213,13 +210,7 @@ int comms_control_handler(ControlPacket_t *req, uint8_t *resp) {
       break;
     // **** 0xdb: set OBD CAN multiplexing mode
     case 0xdb:
-      if (req->param1 == 1U) {
-        // Enable OBD CAN
-        current_board->set_can_mode(CAN_MODE_OBD_CAN2);
-      } else {
-        // Disable OBD CAN
-        current_board->set_can_mode(CAN_MODE_NORMAL);
-      }
+      current_board->set_can_mode((req->param1 == 1U) ? CAN_MODE_OBD_CAN2 : CAN_MODE_NORMAL);
       break;
     // **** 0xdc: set safety mode
     case 0xdc:
@@ -234,7 +225,7 @@ int comms_control_handler(ControlPacket_t *req, uint8_t *resp) {
       break;
     // **** 0xde: set can bitrate
     case 0xde:
-      if ((req->param1 < PANDA_BUS_CNT) && is_speed_valid(req->param2, speeds, sizeof(speeds)/sizeof(speeds[0]))) {
+      if ((req->param1 < PANDA_CAN_CNT) && is_speed_valid(req->param2, speeds, sizeof(speeds)/sizeof(speeds[0]))) {
         bus_config[req->param1].can_speed = req->param2;
         bool ret = can_init(CAN_NUM_FROM_BUS_NUM(req->param1));
         UNUSED(ret);
@@ -283,7 +274,7 @@ int comms_control_handler(ControlPacket_t *req, uint8_t *resp) {
       if (req->param1 == 0xFFFFU) {
         print("Clearing CAN Rx queue\n");
         can_clear(&can_rx_q);
-      } else if (req->param1 < PANDA_BUS_CNT) {
+      } else if (req->param1 < PANDA_CAN_CNT) {
         print("Clearing CAN Tx queue\n");
         can_clear(can_queues[req->param1]);
       } else {
@@ -302,10 +293,6 @@ int comms_control_handler(ControlPacket_t *req, uint8_t *resp) {
     // **** 0xf6: set siren enabled
     case 0xf6:
       siren_enabled = (req->param1 != 0U);
-      break;
-    // **** 0xf7: set green led enabled
-    case 0xf7:
-      green_led_enabled = (req->param1 != 0U);
       break;
     // **** 0xf8: disable heartbeat checks
     case 0xf8:

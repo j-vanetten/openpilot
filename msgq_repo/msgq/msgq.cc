@@ -87,7 +87,7 @@ int msgq_new_queue(msgq_queue_t * q, const char * path, size_t size){
   assert(size < 0xFFFFFFFF); // Buffer must be smaller than 2^32 bytes
   std::signal(SIGUSR2, sigusr2_handler);
 
-  std::string full_path = "/dev/shm/";
+  std::string full_path = "/dev/shm/msgq_";
   const char* prefix = std::getenv("OPENPILOT_PREFIX");
   if (prefix) {
     full_path += std::string(prefix) + "/";
@@ -105,12 +105,21 @@ int msgq_new_queue(msgq_queue_t * q, const char * path, size_t size){
     close(fd);
     return -1;
   }
-  char * mem = (char*)mmap(NULL, size + sizeof(msgq_header_t), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+  int mmap_flags = MAP_SHARED;
+#ifdef MAP_POPULATE
+  if (std::getenv("MSGQ_PREALLOC")) {
+    mmap_flags |= MAP_POPULATE;
+  }
+#endif
+
+  char * mem = (char*)mmap(NULL, size + sizeof(msgq_header_t), PROT_READ | PROT_WRITE, mmap_flags, fd, 0);
   close(fd);
 
   if (mem == MAP_FAILED){
     return -1;
   }
+
   q->mmap_p = mem;
 
   msgq_header_t *header = (msgq_header_t *)mem;

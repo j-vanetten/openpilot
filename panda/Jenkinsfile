@@ -32,6 +32,7 @@ export GIT_BRANCH=${env.GIT_BRANCH}
 export GIT_COMMIT=${env.GIT_COMMIT}
 export PYTHONPATH=${env.TEST_DIR}/../
 export PYTHONWARNINGS=error
+export LOGLEVEL=debug
 ln -sf /data/openpilot/opendbc_repo/opendbc /data/opendbc
 
 # TODO: this is an agnos issue
@@ -85,7 +86,7 @@ pipeline {
           steps {
             timeout(time: 20, unit: 'MINUTES') {
               script {
-                dockerImage = docker.build("${env.DOCKER_IMAGE_TAG}", "--build-arg CACHEBUST=${env.BUILD_NUMBER} .")
+                dockerImage = docker.build("${env.DOCKER_IMAGE_TAG}", "--build-arg CACHEBUST=${env.GIT_COMMIT} .")
               }
             }
           }
@@ -109,7 +110,7 @@ pipeline {
                   ["build", "scons -j4"],
                   ["flash", "cd scripts/ && ./reflash_internal_panda.py"],
                   ["flash jungle", "cd board/jungle && ./flash.py --all"],
-                  ["test", "cd tests/hitl && HW_TYPES=10 pytest --durations=0 2*.py [5-9]*.py"],
+                  ["test", "cd tests/hitl && pytest --durations=0 2*.py [5-9]*.py"],
                 ])
               }
             }
@@ -121,23 +122,12 @@ pipeline {
                   ["build", "scons -j4"],
                   ["flash", "cd scripts/ && ./reflash_internal_panda.py"],
                   ["flash jungle", "cd board/jungle && ./flash.py --all"],
-                  ["test", "cd tests/hitl && HW_TYPES=9 pytest --durations=0 2*.py [5-9]*.py"],
+                  ["test", "cd tests/hitl && pytest --durations=0 2*.py [5-9]*.py"],
                 ])
               }
             }
 
-            stage('test dos') {
-              agent { docker { image 'ghcr.io/commaai/alpine-ssh'; args '--user=root' } }
-              steps {
-                phone_steps("panda-dos", [
-                  ["build", "scons -j4"],
-                  ["flash", "cd scripts/ && ./reflash_internal_panda.py"],
-                  ["flash jungle", "cd board/jungle && ./flash.py --all"],
-                  ["test", "cd tests/hitl && HW_TYPES=6 pytest --durations=0 [2-9]*.py -k 'not test_send_recv'"],
-                ])
-              }
-            }
-
+            /*
             stage('bootkick tests') {
               steps {
                 script {
@@ -145,6 +135,7 @@ pipeline {
                 }
               }
             }
+            */
           }
         }
       }

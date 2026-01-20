@@ -42,24 +42,6 @@ static void cuatro_set_bootkick(BootState state) {
 }
 
 static void cuatro_set_amp_enabled(bool enabled) {
-  // *** tmp, remove soon ***
-  static const uint8_t olds[][12] = {
-    {0x44, 0x00, 0x10, 0x00, 0x19, 0x51, 0x32, 0x34, 0x39, 0x37, 0x37, 0x30},
-    {0x14, 0x00, 0x13, 0x00, 0x18, 0x51, 0x32, 0x34, 0x39, 0x37, 0x37, 0x30},
-    {0x04, 0x00, 0x30, 0x00, 0x18, 0x51, 0x32, 0x34, 0x39, 0x37, 0x37, 0x30},
-    {0x2f, 0x00, 0x14, 0x00, 0x18, 0x51, 0x32, 0x34, 0x39, 0x37, 0x37, 0x30},
-    {0x1e, 0x00, 0x2f, 0x00, 0x18, 0x51, 0x32, 0x34, 0x39, 0x37, 0x37, 0x30},
-    {0x26, 0x00, 0x15, 0x00, 0x19, 0x51, 0x32, 0x34, 0x39, 0x37, 0x37, 0x30},
-    {0x35, 0x00, 0x32, 0x00, 0x18, 0x51, 0x32, 0x34, 0x39, 0x37, 0x37, 0x30},
-    {0x37, 0x00, 0x2f, 0x00, 0x18, 0x51, 0x32, 0x34, 0x39, 0x37, 0x37, 0x30},
-  };
-  bool is_old = false;
-  for (uint8_t i = 0U; i < (sizeof(olds) / sizeof(olds[0])); i++) {
-    is_old |= (memcmp(olds[i], ((uint8_t *)UID_BASE), 12) == 0);
-  }
-  if (is_old) set_gpio_output(GPIOA, 5, enabled);
-  // *** tmp end ***
-
   set_gpio_output(GPIOB, 0, enabled);
 }
 
@@ -132,10 +114,8 @@ static harness_configuration cuatro_harness_config = {
 board board_cuatro = {
   .harness_config = &cuatro_harness_config,
   .has_spi = true,
-  .fan_max_rpm = 12500U,
-  .fan_max_pwm = 99U, // it can go up to 14k RPM, but 99% -> 100% is very non-linear
+  .has_fan = true,
   .avdd_mV = 1800U,
-  .fan_stall_recovery = false,
   .fan_enable_cooldown_time = 3U,
   .init = cuatro_init,
   .init_bootloader = unused_init_bootloader,
@@ -148,7 +128,7 @@ board board_cuatro = {
   .read_current_mA = cuatro_read_current_mA,
   .set_fan_enabled = cuatro_set_fan_enabled,
   .set_ir_power = unused_set_ir_power,
-  .set_siren = unused_set_siren,
+  .set_siren = fake_siren_set,
   .set_bootkick = cuatro_set_bootkick,
   .read_som_gpio = tres_read_som_gpio,
   .set_amp_enabled = cuatro_set_amp_enabled

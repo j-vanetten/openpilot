@@ -3,16 +3,8 @@
 #include "board/drivers/spi_declarations.h"
 #include "board/crc.h"
 
-#ifdef STM32H7
-#define SPI_BUF_SIZE 2048U
-// H7 DMA2 located in D2 domain, so we need to use SRAM1/SRAM2
-__attribute__((section(".sram12"))) uint8_t spi_buf_rx[SPI_BUF_SIZE];
-__attribute__((section(".sram12"))) uint8_t spi_buf_tx[SPI_BUF_SIZE];
-#else
-#define SPI_BUF_SIZE 1024U
 uint8_t spi_buf_rx[SPI_BUF_SIZE];
 uint8_t spi_buf_tx[SPI_BUF_SIZE];
-#endif
 
 uint16_t spi_error_count = 0;
 
@@ -208,7 +200,7 @@ void spi_rx_done(void) {
   llspi_miso_dma(spi_buf_tx, response_len);
 
   spi_state = next_rx_state;
-  if (!checksum_valid && (spi_error_count < UINT16_MAX)) {
+  if (!checksum_valid) {
     spi_error_count += 1U;
   }
 }

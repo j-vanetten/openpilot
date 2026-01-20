@@ -11,6 +11,7 @@
 
 #include "cereal/gen/cpp/car.capnp.h"
 #include "cereal/messaging/messaging.h"
+#include "cereal/services.h"
 #include "common/ratekeeper.h"
 #include "common/swaglog.h"
 #include "common/timing.h"
@@ -66,7 +67,7 @@ Panda *connect(std::string serial="", uint32_t index=0) {
   }
   //panda->enable_deepsleep();
 
-  for (int i = 0; i < PANDA_BUS_CNT; i++) {
+  for (int i = 0; i < PANDA_CAN_CNT; i++) {
     panda->set_can_fd_auto(i, true);
   }
 
@@ -82,7 +83,7 @@ void can_send_thread(std::vector<Panda *> pandas, bool fake_send) {
 
   AlignedBuffer aligned_buf;
   std::unique_ptr<Context> context(Context::create());
-  std::unique_ptr<SubSocket> subscriber(SubSocket::create(context.get(), "sendcan"));
+  std::unique_ptr<SubSocket> subscriber(SubSocket::create(context.get(), "sendcan", "127.0.0.1", false, true, services.at("sendcan").queue_size));
   assert(subscriber != NULL);
   subscriber->setTimeout(100);
 
@@ -152,7 +153,6 @@ void fill_panda_state(cereal::PandaState::Builder &ps, cereal::PandaState::Panda
   ps.setHarnessStatus(cereal::PandaState::HarnessStatus(health.car_harness_status_pkt));
   ps.setInterruptLoad(health.interrupt_load_pkt);
   ps.setFanPower(health.fan_power);
-  ps.setFanStallCount(health.fan_stall_count);
   ps.setSafetyRxChecksInvalid((bool)(health.safety_rx_checks_invalid_pkt));
   ps.setSpiErrorCount(health.spi_error_count_pkt);
   ps.setSbu1Voltage(health.sbu1_voltage_mV / 1000.0f);
@@ -366,14 +366,19 @@ void process_panda_state(std::vector<Panda *> &pandas, PubMaster *pm, bool engag
 }
 
 void process_peripheral_state(Panda *panda, PubMaster *pm, bool no_fan_control) {
+  static Params params;
   static SubMaster sm({"deviceState", "driverCameraState"});
 
   static uint64_t last_driver_camera_t = 0;
   static uint16_t prev_fan_speed = 999;
   static int ir_pwr = 0;
   static int prev_ir_pwr = 999;
+  static uint32_t prev_frame_id = UINT32_MAX;
+  static bool driver_view = false;
 
+  // TODO: can we merge these?
   static FirstOrderFilter integ_lines_filter(0, 30.0, 0.05);
+  static FirstOrderFilter integ_lines_filter_driver_view(0, 5.0, 0.05);
 
   {
     sm.update(0);
@@ -390,7 +395,15 @@ void process_peripheral_state(Panda *panda, PubMaster *pm, bool no_fan_control) 
       auto event = sm["driverCameraState"];
       int cur_integ_lines = event.getDriverCameraState().getIntegLines();
 
-      cur_integ_lines = integ_lines_filter.update(cur_integ_lines);
+      // reset the filter when camerad restarts
+      if (event.getDriverCameraState().getFrameId() < prev_frame_id) {
+        integ_lines_filter.reset(0);
+        integ_lines_filter_driver_view.reset(0);
+        driver_view = params.getBool("IsDriverViewEnabled");
+      }
+      prev_frame_id = event.getDriverCameraState().getFrameId();
+
+      cur_integ_lines = (driver_view ? integ_lines_filter_driver_view : integ_lines_filter).update(cur_integ_lines);
       last_driver_camera_t = event.getLogMonoTime();
 
       if (cur_integ_lines <= CUTOFF_IL) {
