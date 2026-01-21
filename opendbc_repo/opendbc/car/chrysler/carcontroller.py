@@ -267,6 +267,9 @@ class CarController(CarControllerBase):
 
   def auto_follow_button(self, CC, CS):
     if CS.out.jvePilotCarState.autoFollow:
+      if CS.out.jvePilotCarState.pedalPressedAmount < 0 and CS.out.vEgo > 0:
+        return None
+
       crossover = [0,
                    self.cachedParams.get_float('jvePilot.settings.autoFollow.speed1-2Bars', 1000) * CV.MPH_TO_MS,
                    self.cachedParams.get_float('jvePilot.settings.autoFollow.speed2-3Bars', 1000) * CV.MPH_TO_MS,
