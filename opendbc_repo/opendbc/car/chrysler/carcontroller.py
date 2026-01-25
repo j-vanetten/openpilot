@@ -267,7 +267,7 @@ class CarController(CarControllerBase):
 
   def auto_follow_button(self, CC, CS):
     if CS.out.jvePilotCarState.autoFollow:
-      if CS.out.jvePilotCarState.pedalPressedAmount < 0 and CS.out.vEgo > 0:
+      if CS.out.jvePilotCarState.pedalPressedAmount < 0 and CS.out.vEgo > AUTO_FOLLOW_LOCK_MS:
         return None
 
       crossover = [0,
