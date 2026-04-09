@@ -23,6 +23,7 @@ V_CRUISE_MIN_MS = V_CRUISE_MIN * CV.KPH_TO_MS
 AUTO_FOLLOW_LOCK_MS = 3 * CV.MPH_TO_MS
 EXTEND_FUTURE_ACCEL = 10 * CV.MPH_TO_MS
 COAST_DECEL = 3 * CV.MPH_TO_MS
+MAX_FUTURE_DECEL = 6 * CV.MPH_TO_MS
 
 cachedParams = CachedParams()
 
@@ -238,7 +239,7 @@ class CarController(CarControllerBase):
       eco_limit = self.cachedParams.get_float('jvePilot.settings.accEco.speedAheadLevel2', 1000)
 
     if len(self.sm['longitudinalPlan'].speeds):
-      extendFuture = clip(mean(self.sm['longitudinalPlan'].accels) * 4, -COAST_DECEL, EXTEND_FUTURE_ACCEL)
+      extendFuture = clip(mean(self.sm['longitudinalPlan'].accels) * 4, -MAX_FUTURE_DECEL, EXTEND_FUTURE_ACCEL)
       targetFuture = mean(self.sm['longitudinalPlan'].speeds) + extendFuture + CV.KPH_TO_MS / 2
     else:
       targetFuture = 0
